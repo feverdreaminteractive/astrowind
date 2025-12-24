@@ -105,9 +105,9 @@ const CareerAssistant: React.FC = () => {
 
   const suggestedQuestions = [
     "What's Ryan's technical background?",
-    "Tell me about his leadership experience",
+    "Tell me about his time in Austin",
     "What projects has he built?",
-    "What makes him unique as a developer?"
+    "What's he like as a person?"
   ];
 
   const getMessageIcon = (type: Message['type']) => {
