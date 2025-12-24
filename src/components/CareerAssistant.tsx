@@ -404,46 +404,20 @@ const CareerAssistant: React.FC = () => {
     utterance.pitch = 1.0;
     utterance.volume = 0.8;
 
-    // Use a specific preferred voice for professional sound
+    // Use Alex voice consistently across all platforms
     const voices = window.speechSynthesis.getVoices();
 
-    // Debug: Log all available voices (remove this later)
-    console.log('Available voices:');
-    voices.forEach((voice, index) => {
-      console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.localService ? 'Local' : 'Remote'}`);
-    });
+    // Find Alex voice first, then fallback to similar professional male voices
+    let selectedVoice = voices.find(voice => voice.name === 'Alex');
 
-    // Priority order for best interview/professional voices
-    const preferredVoiceNames = [
-      'Samantha',           // macOS - Natural, professional female
-      'Alex',               // macOS - Professional male
-      'Ava (Premium)',      // iOS/macOS - High quality female
-      'Microsoft Aria Online (Natural)', // Windows - Professional female
-      'Microsoft Guy Online (Natural)',  // Windows - Professional male
-      'Google UK English Female',        // Chrome - Clear female
-      'Google UK English Male',          // Chrome - Clear male
-      'Microsoft Zira Desktop',          // Windows - Reliable female
-      'Microsoft David Desktop'          // Windows - Reliable male
-    ];
-
-    let selectedVoice = null;
-
-    // Try to find preferred voices in order
-    for (const voiceName of preferredVoiceNames) {
-      const voice = voices.find(v => v.name === voiceName);
-      if (voice) {
-        selectedVoice = voice;
-        break;
-      }
-    }
-
-    // Fallback to any high-quality English voice
     if (!selectedVoice) {
+      // Fallback to other professional male voices if Alex not available
       const fallbackVoices = voices.filter(voice =>
-        voice.lang.startsWith('en') &&
-        (voice.name.includes('Enhanced') ||
-         voice.name.includes('Premium') ||
-         voice.name.includes('Natural'))
+        voice.lang.startsWith('en') && (
+          voice.name.includes('David') ||
+          voice.name.includes('Guy') ||
+          voice.name.includes('Male')
+        )
       );
 
       if (fallbackVoices.length > 0) {
