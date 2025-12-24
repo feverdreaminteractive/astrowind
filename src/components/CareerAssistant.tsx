@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faRobot, faLightbulb, faComments, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
-import { Card, Button, TextInput, Badge, Spinner } from 'flowbite-react';
+// Using custom styled components instead of Flowbite due to Tailwind v4 compatibility
 
 interface Message {
   id: string;
@@ -144,9 +144,9 @@ const CareerAssistant: React.FC = () => {
 
   return (
     <section className="w-full max-w-2xl mb-12">
-      <Card className="overflow-hidden">
+      <div className="bg-white dark:bg-primary-900 shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-6 -m-6 mb-6">
+        <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-6">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
               <FontAwesomeIcon icon={faRobot} className="text-white text-xl" />
@@ -193,17 +193,17 @@ const CareerAssistant: React.FC = () => {
           ))}
 
           {isLoading && (
-            <Card className="border-purple-200 bg-purple-50">
+            <div className="border border-purple-200 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
               <div className="flex items-center space-x-3">
                 <FontAwesomeIcon icon={faRobot} className="text-purple-600" />
                 <div className="flex items-center space-x-2">
-                  <Spinner size="sm" color="purple" />
-                  <span className="text-sm text-purple-700">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-600 border-t-transparent"></div>
+                  <span className="text-sm text-purple-700 dark:text-purple-300">
                     Thinking...
                   </span>
                 </div>
               </div>
-            </Card>
+            </div>
           )}
 
           <div ref={messagesEndRef} />
@@ -218,47 +218,45 @@ const CareerAssistant: React.FC = () => {
               </p>
               <div className="flex flex-wrap gap-2">
                 {suggestedQuestions.map((question, index) => (
-                  <Badge
+                  <button
                     key={index}
-                    color="purple"
-                    size="sm"
-                    className="cursor-pointer hover:bg-purple-200 transition-colors"
                     onClick={() => setInput(question)}
+                    className="px-3 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
                   >
                     {question}
-                  </Badge>
+                  </button>
                 ))}
               </div>
             </div>
           )}
 
           <div className="flex space-x-3">
-            <TextInput
+            <input
+              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Ask me about Ryan's experience..."
               disabled={isLoading}
-              className="flex-1"
+              className="flex-1 px-3 py-2 text-sm border border-primary-300 dark:border-primary-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-primary-800 dark:text-primary-100 disabled:opacity-50"
             />
-            <Button
+            <button
               onClick={handleSendMessage}
               disabled={!input.trim() || isLoading}
-              color="purple"
-              size="md"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-primary-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium flex items-center space-x-2"
             >
               {isLoading ? (
-                <Spinner size="sm" />
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
               ) : (
                 <>
-                  <FontAwesomeIcon icon={faPaperPlane} className="mr-2" />
-                  Ask
+                  <FontAwesomeIcon icon={faPaperPlane} className="w-4 h-4" />
+                  <span>Ask</span>
                 </>
               )}
-            </Button>
+            </button>
           </div>
         </div>
-      </Card>
+      </div>
     </section>
   );
 };
