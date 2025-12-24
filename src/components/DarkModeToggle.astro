@@ -1,0 +1,39 @@
+---
+import { Icon } from 'astro-icon/components';
+---
+
+<button
+	id="theme-toggle"
+	type="button"
+	class="fixed top-5 right-5 z-50 flex h-9 w-9 items-center justify-center overflow-hidden rounded-md bg-primary-50 shadow-[0_1px_3px_rgba(0,0,0,0.05)] transition-all duration-300 hover:bg-primary-100 dark:bg-primary-800/40 dark:hover:bg-primary-800/60 group cursor-pointer"
+	aria-label="Toggle dark mode"
+>
+	<span class="absolute inset-0 opacity-0 group-hover:opacity-100">
+		<span class="absolute inset-y-0 left-0 w-[2px] bg-gradient-to-b from-primary-300/40 to-primary-400/10 dark:from-primary-700/20 dark:to-primary-800/5"></span>
+	</span>
+	<!-- Dark mode icon (sun) -->
+	<Icon
+		name="lucide:sun"
+		class="size-4 hidden text-primary-500 transition-colors duration-300 group-hover:text-primary-700 dark:block dark:text-primary-400 dark:group-hover:text-primary-200"
+	/>
+	<!-- Light mode icon (moon) -->
+	<Icon
+		name="lucide:moon"
+		class="size-4 block text-primary-500 transition-colors duration-300 group-hover:text-primary-700 dark:hidden dark:text-primary-400 dark:group-hover:text-primary-200"
+	/>
+</button>
+
+<script>
+	const themeToggle = document.getElementById('theme-toggle');
+
+	function toggleDarkMode() {
+		const html = document.documentElement;
+		html.classList.toggle('dark');
+
+		// Update localStorage
+		const isDark = html.classList.contains('dark');
+		localStorage.setItem('theme', isDark ? 'dark' : 'light');
+	}
+
+	themeToggle?.addEventListener('click', toggleDarkMode);
+</script>

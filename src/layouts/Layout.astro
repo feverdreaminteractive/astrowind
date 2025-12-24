@@ -1,0 +1,30 @@
+---
+import "../styles/global.css";
+import BaseHead from "../components/BaseHead.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+
+interface Props {
+	title?: string;
+	description?: string;
+}
+
+const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en" class="bg-primary-50 text-primary-900 dark:bg-primary-950 dark:text-primary-200 transition-colors duration-300">
+	<head>
+		<BaseHead title={title} description={description} />
+	</head>
+	<body>
+		<div class="fixed inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.15] dark:opacity-[0.07] pointer-events-none"></div>
+		<slot />
+	</body>
+</html>
+
+<script is:inline>
+	document.documentElement.classList.toggle(
+		'dark',
+		localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
+	)
+</script>

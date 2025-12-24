@@ -1,0 +1,104 @@
+---
+import { Image } from 'astro:assets';
+import { PROFILE_CONFIG } from '../consts';
+
+interface Props {
+  name?: string;
+  title?: string;
+  bio?: string;
+  image?: ImageMetadata;
+}
+
+const {
+  name = PROFILE_CONFIG.name,
+  title = PROFILE_CONFIG.title,
+  bio = PROFILE_CONFIG.bio,
+  image = PROFILE_CONFIG.avatar
+} = Astro.props;
+---
+
+<div class="relative flex flex-col items-center mb-14">
+  <!-- Decorative background elements -->
+  <div class="absolute top-12 left-1/2 -translate-x-1/2 w-56 h-56 rounded-full bg-primary-100/30 dark:bg-primary-800/10 blur-3xl -z-10 opacity-60"></div>
+  <div class="absolute top-24 left-1/2 -translate-x-1/2 w-28 h-28 rounded-full bg-primary-200/40 dark:bg-primary-800/20 blur-2xl -z-10 animate-pulse opacity-50"></div>
+
+  <!-- Profile image with creative styling -->
+  <div class="relative mb-8 sm:mb-10">
+    <div class="absolute -inset-0.5 bg-gradient-to-r from-primary-200 via-primary-200 to-primary-300 dark:from-primary-800/50 dark:via-primary-700/30 dark:to-primary-700/50 rounded-full opacity-70 blur-sm"></div>
+    <div class="absolute inset-0 bg-gradient-to-r from-primary-300/20 via-primary-200/20 to-primary-200/20 dark:from-primary-700/20 dark:via-primary-700/10 dark:to-primary-800/20 rounded-full animate-gradient-xy"></div>
+
+    <div class="relative p-0.5 rounded-full backdrop-blur">
+      <div class="relative z-10 rounded-full overflow-hidden p-0.5 bg-white dark:bg-primary-950 ring-1 ring-primary-100/90 dark:ring-primary-800/50">
+        <Image
+          src={image}
+          alt={name}
+          width={140}
+          height={140}
+          densities={[1.5, 2]}
+          quality={90}
+          loading="eager"
+          class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover transition-all duration-300"
+        />
+        <!-- Subtle overlay for depth -->
+        <div class="absolute inset-0 rounded-full bg-gradient-to-b from-transparent to-black/10 dark:to-black/30 opacity-40"></div>
+      </div>
+    </div>
+
+    <!-- Decorative rings -->
+    <div class="absolute -inset-3 border border-dashed border-primary-300/30 dark:border-primary-700/20 rounded-full rotate-12"></div>
+    <div class="absolute -inset-6 border border-dashed border-primary-200/40 dark:border-primary-800/20 rounded-full -rotate-6"></div>
+  </div>
+
+  <!-- Text content with creative styling -->
+  <div class="text-center px-6 sm:px-0 max-w-md">
+    <div class="mb-2 sm:mb-3">
+      <h1
+        class="text-2xl sm:text-3xl font-medium font-primary text-primary-950 dark:text-primary-100 transition-colors duration-300 tracking-tight relative"
+        set:html={name}
+      />
+      <div class="h-[2px] w-20 mx-auto mt-2 bg-gradient-to-r from-transparent via-primary-400/40 to-transparent dark:via-primary-600/30"></div>
+    </div>
+
+    <p
+      class="text-sm sm:text-base text-primary-600 dark:text-primary-400 transition-colors duration-300 mb-4 sm:mb-6 font-medium"
+      set:html={title}
+    />
+
+    <p
+      class="text-[.9375rem] text-primary-500 dark:text-primary-400 transition-colors duration-300 max-w-lg mx-auto leading-relaxed text-balance"
+      set:html={bio}
+    />
+  </div>
+</div>
+
+<style>
+  @keyframes gradient-xy {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient-xy {
+    background-size: 200% 200%;
+    animation: gradient-xy 15s ease infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 0.5;
+    }
+    50% {
+      opacity: 0.3;
+    }
+  }
+
+  .animate-pulse {
+    animation: pulse 8s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+</style>

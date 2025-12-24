@@ -1,0 +1,23 @@
+{
+	"name": "feverdream-portfolio",
+	"type": "module",
+	"version": "1.0.0",
+	"scripts": {
+		"dev": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"astro": "astro"
+	},
+	"dependencies": {
+		"@astrojs/sitemap": "^3.6.0",
+		"@iconify-json/lucide": "^1.2.26",
+		"@iconify-json/simple-icons": "^1.2.24",
+		"@tailwindcss/vite": "^4.0.1",
+		"astro": "^5.15.0",
+		"astro-font": "^0.1.81",
+		"astro-icon": "^1.1.5",
+		"sharp": "^0.33.5",
+		"tailwindcss": "^4.0.1"
+	},
+	"packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
+}

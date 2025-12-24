@@ -1,0 +1,60 @@
+---
+import { Icon } from 'astro-icon/components';
+
+interface Props {
+	title: string;
+	description: string;
+	href: string;
+	target: '_blank' | '_self';
+}
+
+const { title, description, href, target } = Astro.props;
+---
+
+<a
+	href={href}
+	target={target}
+	rel="noopener noreferrer"
+	class="group relative block w-full overflow-hidden rounded-lg bg-white dark:bg-primary-900/80 p-5 pb-5.5 pr-6 pl-5 shadow-[0_2px_8px_rgba(0,0,0,0.04)] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] sm:pl-6"
+>
+	<div class="absolute inset-0 bg-gradient-to-r from-primary-50/80 via-transparent to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-primary-800/5" />
+	<div class="relative z-10 flex items-center justify-between gap-4">
+		<div class="flex-1">
+			<h2
+				class="mb-2 font-primary text-base font-medium text-primary-950 transition-colors duration-300 dark:text-primary-100 sm:text-lg border-b border-accent-200/20 dark:border-accent-700/10 inline-block pb-0.5"
+				set:html={title}
+			/>
+			<p
+				class="text-xs leading-relaxed text-primary-500 transition-colors duration-300 dark:text-primary-400 sm:text-sm max-w-[95%]"
+				set:html={description}
+			/>
+		</div>
+		<div class="flex-shrink-0">
+			<div class="flex h-8 w-8 items-center justify-center overflow-hidden rounded-md bg-primary-50 transition-all duration-300 dark:bg-primary-800/50 group-hover:bg-accent-100/50 dark:group-hover:bg-accent-900/20 sm:h-9 sm:w-9">
+				<Icon
+					name="lucide:arrow-right"
+					class="size-3.5 text-primary-500 transition-colors duration-300 group-hover:text-accent-600 dark:text-primary-400 dark:group-hover:text-accent-400 sm:size-4"
+				/>
+			</div>
+		</div>
+	</div>
+</a>
+
+<style>
+	@keyframes gradient-xy {
+		0% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
+		100% {
+			background-position: 0% 50%;
+		}
+	}
+
+	.animate-gradient-xy {
+		background-size: 200% 200%;
+		animation: gradient-xy 15s ease infinite;
+	}
+</style>

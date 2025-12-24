@@ -1,0 +1,33 @@
+---
+import { Icon } from 'astro-icon/components';
+import { SOCIAL_LINKS } from '../consts';
+---
+
+<div class="flex flex-wrap justify-center gap-3.5 sm:gap-4 mb-14 px-3">
+	{
+		SOCIAL_LINKS.map((social) => (
+			<a
+				href={social.href}
+				class="group relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-md bg-primary-50 shadow-[0_1px_3px_rgba(0,0,0,0.05)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-primary-100 hover:shadow-[0_2px_5px_rgba(0,0,0,0.08)] dark:bg-primary-800/40 dark:hover:bg-primary-800/60 sm:h-10 sm:w-10"
+				title={social.name}
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				<span class="absolute inset-0 opacity-0 group-hover:opacity-100">
+					<span class="absolute inset-y-0 left-0 w-[2px] bg-gradient-to-b from-primary-300/40 to-primary-400/10 dark:from-primary-700/20 dark:to-primary-800/5"></span>
+				</span>
+				<Icon
+					name={social.icon}
+					class="relative size-4 text-primary-500 transition-colors duration-300 group-hover:text-primary-700 dark:text-primary-400 dark:group-hover:text-primary-200 sm:size-[1.125rem]"
+				/>
+			</a>
+		))
+	}
+</div>
+
+<style>
+	/* Fix for SVG icon transition */
+	:global(svg) {
+		transition-duration: 0ms !important;
+	}
+</style>

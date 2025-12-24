@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+	/* Core colors */
+	--color-white: oklch(1 0 0);
+	--color-black: oklch(0 0 0);
+
+	/* Primary colors - Grayscale */
+	--color-primary-50: oklch(0.984 0.003 247.858);  /* gray-50 */
+	--color-primary-100: oklch(0.968 0.007 247.896); /* gray-100 */
+	--color-primary-200: oklch(0.929 0.013 255.508); /* gray-200 */
+	--color-primary-300: oklch(0.869 0.022 252.894); /* gray-300 */
+	--color-primary-400: oklch(0.704 0.04 256.788);  /* gray-400 */
+	--color-primary-500: oklch(0.554 0.046 257.417); /* gray-500 */
+	--color-primary-600: oklch(0.446 0.043 257.281); /* gray-600 */
+	--color-primary-700: oklch(0.372 0.044 257.287); /* gray-700 */
+	--color-primary-800: oklch(0.175 0.025 265);     /* off-black */
+	--color-primary-900: oklch(0.12 0.015 265);      /* darker off-black */
+	--color-primary-950: oklch(0.09 0.01 265);       /* deepest off-black */
+
+  --font-primary: "Sora", sans-serif;
+  --font-secondary: "Inter", sans-serif;
+}
+
+/* Base transitions */
+body {
+	transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Ensure SVG icons have fast transitions */
+svg, svg *, [astro-icon], [astro-icon] * {
+	transition-duration: 50ms !important;
+	transition-property: fill, stroke, color !important;
+}
+
+/* Refined typography */
+:root {
+	--font-body-spacing: -0.01em;
+	--font-heading-spacing: -0.03em;
+}
+
+html {
+	letter-spacing: var(--font-body-spacing);
+	line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6, .font-primary {
+	letter-spacing: var(--font-heading-spacing);
+	line-height: 1.25;
+}
