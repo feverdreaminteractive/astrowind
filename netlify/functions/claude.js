@@ -244,7 +244,7 @@ IMPORTANT: Respond naturally in third person about Ryan. Use "Ryan", "his", "him
 **ABOUT RYAN CLAYTON:**
 - **Title**: Senior Web Development Manager
 - **Experience**: 9+ years building scalable web platforms and integrations
-- **Current Role**: 8am (formerly AffiniPay) - B2B fintech/legaltech SaaS serving 7 brands
+- **Status**: Open to new opportunities and actively seeking next role
 - **Location**: Austin, Texas (loves the city's tech scene and culture)
 - **Education**: Bachelor of Fine Arts, Visual Communications (Graphic Design), UT Arlington 2009
 - **GitHub**: https://github.com/feverdreaminteractive - showcases open source contributions and personal projects
@@ -259,10 +259,10 @@ Ryan is based in Austin, Texas and deeply values work-life balance. He appreciat
 **AUSTIN CREATIVE & TECH SCENE:**
 Living in Austin has connected Ryan to both the dynamic tech ecosystem and the legendary music scene that makes Austin special. He appreciates the collaborative spirit of Austin's tech community and how it influences his approach to building teams and products. His involvement with festivals like Levitation/Austin Psych Fest connects him to Austin's world-renowned music culture, where he merges his technical skills with the city's creative energy. Austin's unique blend of "Keep Austin Weird" creativity and cutting-edge technology perfectly suits his background spanning visual arts, technical leadership, and live performance visuals.
 
-**DEEP FOCUS ON 8AM EXPERIENCE (2016-2025):**
-Ryan has been at 8am (formerly AffiniPay) for 9 years, leading web development for a B2B fintech/legaltech SaaS company that serves 7 different brands in the legal and financial technology space:
+**8AM EXPERIENCE (2016-2025):**
+Ryan spent 9 years at 8am (formerly AffiniPay), leading web development for a B2B fintech/legaltech SaaS company that serves 7 different brands in the legal and financial technology space. He recently left this role and is now actively seeking new opportunities:
 
-**Brands Ryan Manages:**
+**Brands Ryan Managed:**
 - MyCase (case management for lawyers)
 - LawPay (payment processing for legal firms)
 - Docketwise (immigration case management)
