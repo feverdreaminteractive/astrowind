@@ -18,6 +18,7 @@ const CareerAssistant: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [lastQuestionWasVoice, setLastQuestionWasVoice] = useState(false);
   const [speechRecognition, setSpeechRecognition] = useState<SpeechRecognition | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -111,6 +112,12 @@ const CareerAssistant: React.FC = () => {
             transcript_length: transcript.length
           });
         }
+
+        // Auto-send the voice input to create interview experience
+        setTimeout(() => {
+          sendMessageWithContent(transcript, true); // true = was voice input
+          setInput(''); // Clear input after sending
+        }, 100);
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -165,8 +172,11 @@ const CareerAssistant: React.FC = () => {
     }
   }, [messages]);
 
-  const sendMessageWithContent = async (messageContent: string) => {
+  const sendMessageWithContent = async (messageContent: string, wasVoiceInput = false) => {
     if (!messageContent.trim() || isLoading) return;
+
+    // Update voice flag based on how the message was sent
+    setLastQuestionWasVoice(wasVoiceInput);
 
     const userMessage: Message = {
       id: `user_${Date.now()}`,
@@ -266,13 +276,16 @@ const CareerAssistant: React.FC = () => {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // Auto-speak the response if voice is enabled
-      if (voiceEnabled) {
+      // Auto-speak the response ONLY if the question was asked via microphone (interview mode)
+      if (voiceEnabled && lastQuestionWasVoice) {
         // Small delay to let the message render first
         setTimeout(() => {
           speakText(data.message);
         }, 500);
       }
+
+      // Reset voice question flag after processing
+      setLastQuestionWasVoice(false);
     } catch (error) {
       console.error('Error calling Claude API:', error);
 
@@ -290,19 +303,10 @@ const CareerAssistant: React.FC = () => {
   };
 
   const handleSendMessage = async () => {
-    if (!input.trim() || isLoading) return;
-
-    const userMessage: Message = {
-      id: `user_${Date.now()}`,
-      type: 'user',
-      content: input,
-      timestamp: new Date()
-    };
-
-    setMessages(prev => [...prev, userMessage]);
     const userInput = input;
     setInput('');
-    setIsLoading(true);
+    await sendMessageWithContent(userInput, false); // false = not voice input
+  };
 
     try {
       const response = await fetch('/.netlify/functions/claude', {
