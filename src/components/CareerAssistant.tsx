@@ -63,6 +63,61 @@ const CareerAssistant: React.FC = () => {
     }
   }, [messages]);
 
+  const sendMessageWithContent = async (messageContent: string) => {
+    if (!messageContent.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: `user_${Date.now()}`,
+      type: 'user',
+      content: messageContent,
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsLoading(true);
+
+    try {
+      const response = await fetch('/.netlify/functions/claude', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: messageContent
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      const assistantMessage: Message = {
+        id: `assistant_${Date.now()}`,
+        type: 'assistant',
+        content: data.message,
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('Error calling Claude API:', error);
+
+      const errorMessage: Message = {
+        id: `error_${Date.now()}`,
+        type: 'system',
+        content: 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.',
+        timestamp: new Date()
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -234,15 +289,7 @@ const CareerAssistant: React.FC = () => {
                 {suggestedQuestions.map((question, index) => (
                   <button
                     key={index}
-                    onClick={() => {
-                      if (!isLoading) {
-                        setInput(question);
-                        // Automatically send the question after setting it
-                        setTimeout(() => {
-                          handleSendMessage();
-                        }, 50);
-                      }
-                    }}
+                    onClick={() => sendMessageWithContent(question)}
                     className="px-3 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
                   >
                     {question}
