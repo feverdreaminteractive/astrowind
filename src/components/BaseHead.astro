@@ -3,7 +3,6 @@
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
 import { SITE_TITLE } from '../consts';
-import { AstroFont } from 'astro-font';
 
 interface Props {
   title: string;
@@ -23,31 +22,11 @@ const { title, description, image = '/og-image.png' } = Astro.props;
 <link rel="sitemap" href="/sitemap-index.xml" />
 <meta name="generator" content={Astro.generator} />
 
-<!-- Font preloads -->
-<AstroFont
-  config={[
-    {
-      src: [],
-      name: 'Sora',
-      googleFontsURL:
-        'https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap',
-      preload: true,
-      display: 'swap',
-      selector: 'html',
-      fallback: 'sans-serif',
-    },
-    {
-      src: [],
-      name: 'Inter',
-      googleFontsURL:
-        'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-      preload: true,
-      display: 'swap',
-      selector: 'html',
-      fallback: 'sans-serif',
-    },
-  ]}
-/>
+<!-- Font preloads - use direct link tags to avoid build timeout -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
