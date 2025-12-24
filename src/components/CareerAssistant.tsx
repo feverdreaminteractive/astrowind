@@ -22,30 +22,20 @@ const CareerAssistant: React.FC = () => {
 
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+  const scrollChatToBottom = () => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   };
 
   useEffect(() => {
-    // Auto-scroll to show the beginning of the latest AI response
+    // Only scroll within the chat container, never the page
     if (messages.length > 1) {
       const timer = setTimeout(() => {
-        const latestMessage = messages[messages.length - 1];
-        if (latestMessage.type === 'assistant') {
-          // Find the latest AI message element and scroll to its top
-          const messageElements = document.querySelectorAll('[data-message-type="assistant"]');
-          const latestAIMessage = messageElements[messageElements.length - 1];
-          if (latestAIMessage) {
-            latestAIMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-          }
-        } else {
-          scrollToBottom();
-        }
-      }, 150);
+        scrollChatToBottom();
+      }, 100);
       return () => clearTimeout(timer);
     }
   }, [messages]);
@@ -163,7 +153,10 @@ const CareerAssistant: React.FC = () => {
         </div>
 
         {/* Messages */}
-        <div className="h-96 overflow-y-auto p-4 space-y-4">
+        <div
+          ref={messagesContainerRef}
+          className="h-96 overflow-y-auto p-4 space-y-4"
+        >
           {messages.map((message) => (
             <div
               key={message.id}
@@ -205,8 +198,6 @@ const CareerAssistant: React.FC = () => {
               </div>
             </div>
           )}
-
-          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
