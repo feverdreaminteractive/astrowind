@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faRobot, faLightbulb, faComments, faPaperPlane, faMicrophone, faMicrophoneSlash, faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faRobot, faLightbulb, faComments, faPaperPlane, faMicrophone, faMicrophoneSlash, faVolumeUp, faVolumeMute, faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
 // Using custom styled components instead of Flowbite due to Tailwind v4 compatibility
 
 interface Message {
@@ -400,7 +400,7 @@ const CareerAssistant: React.FC = () => {
     const utterance = new SpeechSynthesisUtterance(text);
 
     // Configure voice settings
-    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.rate = 1.1; // Natural speaking speed
     utterance.pitch = 1.0;
     utterance.volume = 0.8;
 
@@ -472,6 +472,23 @@ const CareerAssistant: React.FC = () => {
     }
   };
 
+  const pauseOrResumeVoice = () => {
+    if (window.speechSynthesis.speaking) {
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      } else {
+        window.speechSynthesis.pause();
+      }
+    }
+  };
+
+  const stopVoice = () => {
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
   const suggestedQuestions = [
     "What's your technical background?",
     "Can you help me with a coding problem?",
@@ -528,6 +545,32 @@ const CareerAssistant: React.FC = () => {
                 className={`text-white text-sm ${isSpeaking ? 'animate-pulse' : ''}`}
               />
             </button>
+
+            {isSpeaking && (
+              <>
+                <button
+                  onClick={pauseOrResumeVoice}
+                  className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                  title="Pause/Resume speech"
+                >
+                  <FontAwesomeIcon
+                    icon={window.speechSynthesis?.paused ? faPlay : faPause}
+                    className="text-white text-sm"
+                  />
+                </button>
+
+                <button
+                  onClick={stopVoice}
+                  className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+                  title="Stop speech"
+                >
+                  <FontAwesomeIcon
+                    icon={faVolumeMute}
+                    className="text-white text-sm"
+                  />
+                </button>
+              </>
+            )}
           </div>
         </div>
 
