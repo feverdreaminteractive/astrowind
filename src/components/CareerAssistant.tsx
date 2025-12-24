@@ -684,6 +684,21 @@ const CareerAssistant: React.FC = () => {
         <div className="p-4 border-t border-primary-200 dark:border-primary-700">
           {messages.length === 1 && (
             <div className="mb-3">
+              <div className="mb-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200/50 dark:border-purple-700/30">
+                <div className="flex items-center gap-2 mb-2">
+                  <FontAwesomeIcon icon={faMicrophone} className="text-purple-600 dark:text-purple-400" />
+                  <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Interview Mode Available</span>
+                </div>
+                <p className="text-xs text-purple-700 dark:text-purple-300 mb-2">
+                  🎤 <strong>Click the microphone</strong> to ask questions with your voice<br/>
+                  🔊 <strong>Get audio responses</strong> automatically when using voice input<br/>
+                  ▶️ <strong>Replay any response</strong> by clicking the play button
+                </p>
+                <div className="flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400">
+                  <FontAwesomeIcon icon={faVolumeUp} className="text-purple-500" />
+                  <span>Voice responses: {voiceEnabled ? 'Enabled' : 'Disabled'} • Use volume button to toggle</span>
+                </div>
+              </div>
               <p className="text-xs text-primary-600 dark:text-primary-400 mb-2">
                 Try asking:
               </p>
