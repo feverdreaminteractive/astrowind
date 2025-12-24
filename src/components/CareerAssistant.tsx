@@ -115,6 +115,7 @@ const CareerAssistant: React.FC = () => {
 
         // Auto-send the voice input to create interview experience
         setTimeout(() => {
+          console.log('Voice input received:', transcript, '- sending with voice flag = true');
           sendMessageWithContent(transcript, true); // true = was voice input
           setInput(''); // Clear input after sending
         }, 100);
@@ -176,6 +177,7 @@ const CareerAssistant: React.FC = () => {
     if (!messageContent.trim() || isLoading) return;
 
     // Update voice flag based on how the message was sent
+    console.log('sendMessageWithContent called with wasVoiceInput:', wasVoiceInput);
     setLastQuestionWasVoice(wasVoiceInput);
 
     const userMessage: Message = {
@@ -278,14 +280,18 @@ const CareerAssistant: React.FC = () => {
 
       // Auto-speak the response ONLY if the question was asked via microphone (interview mode)
       if (voiceEnabled && lastQuestionWasVoice) {
+        console.log('Auto-speaking response for voice question:', data.message.substring(0, 50));
         // Small delay to let the message render first
         setTimeout(() => {
           speakText(data.message);
+          // Reset voice question flag after speaking starts
+          setLastQuestionWasVoice(false);
         }, 500);
+      } else {
+        console.log('Not speaking - voiceEnabled:', voiceEnabled, 'lastQuestionWasVoice:', lastQuestionWasVoice);
+        // Reset flag even if not speaking
+        setLastQuestionWasVoice(false);
       }
-
-      // Reset voice question flag after processing
-      setLastQuestionWasVoice(false);
     } catch (error) {
       console.error('Error calling Claude API:', error);
 
