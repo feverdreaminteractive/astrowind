@@ -153,38 +153,60 @@ const CareerAssistant: React.FC = () => {
       const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
 
-      recognition.continuous = false;
-      recognition.interimResults = false;
+      recognition.continuous = true;  // Allow longer speech
+      recognition.interimResults = true;  // Get partial results
       recognition.lang = 'en-US';
+      recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
         setIsListening(true);
       };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        setIsListening(false);
+        let finalTranscript = '';
+        let interimTranscript = '';
 
-        // Track voice input usage
-        const isOwner = window.location.hostname === 'localhost' ||
-                       window.location.hostname.includes('127.0.0.1') ||
-                       localStorage.getItem('skip_analytics') === 'true';
-
-        if (!isOwner && typeof (window as any).gtag !== 'undefined') {
-          (window as any).gtag('event', 'voice_input_used', {
-            event_category: 'engagement',
-            event_label: 'speech_recognition',
-            transcript_length: transcript.length
-          });
+        // Process all results to get final transcript
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
         }
 
-        // Auto-send the voice input to create interview experience
-        setTimeout(() => {
-          console.log('Voice input received:', transcript, '- sending with voice flag = true');
-          sendMessageWithContent(transcript, true); // true = was voice input
-          setInput(''); // Clear input after sending
-        }, 100);
+        // Show interim results while speaking
+        if (interimTranscript) {
+          setInput(interimTranscript);
+        }
+
+        // Process final result when user stops speaking
+        if (finalTranscript) {
+          setInput(finalTranscript);
+          setIsListening(false);
+          recognition.stop();
+
+          // Track voice input usage
+          const isOwner = window.location.hostname === 'localhost' ||
+                         window.location.hostname.includes('127.0.0.1') ||
+                         localStorage.getItem('skip_analytics') === 'true';
+
+          if (!isOwner && typeof (window as any).gtag !== 'undefined') {
+            (window as any).gtag('event', 'voice_input_used', {
+              event_category: 'engagement',
+              event_label: 'speech_recognition',
+              transcript_length: finalTranscript.length
+            });
+          }
+
+          // Auto-send the voice input to create interview experience
+          setTimeout(() => {
+            console.log('Voice input received:', finalTranscript, '- sending with voice flag = true');
+            sendMessageWithContent(finalTranscript, true); // true = was voice input
+            setInput(''); // Clear input after sending
+          }, 100);
+        }
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
