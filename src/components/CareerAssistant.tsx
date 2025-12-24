@@ -21,8 +21,12 @@ const CareerAssistant: React.FC = () => {
   useEffect(() => {
     const loadWelcomeMessage = async () => {
       try {
-        // Track AI assistant initialization
-        if (typeof (window as any).gtag !== 'undefined') {
+        // Track AI assistant initialization (skip for site owner)
+        const isOwner = window.location.hostname === 'localhost' ||
+                       window.location.hostname.includes('127.0.0.1') ||
+                       localStorage.getItem('skip_analytics') === 'true';
+
+        if (!isOwner && typeof (window as any).gtag !== 'undefined') {
           (window as any).gtag('event', 'ai_assistant_loaded', {
             event_category: 'engagement',
             event_label: 'career_assistant'
@@ -125,8 +129,12 @@ const CareerAssistant: React.FC = () => {
     setInput('');
     setIsLoading(true);
 
-    // Track question being asked with full question text
-    if (typeof (window as any).gtag !== 'undefined') {
+    // Track question being asked with full question text (skip for site owner)
+    const isOwner = window.location.hostname === 'localhost' ||
+                   window.location.hostname.includes('127.0.0.1') ||
+                   localStorage.getItem('skip_analytics') === 'true';
+
+    if (!isOwner && typeof (window as any).gtag !== 'undefined') {
       (window as any).gtag('event', 'ai_question_asked', {
         event_category: 'engagement',
         event_label: 'career_question',
@@ -395,8 +403,12 @@ const CareerAssistant: React.FC = () => {
                   <button
                     key={index}
                     onClick={() => {
-                      // Track suggested question clicks
-                      if (typeof (window as any).gtag !== 'undefined') {
+                      // Track suggested question clicks (skip for site owner)
+                      const isOwner = window.location.hostname === 'localhost' ||
+                                     window.location.hostname.includes('127.0.0.1') ||
+                                     localStorage.getItem('skip_analytics') === 'true';
+
+                      if (!isOwner && typeof (window as any).gtag !== 'undefined') {
                         (window as any).gtag('event', 'suggested_question_clicked', {
                           event_category: 'engagement',
                           event_label: 'suggested_question',

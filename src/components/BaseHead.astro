@@ -69,8 +69,32 @@ const { title, description, image = '/og-image.png' } = Astro.props;
   function gtag(){dataLayer.push(arguments);}
   gtag('js', new Date());
 
+  // Check if this is the site owner (you) and skip tracking
+  function isOwnerTraffic() {
+    // Skip tracking if in development mode
+    if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
+      return true;
+    }
+
+    // Skip tracking if coming from specific admin paths or parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('admin') || urlParams.has('preview')) {
+      return true;
+    }
+
+    // You can add your IP detection here if needed
+    // Or set a localStorage flag when you're testing
+    return localStorage.getItem('skip_analytics') === 'true';
+  }
+
   // Enhanced company visitor tracking
   async function setupCompanyTracking() {
+    // Skip all tracking for owner traffic
+    if (isOwnerTraffic()) {
+      console.log('Analytics disabled for site owner');
+      return;
+    }
+
     try {
       // Get basic visitor info
       const visitorData = {
@@ -128,15 +152,19 @@ const { title, description, image = '/og-image.png' } = Astro.props;
     }
   }
 
-  // Initialize GA4 with enhanced tracking
-  gtag('config', 'G-V9V10NNF3Y', {
-    // Enable enhanced measurement
-    enhanced_measurement: true,
-    // Track file downloads, outbound clicks, site search, video engagement
-    file_downloads: true,
-    outbound_clicks: true,
-    page_changes: true
-  });
+  // Initialize GA4 with enhanced tracking (only for non-owner traffic)
+  if (!isOwnerTraffic()) {
+    gtag('config', 'G-V9V10NNF3Y', {
+      // Enable enhanced measurement
+      enhanced_measurement: true,
+      // Track file downloads, outbound clicks, site search, video engagement
+      file_downloads: true,
+      outbound_clicks: true,
+      page_changes: true
+    });
+  } else {
+    console.log('GA4 tracking disabled for site owner');
+  }
 
   // Set up company tracking after page load
   if (document.readyState === 'loading') {
