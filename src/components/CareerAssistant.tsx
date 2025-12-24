@@ -105,8 +105,8 @@ const CareerAssistant: React.FC = () => {
 
   const suggestedQuestions = [
     "What's Ryan's technical background?",
-    "Tell me about his time in Austin",
-    "What projects has he built?",
+    "Tell me about Kirby and Zephyr",
+    "What is Fever Dream Interactive?",
     "What's he like as a person?"
   ];
 
