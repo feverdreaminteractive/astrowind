@@ -18,6 +18,8 @@ const CareerAssistant: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [voiceEnabled, setVoiceEnabled] = useState(true);
+  const [selectedVoice, setSelectedVoice] = useState<SpeechSynthesisVoice | null>(null);
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [lastQuestionWasVoice, setLastQuestionWasVoice] = useState(false);
   const [speechRecognition, setSpeechRecognition] = useState<SpeechRecognition | null>(null);
   const lastQuestionWasVoiceRef = useRef(false);
@@ -80,6 +82,52 @@ const CareerAssistant: React.FC = () => {
     };
 
     loadWelcomeMessage();
+  }, []);
+
+  // Load available voices
+  useEffect(() => {
+    const loadVoices = () => {
+      if ('speechSynthesis' in window) {
+        const voices = window.speechSynthesis.getVoices();
+        console.log('Available voices:', voices.length);
+
+        // Filter for English voices and prioritize quality ones
+        const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+        setAvailableVoices(englishVoices);
+
+        // Auto-select a good default voice
+        const preferredVoices = englishVoices.filter(voice =>
+          voice.name.includes('Professional') ||
+          voice.name.includes('Natural') ||
+          voice.name.includes('Enhanced') ||
+          voice.name.includes('Premium') ||
+          (voice.name.includes('Male') && voice.lang === 'en-US') ||
+          (voice.name.includes('Female') && voice.lang === 'en-US')
+        );
+
+        if (preferredVoices.length > 0) {
+          setSelectedVoice(preferredVoices[0]);
+          console.log('Selected default voice:', preferredVoices[0].name);
+        } else if (englishVoices.length > 0) {
+          setSelectedVoice(englishVoices[0]);
+          console.log('Selected fallback voice:', englishVoices[0].name);
+        }
+      }
+    };
+
+    // Load voices immediately
+    loadVoices();
+
+    // Also load when voices change (some browsers load them asynchronously)
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+
+    return () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.onvoiceschanged = null;
+      }
+    };
   }, []);
 
   // Initialize speech recognition
@@ -356,23 +404,55 @@ const CareerAssistant: React.FC = () => {
     utterance.pitch = 1.0;
     utterance.volume = 0.8;
 
-    // Try to use a professional-sounding voice
+    // Use a specific preferred voice for professional sound
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoices = voices.filter(voice =>
-      voice.lang.startsWith('en') &&
-      (voice.name.includes('Professional') ||
-       voice.name.includes('Natural') ||
-       voice.name.includes('Enhanced') ||
-       !voice.name.includes('Compact'))
-    );
 
-    if (preferredVoices.length > 0) {
-      utterance.voice = preferredVoices[0];
-    } else if (voices.length > 0) {
-      const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
-      if (englishVoices.length > 0) {
-        utterance.voice = englishVoices[0];
+    // Priority order for best interview/professional voices
+    const preferredVoiceNames = [
+      'Samantha',           // macOS - Natural, professional female
+      'Alex',               // macOS - Professional male
+      'Ava (Premium)',      // iOS/macOS - High quality female
+      'Microsoft Aria Online (Natural)', // Windows - Professional female
+      'Microsoft Guy Online (Natural)',  // Windows - Professional male
+      'Google UK English Female',        // Chrome - Clear female
+      'Google UK English Male',          // Chrome - Clear male
+      'Microsoft Zira Desktop',          // Windows - Reliable female
+      'Microsoft David Desktop'          // Windows - Reliable male
+    ];
+
+    let selectedVoice = null;
+
+    // Try to find preferred voices in order
+    for (const voiceName of preferredVoiceNames) {
+      const voice = voices.find(v => v.name === voiceName);
+      if (voice) {
+        selectedVoice = voice;
+        break;
       }
+    }
+
+    // Fallback to any high-quality English voice
+    if (!selectedVoice) {
+      const fallbackVoices = voices.filter(voice =>
+        voice.lang.startsWith('en') &&
+        (voice.name.includes('Enhanced') ||
+         voice.name.includes('Premium') ||
+         voice.name.includes('Natural'))
+      );
+
+      if (fallbackVoices.length > 0) {
+        selectedVoice = fallbackVoices[0];
+      } else {
+        // Last resort - any English voice
+        const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+        if (englishVoices.length > 0) {
+          selectedVoice = englishVoices[0];
+        }
+      }
+    }
+
+    if (selectedVoice) {
+      utterance.voice = selectedVoice;
     }
 
     utterance.onstart = () => {
