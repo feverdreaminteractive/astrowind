@@ -27,21 +27,30 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('Function called with method:', event.httpMethod);
+    console.log('Event body:', event.body);
+
     // Parse request body
     const requestBody = JSON.parse(event.body);
     const { message } = requestBody;
 
+    console.log('Parsed message:', message);
+
     // Use environment variable for API key
     const apiKey = process.env.CLAUDE_API_KEY;
 
+    console.log('API key exists:', !!apiKey);
+    console.log('API key length:', apiKey ? apiKey.length : 0);
+
     if (!apiKey) {
+      console.error('No API key found in environment');
       return {
         statusCode: 500,
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ error: 'AI service temporarily unavailable' }),
+        body: JSON.stringify({ error: 'AI service temporarily unavailable - no API key' }),
       };
     }
 
@@ -109,6 +118,8 @@ Answer any questions about Ryan's background, experience, skills, or career jour
       hasApiKey: !!apiKey
     });
 
+    console.log('Calling Claude API with request:', JSON.stringify(claudeRequest, null, 2));
+
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -120,9 +131,19 @@ Answer any questions about Ryan's background, experience, skills, or career jour
     });
 
     console.log('Claude API response status:', response.status);
+    console.log('Claude API response headers:', response.headers);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text().catch(() => 'Unknown error');
+      console.error('Claude API error response:', errorText);
+
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch (e) {
+        errorData = { error: errorText };
+      }
+
       console.error('Claude API error:', errorData);
 
       return {
@@ -132,7 +153,7 @@ Answer any questions about Ryan's background, experience, skills, or career jour
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          error: `AI service error: ${response.status}`
+          error: `AI service error: ${response.status} - ${errorData.error?.message || errorData.error || 'Unknown error'}`
         }),
       };
     }
