@@ -14,21 +14,25 @@
   <!-- Background -->
   <rect width="32" height="32" class="light"/>
 
-  <!-- Checkered spiral pattern optimized for small favicon size -->
-  <g transform="translate(16,16)">
-    <!-- Outer ring segments -->
-    <path d="M-15,0 A15,15 0 0,1 -10.6,10.6 L-7.1,7.1 A10,10 0 0,0 -10,0 Z" class="dark"/>
-    <path d="M-10.6,10.6 A15,15 0 0,1 0,15 L0,10 A10,10 0 0,0 -7.1,7.1 Z" class="light"/>
-    <path d="M0,15 A15,15 0 0,1 10.6,10.6 L7.1,7.1 A10,10 0 0,0 0,10 Z" class="dark"/>
-    <path d="M10.6,10.6 A15,15 0 0,1 15,0 L10,0 A10,10 0 0,0 7.1,7.1 Z" class="light"/>
-    <path d="M15,0 A15,15 0 0,1 10.6,-10.6 L7.1,-7.1 A10,10 0 0,0 10,0 Z" class="dark"/>
-    <path d="M10.6,-10.6 A15,15 0 0,1 0,-15 L0,-10 A10,10 0 0,0 7.1,-7.1 Z" class="light"/>
-    <path d="M0,-15 A15,15 0 0,1 -10.6,-10.6 L-7.1,-7.1 A10,10 0 0,0 0,-10 Z" class="dark"/>
-    <path d="M-10.6,-10.6 A15,15 0 0,1 -15,0 L-10,0 A10,10 0 0,0 -7.1,-7.1 Z" class="light"/>
+  <!-- Concentric diamond squares pattern -->
+  <g transform="translate(16,16) rotate(45)">
+    <!-- Outermost diamond -->
+    <rect x="-14" y="-14" width="28" height="28" class="dark"/>
+    <rect x="-12" y="-12" width="24" height="24" class="light"/>
 
-    <!-- Inner circle -->
-    <circle r="5" class="dark"/>
-    <circle r="3" class="light"/>
-    <circle r="1" class="dark"/>
+    <!-- Second layer -->
+    <rect x="-10" y="-10" width="20" height="20" class="dark"/>
+    <rect x="-8" y="-8" width="16" height="16" class="light"/>
+
+    <!-- Third layer -->
+    <rect x="-6" y="-6" width="12" height="12" class="dark"/>
+    <rect x="-4" y="-4" width="8" height="8" class="light"/>
+
+    <!-- Fourth layer -->
+    <rect x="-2" y="-2" width="4" height="4" class="dark"/>
+    <rect x="-1" y="-1" width="2" height="2" class="light"/>
+
+    <!-- Center diamond -->
+    <rect x="-0.5" y="-0.5" width="1" height="1" class="dark"/>
   </g>
 </svg>
