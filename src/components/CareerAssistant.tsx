@@ -407,6 +407,12 @@ const CareerAssistant: React.FC = () => {
     // Use a specific preferred voice for professional sound
     const voices = window.speechSynthesis.getVoices();
 
+    // Debug: Log all available voices (remove this later)
+    console.log('Available voices:');
+    voices.forEach((voice, index) => {
+      console.log(`${index}: ${voice.name} (${voice.lang}) - ${voice.localService ? 'Local' : 'Remote'}`);
+    });
+
     // Priority order for best interview/professional voices
     const preferredVoiceNames = [
       'Samantha',           // macOS - Natural, professional female
