@@ -21,6 +21,14 @@ const CareerAssistant: React.FC = () => {
   useEffect(() => {
     const loadWelcomeMessage = async () => {
       try {
+        // Track AI assistant initialization
+        if (typeof (window as any).gtag !== 'undefined') {
+          (window as any).gtag('event', 'ai_assistant_loaded', {
+            event_category: 'engagement',
+            event_label: 'career_assistant'
+          });
+        }
+
         const response = await fetch('/.netlify/functions/claude', {
           method: 'POST',
           headers: {
@@ -117,14 +125,71 @@ const CareerAssistant: React.FC = () => {
     setInput('');
     setIsLoading(true);
 
+    // Track question being asked with full question text
+    if (typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', 'ai_question_asked', {
+        event_category: 'engagement',
+        event_label: 'career_question',
+        custom_parameters: {
+          question_text: messageContent.substring(0, 100), // First 100 chars for privacy
+          question_full: messageContent, // Full question for detailed analysis
+          question_length: messageContent.length,
+          session_duration: Date.now() - (messages[0]?.timestamp?.getTime() || 0),
+          message_number: messages.length,
+          question_type: messageContent.includes('?') ? 'question' : 'statement',
+          contains_keywords: {
+            salary: messageContent.toLowerCase().includes('salary') || messageContent.toLowerCase().includes('compensation'),
+            experience: messageContent.toLowerCase().includes('experience') || messageContent.toLowerCase().includes('background'),
+            skills: messageContent.toLowerCase().includes('skill') || messageContent.toLowerCase().includes('technical'),
+            leadership: messageContent.toLowerCase().includes('lead') || messageContent.toLowerCase().includes('manage'),
+            projects: messageContent.toLowerCase().includes('project') || messageContent.toLowerCase().includes('built'),
+            availability: messageContent.toLowerCase().includes('available') || messageContent.toLowerCase().includes('start'),
+            culture: messageContent.toLowerCase().includes('culture') || messageContent.toLowerCase().includes('team'),
+            remote: messageContent.toLowerCase().includes('remote') || messageContent.toLowerCase().includes('location')
+          }
+        }
+      });
+
+      // Track specific question categories
+      const questionCategories = [
+        { name: 'technical_skills', keywords: ['javascript', 'react', 'vue', 'typescript', 'aws', 'api', 'database'] },
+        { name: 'leadership_experience', keywords: ['team', 'lead', 'manage', 'hire', 'mentor', 'direct'] },
+        { name: 'specific_projects', keywords: ['project', 'built', 'created', 'developed', 'architected'] },
+        { name: 'availability', keywords: ['available', 'start', 'notice', 'timeline', 'when'] },
+        { name: 'compensation', keywords: ['salary', 'compensation', 'pay', 'benefits', 'equity'] },
+        { name: 'work_style', keywords: ['remote', 'office', 'hybrid', 'culture', 'environment'] }
+      ];
+
+      questionCategories.forEach(category => {
+        if (category.keywords.some(keyword => messageContent.toLowerCase().includes(keyword))) {
+          (window as any).gtag('event', `question_${category.name}`, {
+            event_category: 'question_analysis',
+            event_label: category.name,
+            question_preview: messageContent.substring(0, 50)
+          });
+        }
+      });
+    }
+
     try {
+      // Get additional browser data for enhanced detection
+      const browserData = {
+        userAgent: navigator.userAgent,
+        language: navigator.language,
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        screenResolution: `${screen.width}x${screen.height}`,
+        sessionStart: messages[0]?.timestamp?.getTime() || Date.now(),
+        messageCount: messages.length
+      };
+
       const response = await fetch('/.netlify/functions/claude', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: messageContent
+          message: messageContent,
+          browserData: browserData
         })
       });
 
@@ -329,7 +394,18 @@ const CareerAssistant: React.FC = () => {
                 {suggestedQuestions.map((question, index) => (
                   <button
                     key={index}
-                    onClick={() => sendMessageWithContent(question)}
+                    onClick={() => {
+                      // Track suggested question clicks
+                      if (typeof (window as any).gtag !== 'undefined') {
+                        (window as any).gtag('event', 'suggested_question_clicked', {
+                          event_category: 'engagement',
+                          event_label: 'suggested_question',
+                          question_text: question,
+                          question_index: index
+                        });
+                      }
+                      sendMessageWithContent(question);
+                    }}
                     className="px-3 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
                   >
                     {question}

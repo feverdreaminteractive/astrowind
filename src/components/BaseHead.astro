@@ -61,3 +61,87 @@ const { title, description, image = '/og-image.png' } = Astro.props;
 <meta property="og:site_name" content="Ryan Clayton Portfolio" />
 <meta name="author" content="Ryan Clayton" />
 <meta name="robots" content="index, follow" />
+
+<!-- Google Analytics with Enhanced Company Tracking -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-V9V10NNF3Y"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  // Enhanced company visitor tracking
+  async function setupCompanyTracking() {
+    try {
+      // Get basic visitor info
+      const visitorData = {
+        timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        language: navigator.language,
+        screenResolution: `${screen.width}x${screen.height}`,
+        referrer: document.referrer,
+        userAgent: navigator.userAgent
+      };
+
+      // Try to get company info from your existing IPinfo integration
+      const response = await fetch('/.netlify/functions/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: '__GET_VISITOR_INFO__', browserData: visitorData })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+
+        // Set custom dimensions for company tracking
+        gtag('config', 'G-V9V10NNF3Y', {
+          custom_map: {
+            'custom_parameter_1': 'company_name',
+            'custom_parameter_2': 'visitor_type',
+            'custom_parameter_3': 'company_location',
+            'custom_parameter_4': 'recruitment_signals',
+            'custom_parameter_5': 'referrer_source'
+          }
+        });
+
+        // Track company visit event
+        if (data.companyInfo) {
+          gtag('event', 'company_visitor', {
+            event_category: 'recruitment',
+            company_name: data.companyInfo.company || 'Unknown',
+            visitor_type: data.companyInfo.isLikelyRecruiter ? 'recruiter' : 'employee',
+            company_location: data.companyInfo.location || 'Unknown',
+            recruitment_signals: data.companyInfo.signals?.join(',') || 'none',
+            referrer_source: data.companyInfo.referrerType || 'direct'
+          });
+
+          // Set user properties for segmentation
+          gtag('set', {
+            user_properties: {
+              visitor_company: data.companyInfo.company || 'Unknown',
+              is_recruiter: data.companyInfo.isLikelyRecruiter ? 'yes' : 'no',
+              recruitment_score: data.companyInfo.score || 0
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.log('Company tracking setup failed:', error);
+    }
+  }
+
+  // Initialize GA4 with enhanced tracking
+  gtag('config', 'G-V9V10NNF3Y', {
+    // Enable enhanced measurement
+    enhanced_measurement: true,
+    // Track file downloads, outbound clicks, site search, video engagement
+    file_downloads: true,
+    outbound_clicks: true,
+    page_changes: true
+  });
+
+  // Set up company tracking after page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', setupCompanyTracking);
+  } else {
+    setupCompanyTracking();
+  }
+</script>

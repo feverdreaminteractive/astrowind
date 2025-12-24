@@ -32,7 +32,7 @@ exports.handler = async (event, context) => {
 
     // Parse request body
     const requestBody = JSON.parse(event.body);
-    const { message } = requestBody;
+    const { message, browserData } = requestBody;
 
     console.log('Parsed message:', message);
 
@@ -99,6 +99,39 @@ exports.handler = async (event, context) => {
           visitorContext.signals.push('job_site_referrer');
         }
 
+        // Browser data analysis (if available)
+        if (browserData) {
+          // Session engagement signals
+          if (browserData.messageCount > 3) {
+            recruiterScore += 15;
+            visitorContext.signals.push('high_engagement');
+          }
+
+          // Professional timezone patterns (business hours in major recruiting hubs)
+          const timeZone = browserData.timeZone || '';
+          const hour = new Date().getHours();
+          if ((timeZone.includes('America/New_York') || timeZone.includes('America/Chicago') ||
+               timeZone.includes('America/Denver') || timeZone.includes('America/Los_Angeles')) &&
+              hour >= 9 && hour <= 17) {
+            recruiterScore += 8;
+            visitorContext.signals.push('business_timezone_hours');
+          }
+
+          // Screen resolution patterns (recruiters often use larger screens)
+          const resolution = browserData.screenResolution || '';
+          if (resolution.includes('1920x') || resolution.includes('2560x') || resolution.includes('3440x')) {
+            recruiterScore += 5;
+            visitorContext.signals.push('professional_display');
+          }
+
+          // Session duration (recruiters tend to have longer, more focused sessions)
+          const sessionDuration = Date.now() - browserData.sessionStart;
+          if (sessionDuration > 300000) { // 5+ minutes
+            recruiterScore += 10;
+            visitorContext.signals.push('extended_session');
+          }
+        }
+
         // Corporate network signals
         if (visitorContext.hasCompanyInfo) {
           const companyLower = visitorContext.company.toLowerCase();
@@ -129,7 +162,15 @@ exports.handler = async (event, context) => {
         // Set recruiter status based on score threshold
         visitorContext.isLikelyRecruiter = recruiterScore >= 30;
 
-        console.log(`Recruiter score: ${recruiterScore}, Signals: ${visitorContext.signals.join(', ')}`);
+        console.log(`Enhanced recruiter score: ${recruiterScore}, Signals: ${visitorContext.signals.join(', ')}`);
+        if (browserData) {
+          console.log('Browser analytics data:', {
+            messageCount: browserData.messageCount,
+            timeZone: browserData.timeZone,
+            screenResolution: browserData.screenResolution,
+            sessionDuration: Date.now() - browserData.sessionStart
+          });
+        }
       } catch (error) {
         console.log('IPInfo lookup failed, using default conversation:', error.message);
       }
@@ -149,6 +190,30 @@ exports.handler = async (event, context) => {
           message: visitorContext.isLikelyRecruiter
             ? "Hi! I'm Ryan's AI assistant. I'd love to discuss my background, technical leadership experience, and what I'm looking for in my next role. What would you like to know?"
             : "Hi! I'm Ryan's AI assistant. I can help with coding questions, discuss my technical projects, or tell you about my development experience. What can I help you with?"
+        }),
+      };
+    }
+
+    // Handle visitor info request for GA4 tracking
+    if (message === '__GET_VISITOR_INFO__') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          companyInfo: {
+            company: visitorContext.company,
+            location: visitorContext.location,
+            isLikelyRecruiter: visitorContext.isLikelyRecruiter,
+            signals: visitorContext.signals,
+            score: recruiterScore,
+            referrerType: referrer.includes('linkedin.com') ? 'linkedin' :
+                         referrer.includes('indeed.com') || referrer.includes('glassdoor.com') ? 'job_board' :
+                         referrer.includes('google.com') ? 'google' : 'direct',
+            hasCompanyInfo: visitorContext.hasCompanyInfo
+          }
         }),
       };
     }
@@ -272,7 +337,7 @@ Share code snippets, ask for architecture advice, get help debugging, or just ex
 
 Just chat naturally about my career, experience, skills, or any coding questions you have. No need to follow specific formats - respond like a knowledgeable colleague who knows my work well.
 
-${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUITER CONTEXT:** This visitor appears to be a recruiter or hiring manager from ${visitorContext.company}${visitorContext.location ? ` in ${visitorContext.location}` : ''} (they came from LinkedIn or a job site and are on a company network). You can be more direct about my job search, career goals, and what I'm looking for in my next role. Focus on leadership experience, technical achievements, and culture fit.` : visitorContext.hasCompanyInfo ? `**COMPANY VISITOR:** This person appears to be from ${visitorContext.company}, but treat them as a general visitor unless they specifically ask about recruiting/hiring topics.` : ''}`;
+${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUITER CONTEXT:** This visitor appears to be a recruiter or hiring manager from ${visitorContext.company}${visitorContext.location ? ` in ${visitorContext.location}` : ''} (detected through LinkedIn/job site referrer, company network, and behavioral analytics including session engagement, timezone patterns, and professional display setup). You can be more direct about my job search, career goals, and what I'm looking for in my next role. Focus on leadership experience, technical achievements, and culture fit.` : visitorContext.hasCompanyInfo ? `**COMPANY VISITOR:** This person appears to be from ${visitorContext.company}, but treat them as a general visitor unless they specifically ask about recruiting/hiring topics.` : ''}`;
 
     // Call Claude API
     const claudeRequest = {
