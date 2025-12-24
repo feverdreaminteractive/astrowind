@@ -234,7 +234,15 @@ const CareerAssistant: React.FC = () => {
                 {suggestedQuestions.map((question, index) => (
                   <button
                     key={index}
-                    onClick={() => setInput(question)}
+                    onClick={() => {
+                      if (!isLoading) {
+                        setInput(question);
+                        // Automatically send the question after setting it
+                        setTimeout(() => {
+                          handleSendMessage();
+                        }, 50);
+                      }
+                    }}
                     className="px-3 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
                   >
                     {question}
