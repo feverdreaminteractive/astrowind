@@ -308,47 +308,6 @@ const CareerAssistant: React.FC = () => {
     await sendMessageWithContent(userInput, false); // false = not voice input
   };
 
-    try {
-      const response = await fetch('/.netlify/functions/claude', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: userInput
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
-
-      const assistantMessage: Message = {
-        id: `assistant_${Date.now()}`,
-        type: 'assistant',
-        content: data.message,
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, assistantMessage]);
-    } catch (error) {
-      console.error('Error calling Claude API:', error);
-
-      const errorMessage: Message = {
-        id: `error_${Date.now()}`,
-        type: 'system',
-        content: 'Sorry, I\'m having trouble connecting right now. Please try again in a moment.',
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, errorMessage]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -572,7 +531,7 @@ const CareerAssistant: React.FC = () => {
                           question_index: index
                         });
                       }
-                      sendMessageWithContent(question);
+                      sendMessageWithContent(question, false);
                     }}
                     className="px-3 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
                   >
