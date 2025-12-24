@@ -126,7 +126,24 @@ const CareerAssistant: React.FC = () => {
     return () => {
       if ('speechSynthesis' in window) {
         window.speechSynthesis.onvoiceschanged = null;
+        // Cancel any ongoing speech when component unmounts (e.g., page refresh)
+        window.speechSynthesis.cancel();
       }
+    };
+  }, []);
+
+  // Stop speech on page unload/refresh
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, []);
 
