@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faRobot, faLightbulb, faComments, faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faRobot, faLightbulb, faComments, faPaperPlane, faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
 // Using custom styled components instead of Flowbite due to Tailwind v4 compatibility
 
 interface Message {
@@ -15,6 +15,8 @@ const CareerAssistant: React.FC = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [welcomeLoaded, setWelcomeLoaded] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const [speechRecognition, setSpeechRecognition] = useState<SpeechRecognition | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Load dynamic welcome message on component mount
@@ -74,6 +76,52 @@ const CareerAssistant: React.FC = () => {
     };
 
     loadWelcomeMessage();
+  }, []);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.lang = 'en-US';
+
+      recognition.onstart = () => {
+        setIsListening(true);
+      };
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results[0][0].transcript;
+        setInput(transcript);
+        setIsListening(false);
+
+        // Track voice input usage
+        const isOwner = window.location.hostname === 'localhost' ||
+                       window.location.hostname.includes('127.0.0.1') ||
+                       localStorage.getItem('skip_analytics') === 'true';
+
+        if (!isOwner && typeof (window as any).gtag !== 'undefined') {
+          (window as any).gtag('event', 'voice_input_used', {
+            event_category: 'engagement',
+            event_label: 'speech_recognition',
+            transcript_length: transcript.length
+          });
+        }
+      };
+
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error('Speech recognition error:', event.error);
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      setSpeechRecognition(recognition);
+    }
   }, []);
 
   const scrollToNewMessage = () => {
@@ -294,6 +342,19 @@ const CareerAssistant: React.FC = () => {
     }
   };
 
+  const toggleVoiceInput = () => {
+    if (!speechRecognition) {
+      alert('Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.');
+      return;
+    }
+
+    if (isListening) {
+      speechRecognition.stop();
+    } else {
+      speechRecognition.start();
+    }
+  };
+
   const suggestedQuestions = [
     "What's your technical background?",
     "Can you help me with a coding problem?",
@@ -427,16 +488,31 @@ const CareerAssistant: React.FC = () => {
             </div>
           )}
 
-          <div className="flex space-x-3">
+          <div className="flex space-x-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask me about Ryan's experience..."
+              placeholder={isListening ? "Listening..." : "Ask me about Ryan's experience..."}
               disabled={isLoading}
               className="flex-1 px-3 py-2 text-sm border border-primary-300 dark:border-primary-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-primary-800 dark:text-primary-100 disabled:opacity-50"
             />
+            <button
+              onClick={toggleVoiceInput}
+              disabled={isLoading}
+              className={`px-3 py-2 rounded-lg transition-colors text-sm font-medium flex items-center justify-center ${
+                isListening
+                  ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
+                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+              } disabled:opacity-50 disabled:cursor-not-allowed`}
+              title={isListening ? "Stop listening" : "Start voice input"}
+            >
+              <FontAwesomeIcon
+                icon={isListening ? faMicrophoneSlash : faMicrophone}
+                className="w-4 h-4"
+              />
+            </button>
             <button
               onClick={handleSendMessage}
               disabled={!input.trim() || isLoading}
