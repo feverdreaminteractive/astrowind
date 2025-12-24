@@ -20,6 +20,7 @@ const CareerAssistant: React.FC = () => {
   const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [lastQuestionWasVoice, setLastQuestionWasVoice] = useState(false);
   const [speechRecognition, setSpeechRecognition] = useState<SpeechRecognition | null>(null);
+  const lastQuestionWasVoiceRef = useRef(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Load dynamic welcome message on component mount
@@ -179,6 +180,7 @@ const CareerAssistant: React.FC = () => {
     // Update voice flag based on how the message was sent
     console.log('sendMessageWithContent called with wasVoiceInput:', wasVoiceInput);
     setLastQuestionWasVoice(wasVoiceInput);
+    lastQuestionWasVoiceRef.current = wasVoiceInput;
 
     const userMessage: Message = {
       id: `user_${Date.now()}`,
@@ -279,18 +281,23 @@ const CareerAssistant: React.FC = () => {
       setMessages(prev => [...prev, assistantMessage]);
 
       // Auto-speak the response ONLY if the question was asked via microphone (interview mode)
-      if (voiceEnabled && lastQuestionWasVoice) {
+      const shouldSpeak = voiceEnabled && lastQuestionWasVoiceRef.current;
+      console.log('Speech check - voiceEnabled:', voiceEnabled, 'lastQuestionWasVoiceRef:', lastQuestionWasVoiceRef.current, 'shouldSpeak:', shouldSpeak);
+
+      if (shouldSpeak) {
         console.log('Auto-speaking response for voice question:', data.message.substring(0, 50));
         // Small delay to let the message render first
         setTimeout(() => {
           speakText(data.message);
           // Reset voice question flag after speaking starts
           setLastQuestionWasVoice(false);
+          lastQuestionWasVoiceRef.current = false;
         }, 500);
       } else {
-        console.log('Not speaking - voiceEnabled:', voiceEnabled, 'lastQuestionWasVoice:', lastQuestionWasVoice);
+        console.log('Not speaking - voiceEnabled:', voiceEnabled, 'lastQuestionWasVoiceRef:', lastQuestionWasVoiceRef.current);
         // Reset flag even if not speaking
         setLastQuestionWasVoice(false);
+        lastQuestionWasVoiceRef.current = false;
       }
     } catch (error) {
       console.error('Error calling Claude API:', error);
