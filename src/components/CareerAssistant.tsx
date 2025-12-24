@@ -35,11 +35,12 @@ const CareerAssistant: React.FC = () => {
         const isAssistantMessage = lastMessage.getAttribute('data-message-type') === 'assistant';
 
         if (isAssistantMessage) {
-          // Scroll to show the top of the assistant's response
-          lastMessage.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-            inline: 'nearest'
+          // Calculate the position of the message relative to the container
+          const messageTop = lastMessage.offsetTop;
+          // Scroll the container to show the top of the assistant's response
+          container.scrollTo({
+            top: messageTop,
+            behavior: 'smooth'
           });
         } else {
           // For user messages and system messages, scroll to bottom
