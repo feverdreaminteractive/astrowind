@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faRobot, faLightbulb, faComments, faPaperPlane, faMicrophone, faMicrophoneSlash } from '@fortawesome/free-solid-svg-icons';
+import { faUser, faRobot, faLightbulb, faComments, faPaperPlane, faMicrophone, faMicrophoneSlash, faVolumeUp, faVolumeMute } from '@fortawesome/free-solid-svg-icons';
 // Using custom styled components instead of Flowbite due to Tailwind v4 compatibility
 
 interface Message {
@@ -16,6 +16,8 @@ const CareerAssistant: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [welcomeLoaded, setWelcomeLoaded] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [voiceEnabled, setVoiceEnabled] = useState(true);
   const [speechRecognition, setSpeechRecognition] = useState<SpeechRecognition | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
@@ -263,6 +265,14 @@ const CareerAssistant: React.FC = () => {
       };
 
       setMessages(prev => [...prev, assistantMessage]);
+
+      // Auto-speak the response if voice is enabled
+      if (voiceEnabled) {
+        // Small delay to let the message render first
+        setTimeout(() => {
+          speakText(data.message);
+        }, 500);
+      }
     } catch (error) {
       console.error('Error calling Claude API:', error);
 
@@ -355,6 +365,77 @@ const CareerAssistant: React.FC = () => {
     }
   };
 
+  const speakText = (text: string) => {
+    if (!voiceEnabled || !('speechSynthesis' in window)) {
+      return;
+    }
+
+    // Cancel any ongoing speech
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+
+    // Configure voice settings
+    utterance.rate = 0.9; // Slightly slower for clarity
+    utterance.pitch = 1.0;
+    utterance.volume = 0.8;
+
+    // Try to use a professional-sounding voice
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoices = voices.filter(voice =>
+      voice.lang.startsWith('en') &&
+      (voice.name.includes('Professional') ||
+       voice.name.includes('Natural') ||
+       voice.name.includes('Enhanced') ||
+       !voice.name.includes('Compact'))
+    );
+
+    if (preferredVoices.length > 0) {
+      utterance.voice = preferredVoices[0];
+    } else if (voices.length > 0) {
+      const englishVoices = voices.filter(voice => voice.lang.startsWith('en'));
+      if (englishVoices.length > 0) {
+        utterance.voice = englishVoices[0];
+      }
+    }
+
+    utterance.onstart = () => {
+      setIsSpeaking(true);
+    };
+
+    utterance.onend = () => {
+      setIsSpeaking(false);
+    };
+
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+    };
+
+    // Track voice response usage
+    const isOwner = window.location.hostname === 'localhost' ||
+                   window.location.hostname.includes('127.0.0.1') ||
+                   localStorage.getItem('skip_analytics') === 'true';
+
+    if (!isOwner && typeof (window as any).gtag !== 'undefined') {
+      (window as any).gtag('event', 'voice_response_played', {
+        event_category: 'engagement',
+        event_label: 'text_to_speech',
+        response_length: text.length
+      });
+    }
+
+    window.speechSynthesis.speak(utterance);
+  };
+
+  const toggleVoiceResponse = () => {
+    setVoiceEnabled(!voiceEnabled);
+
+    if (isSpeaking) {
+      window.speechSynthesis.cancel();
+      setIsSpeaking(false);
+    }
+  };
+
   const suggestedQuestions = [
     "What's your technical background?",
     "Can you help me with a coding problem?",
@@ -393,7 +474,7 @@ const CareerAssistant: React.FC = () => {
             <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
               <FontAwesomeIcon icon={faRobot} className="text-white text-lg" />
             </div>
-            <div>
+            <div className="flex-1">
               <h2 className="text-lg font-semibold text-white">
                 Ask About My Career
               </h2>
@@ -401,6 +482,16 @@ const CareerAssistant: React.FC = () => {
                 Chat with my AI assistant about my experience & skills
               </p>
             </div>
+            <button
+              onClick={toggleVoiceResponse}
+              className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
+              title={voiceEnabled ? "Voice responses enabled - Click to disable" : "Voice responses disabled - Click to enable"}
+            >
+              <FontAwesomeIcon
+                icon={voiceEnabled ? faVolumeUp : faVolumeMute}
+                className={`text-white text-sm ${isSpeaking ? 'animate-pulse' : ''}`}
+              />
+            </button>
           </div>
         </div>
 
