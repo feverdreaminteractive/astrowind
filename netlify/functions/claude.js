@@ -36,16 +36,20 @@ exports.handler = async (event, context) => {
 
     console.log('Parsed message:', message);
 
-    // Get visitor IP and attempt company identification
+    // Get visitor context for smart recruiter detection
     const visitorIP = event.headers['x-forwarded-for']?.split(',')[0] ||
                      event.headers['x-real-ip'] ||
                      'unknown';
+    const referrer = event.headers['referer'] || event.headers['referrer'] || '';
+    const userAgent = event.headers['user-agent'] || '';
 
     let visitorContext = {
       hasCompanyInfo: false,
+      isLikelyRecruiter: false,
       company: null,
       location: null,
-      org: null
+      org: null,
+      signals: []
     };
 
     // Try to get company info from IPinfo.io (50k free requests/month)
@@ -56,13 +60,76 @@ exports.handler = async (event, context) => {
           const ipData = await ipInfoResponse.json();
           console.log('IPInfo data:', ipData);
 
-          if (ipData.org && !ipData.org.toLowerCase().includes('isp') && !ipData.org.toLowerCase().includes('wireless')) {
+          // More strict filtering for company IPs - exclude consumer ISPs and personal connections
+          const orgLower = ipData.org?.toLowerCase() || '';
+          const isConsumerISP = orgLower.includes('comcast') ||
+                               orgLower.includes('verizon') ||
+                               orgLower.includes('att') ||
+                               orgLower.includes('spectrum') ||
+                               orgLower.includes('cox') ||
+                               orgLower.includes('xfinity') ||
+                               orgLower.includes('fiber') ||
+                               orgLower.includes('broadband') ||
+                               orgLower.includes('cable') ||
+                               orgLower.includes('isp') ||
+                               orgLower.includes('wireless') ||
+                               orgLower.includes('mobile');
+
+          if (ipData.org && !isConsumerISP) {
             visitorContext.hasCompanyInfo = true;
             visitorContext.company = ipData.org.replace(/^AS\d+\s+/, ''); // Remove AS prefix
             visitorContext.location = ipData.city && ipData.region ? `${ipData.city}, ${ipData.region}` : ipData.country;
             visitorContext.org = ipData.org;
+            visitorContext.signals.push('corporate_network');
           }
         }
+
+        // Enhanced recruiter detection using multiple signals
+        let recruiterScore = 0;
+
+        // Referrer signals (strongest indicators)
+        if (referrer.includes('linkedin.com')) {
+          recruiterScore += 40;
+          visitorContext.signals.push('linkedin_referrer');
+        }
+        if (referrer.includes('indeed.com') || referrer.includes('glassdoor.com') ||
+            referrer.includes('monster.com') || referrer.includes('dice.com') ||
+            referrer.includes('stackoverflow.com/jobs') || referrer.includes('angellist.com')) {
+          recruiterScore += 35;
+          visitorContext.signals.push('job_site_referrer');
+        }
+
+        // Corporate network signals
+        if (visitorContext.hasCompanyInfo) {
+          const companyLower = visitorContext.company.toLowerCase();
+          if (companyLower.includes('recruit') || companyLower.includes('staffing') ||
+              companyLower.includes('talent') || companyLower.includes('human resources') ||
+              companyLower.includes('hr ') || companyLower.includes('hiring')) {
+            recruiterScore += 30;
+            visitorContext.signals.push('recruiting_company');
+          } else {
+            recruiterScore += 10; // Generic corporate network
+            visitorContext.signals.push('corporate_network');
+          }
+        }
+
+        // Time-based signals (recruiters often browse during business hours)
+        const hour = new Date().getHours();
+        if (hour >= 9 && hour <= 17) {
+          recruiterScore += 5;
+          visitorContext.signals.push('business_hours');
+        }
+
+        // User agent signals
+        if (userAgent.includes('LinkedIn') || userAgent.includes('Indeed')) {
+          recruiterScore += 20;
+          visitorContext.signals.push('recruiting_app');
+        }
+
+        // Set recruiter status based on score threshold
+        visitorContext.isLikelyRecruiter = recruiterScore >= 30;
+
+        console.log(`Recruiter score: ${recruiterScore}, Signals: ${visitorContext.signals.join(', ')}`);
       } catch (error) {
         console.log('IPInfo lookup failed, using default conversation:', error.message);
       }
@@ -198,7 +265,7 @@ Share code snippets, ask for architecture advice, get help debugging, or just ex
 
 Just chat naturally about my career, experience, skills, or any coding questions you have. No need to follow specific formats - respond like a knowledgeable colleague who knows my work well.
 
-${visitorContext.hasCompanyInfo ? `**VISITOR CONTEXT:** The person you're talking to appears to be from ${visitorContext.company}${visitorContext.location ? ` in ${visitorContext.location}` : ''}. Tailor your responses appropriately - if it's a tech company, you can be more technical; if it's HR/recruiting, focus on leadership and culture fit; if it's a startup, emphasize agility and growth experience. Use this context naturally in conversation.` : ''}`;
+${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUITER CONTEXT:** This visitor appears to be a recruiter or hiring manager from ${visitorContext.company}${visitorContext.location ? ` in ${visitorContext.location}` : ''} (they came from LinkedIn or a job site and are on a company network). You can be more direct about my job search, career goals, and what I'm looking for in my next role. Focus on leadership experience, technical achievements, and culture fit.` : visitorContext.hasCompanyInfo ? `**COMPANY VISITOR:** This person appears to be from ${visitorContext.company}, but treat them as a general visitor unless they specifically ask about recruiting/hiring topics.` : ''}`;
 
     // Call Claude API
     const claudeRequest = {
