@@ -37,9 +37,12 @@ const CareerAssistant: React.FC = () => {
         if (isAssistantMessage) {
           // Calculate the position of the message relative to the container
           const messageTop = lastMessage.offsetTop;
-          // Scroll the container to show the top of the assistant's response
+          // Add some padding to account for the header and avoid overlap
+          const headerHeight = 80; // Approximate header height
+          const paddingOffset = 16; // Additional padding for readability
+          // Scroll the container to show the top of the assistant's response with offset
           container.scrollTo({
-            top: messageTop,
+            top: Math.max(0, messageTop - headerHeight - paddingOffset),
             behavior: 'smooth'
           });
         } else {
