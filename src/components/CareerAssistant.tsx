@@ -24,9 +24,28 @@ const CareerAssistant: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
-  const scrollChatToBottom = () => {
+  const scrollToNewMessage = () => {
     if (messagesContainerRef.current) {
-      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+      const container = messagesContainerRef.current;
+      const lastMessage = container.lastElementChild as HTMLElement;
+
+      if (lastMessage) {
+        // For assistant messages, scroll to show the beginning of the message
+        // For user messages, scroll to bottom as normal
+        const isAssistantMessage = lastMessage.getAttribute('data-message-type') === 'assistant';
+
+        if (isAssistantMessage) {
+          // Scroll to show the top of the assistant's response
+          lastMessage.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start',
+            inline: 'nearest'
+          });
+        } else {
+          // For user messages and system messages, scroll to bottom
+          container.scrollTop = container.scrollHeight;
+        }
+      }
     }
   };
 
@@ -34,7 +53,7 @@ const CareerAssistant: React.FC = () => {
     // Only scroll within the chat container, never the page
     if (messages.length > 1) {
       const timer = setTimeout(() => {
-        scrollChatToBottom();
+        scrollToNewMessage();
       }, 100);
       return () => clearTimeout(timer);
     }
@@ -105,7 +124,7 @@ const CareerAssistant: React.FC = () => {
 
   const suggestedQuestions = [
     "What's Ryan's technical background?",
-    "Tell me about Kirby and Zephyr",
+    "Tell me about his family",
     "What is Fever Dream Interactive?",
     "What's he like as a person?"
   ];
