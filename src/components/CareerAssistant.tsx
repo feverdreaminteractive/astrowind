@@ -249,7 +249,7 @@ const CareerAssistant: React.FC = () => {
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
                       {message.type === 'assistant' ? 'Career Assistant' :
-                       message.type === 'user' ? 'You' : 'System'}
+                       message.type === 'user' ? 'You' : 'Ryan'}
                     </span>
                     <span className="text-xs text-primary-500 dark:text-primary-400">
                       {message.timestamp.toLocaleTimeString()}
@@ -312,7 +312,7 @@ const CareerAssistant: React.FC = () => {
             <button
               onClick={handleSendMessage}
               disabled={!input.trim() || isLoading}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-primary-300 disabled:cursor-not-allowed text-white rounded-lg transition-colors text-sm font-medium flex items-center space-x-2"
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white disabled:text-gray-200 rounded-lg transition-colors text-sm font-medium flex items-center space-x-2"
             >
               {isLoading ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>

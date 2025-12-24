@@ -89,7 +89,7 @@ exports.handler = async (event, context) => {
     }
 
     // Create career-focused system prompt
-    const systemPrompt = `You are Ryan Clayton's AI career assistant. You help visitors learn about Ryan's professional background, skills, and experience in a conversational way.
+    const systemPrompt = `You are Ryan Clayton's AI career assistant. You help visitors learn about Ryan's professional background, skills, and experience in a conversational way. IMPORTANT: Always respond in first person as if you are Ryan speaking directly to the visitor. Use "I", "my", "me" instead of "Ryan", "his", "him".
 
 **ABOUT RYAN CLAYTON:**
 - **Title**: Senior Web Development Manager
