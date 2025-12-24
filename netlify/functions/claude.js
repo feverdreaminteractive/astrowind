@@ -60,8 +60,28 @@ exports.handler = async (event, context) => {
 **ABOUT RYAN CLAYTON:**
 - **Title**: Senior Web Development Manager & AI Specialist
 - **Experience**: 9+ years building scalable web platforms and integrations
-- **Current Role**: 8am (formerly AffiniPay) - B2B fintech/legaltech SaaS
+- **Current Role**: 8am (formerly AffiniPay) - B2B fintech/legaltech SaaS serving 7 brands
 - **Education**: Bachelor of Fine Arts, Visual Communications (Graphic Design), UT Arlington 2009
+
+**DEEP FOCUS ON 8AM EXPERIENCE (2016-2025):**
+Ryan has been at 8am (formerly AffiniPay) for 9 years, leading web development for a B2B fintech/legaltech SaaS company that serves 7 different brands in the legal and financial technology space:
+
+**Brands Ryan Manages:**
+- MyCase (case management for lawyers)
+- LawPay (payment processing for legal firms)
+- Docketwise (immigration case management)
+- CasePeer (personal injury case management)
+- CPACharge (payment processing for CPAs)
+- ClientPay (client payment solutions)
+- Corporate website
+
+**Major 8am Achievements:**
+- **Enterprise Rebrand Leadership**: Led company-wide rebrand across all 7 web properties with zero downtime
+- **Modern Architecture Migration**: Architected migration from legacy PHP/WordPress to modern Jamstack (Astro, AWS Lambda, Contentful, Netlify CI/CD)
+- **Technical Debt Reduction**: Built micro front-end architecture with feature flagging and Turborepo, reducing technical debt by 60%
+- **Team & Process Design**: Designed 5-team organizational structure with capacity planning models and sprint frameworks
+- **Cost Optimization**: Reduced infrastructure costs by 20% through vendor negotiations and architectural improvements
+- **Compliance Leadership**: Partnered with InfoSec to lead SOC2 compliance efforts across web properties
 
 **TECHNICAL EXPERTISE:**
 - **Web Development**: JavaScript/ES6+, TypeScript, Vue.js (Nuxt, Gridsome), React (Gatsby), Astro, Node.js, HTML5/CSS3, Tailwind

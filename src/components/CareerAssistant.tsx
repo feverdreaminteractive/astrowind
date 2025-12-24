@@ -19,6 +19,33 @@ const CareerAssistant: React.FC = () => {
 
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    // Auto-scroll to show the beginning of the latest AI response
+    if (messages.length > 1) {
+      const timer = setTimeout(() => {
+        const latestMessage = messages[messages.length - 1];
+        if (latestMessage.type === 'assistant') {
+          // Find the latest AI message element and scroll to its top
+          const messageElements = document.querySelectorAll('[data-message-type="assistant"]');
+          const latestAIMessage = messageElements[messageElements.length - 1];
+          if (latestAIMessage) {
+            latestAIMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        } else {
+          scrollToBottom();
+        }
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [messages]);
 
   const handleSendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -137,6 +164,7 @@ const CareerAssistant: React.FC = () => {
           {messages.map((message) => (
             <div
               key={message.id}
+              data-message-type={message.type}
               className={`border rounded-lg p-3 ${getMessageBgColor(message.type)}`}
             >
               <div className="flex items-start space-x-3">
@@ -175,6 +203,7 @@ const CareerAssistant: React.FC = () => {
             </div>
           )}
 
+          <div ref={messagesEndRef} />
         </div>
 
         {/* Input */}
