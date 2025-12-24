@@ -1,6 +1,7 @@
 ---
-title: "GTM Dashboard"
-description: "AI-powered GTM analytics dashboard with Claude integration and automation tools"
-href: "https://github.com/feverdreaminteractive/GTM-Dashboard"
+title: "GTM Sales Dashboard"
+description: "AI-powered sales operations dashboard with conversational business intelligence. Claude AI integration for natural language lead analysis, content generation, and pipeline insights."
+href: "https://gtm-dashboard.netlify.app"
+target: "_blank"
 order: 1
 ---

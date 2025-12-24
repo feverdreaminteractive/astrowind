@@ -1,0 +1,97 @@
+---
+import { SKILLS_CONFIG } from '../consts';
+---
+
+<section class="w-full max-w-2xl mb-12">
+  <div class="bg-white dark:bg-primary-900 shadow-lg rounded-3xl p-6 border border-primary-200 dark:border-primary-700">
+    <h2 class="text-xl font-semibold text-primary-900 dark:text-primary-100 mb-6 text-center">
+      Technical Expertise
+    </h2>
+
+    <div class="grid gap-6">
+      <!-- Web Development -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
+          Web Development
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {SKILLS_CONFIG.webDevelopment.map((skill) => (
+            <span class="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full">
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <!-- AI & Automation -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
+          AI & Automation
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {SKILLS_CONFIG.aiAndAutomation.map((skill) => (
+            <span class="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <!-- Infrastructure -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
+          Infrastructure & DevOps
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {SKILLS_CONFIG.infrastructure.map((skill) => (
+            <span class="px-3 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <!-- CMS & Architecture -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
+          CMS & Architecture
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {SKILLS_CONFIG.cms.map((skill) => (
+            <span class="px-3 py-1 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 rounded-full">
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <!-- Analytics -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
+          Analytics & SEO
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {SKILLS_CONFIG.analytics.map((skill) => (
+            <span class="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full">
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <!-- Marketing Tech -->
+      <div class="space-y-3">
+        <h3 class="text-sm font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
+          Marketing Tech & CRM
+        </h3>
+        <div class="flex flex-wrap gap-2">
+          {SKILLS_CONFIG.marketingTech.map((skill) => (
+            <span class="px-3 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 rounded-full">
+              {skill}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
