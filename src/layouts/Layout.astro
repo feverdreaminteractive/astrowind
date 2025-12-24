@@ -1,6 +1,7 @@
 ---
 import "../styles/global.css";
 import BaseHead from "../components/BaseHead.astro";
+import AmbientBackground from "../components/AmbientBackground";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 
 interface Props {
@@ -17,6 +18,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 		<BaseHead title={title} description={description} />
 	</head>
 	<body>
+		<AmbientBackground client:only="react" />
 		<div class="fixed inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:24px_24px] opacity-[0.15] dark:opacity-[0.07] pointer-events-none"></div>
 		<slot />
 	</body>

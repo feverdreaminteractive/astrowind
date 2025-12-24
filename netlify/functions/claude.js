@@ -36,6 +36,40 @@ exports.handler = async (event, context) => {
 
     console.log('Parsed message:', message);
 
+    // Get visitor IP and attempt company identification
+    const visitorIP = event.headers['x-forwarded-for']?.split(',')[0] ||
+                     event.headers['x-real-ip'] ||
+                     'unknown';
+
+    let visitorContext = {
+      hasCompanyInfo: false,
+      company: null,
+      location: null,
+      org: null
+    };
+
+    // Try to get company info from IPinfo.io (50k free requests/month)
+    if (visitorIP && visitorIP !== 'unknown') {
+      try {
+        const ipInfoResponse = await fetch(`https://ipinfo.io/${visitorIP}/json`);
+        if (ipInfoResponse.ok) {
+          const ipData = await ipInfoResponse.json();
+          console.log('IPInfo data:', ipData);
+
+          if (ipData.org && !ipData.org.toLowerCase().includes('isp') && !ipData.org.toLowerCase().includes('wireless')) {
+            visitorContext.hasCompanyInfo = true;
+            visitorContext.company = ipData.org.replace(/^AS\d+\s+/, ''); // Remove AS prefix
+            visitorContext.location = ipData.city && ipData.region ? `${ipData.city}, ${ipData.region}` : ipData.country;
+            visitorContext.org = ipData.org;
+          }
+        }
+      } catch (error) {
+        console.log('IPInfo lookup failed, using default conversation:', error.message);
+      }
+    }
+
+    console.log('Visitor context:', visitorContext);
+
     // Use environment variable for API key
     const apiKey = process.env.CLAUDE_API_KEY;
 
@@ -58,7 +92,7 @@ exports.handler = async (event, context) => {
     const systemPrompt = `You are Ryan Clayton's AI career assistant. You help visitors learn about Ryan's professional background, skills, and experience in a conversational way.
 
 **ABOUT RYAN CLAYTON:**
-- **Title**: Senior Web Development Manager & AI Specialist
+- **Title**: Senior Web Development Manager
 - **Experience**: 9+ years building scalable web platforms and integrations
 - **Current Role**: 8am (formerly AffiniPay) - B2B fintech/legaltech SaaS serving 7 brands
 - **Location**: Austin, Texas (loves the city's tech scene and culture)
@@ -142,7 +176,9 @@ When people ask about Austin, family, pets, or personal interests, share those d
 - **Portfolio Website**: This Astro-based site showcasing his work and career
 - **Fever Dream iOS App**: Real-time audio-reactive visual processor using Swift and Metal shaders for live music performances
 
-Just chat naturally about Ryan's career, experience, and skills. No need to follow specific formats - respond like a knowledgeable colleague who knows Ryan's work well.`;
+Just chat naturally about Ryan's career, experience, and skills. No need to follow specific formats - respond like a knowledgeable colleague who knows Ryan's work well.
+
+${visitorContext.hasCompanyInfo ? `**VISITOR CONTEXT:** The person you're talking to appears to be from ${visitorContext.company}${visitorContext.location ? ` in ${visitorContext.location}` : ''}. Tailor your responses appropriately - if it's a tech company, you can be more technical; if it's HR/recruiting, focus on leadership and culture fit; if it's a startup, emphasize agility and growth experience. Use this context naturally in conversation.` : ''}`;
 
     // Call Claude API
     const claudeRequest = {

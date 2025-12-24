@@ -124,9 +124,9 @@ const CareerAssistant: React.FC = () => {
 
   const suggestedQuestions = [
     "What's Ryan's technical background?",
-    "Tell me about his family",
-    "What is Fever Dream Interactive?",
-    "What's he like as a person?"
+    "Tell me about his leadership experience",
+    "What projects has he worked on recently?",
+    "What makes him a strong candidate?"
   ];
 
   const getMessageIcon = (type: Message['type']) => {
@@ -152,19 +152,19 @@ const CareerAssistant: React.FC = () => {
   };
 
   return (
-    <section className="w-full max-w-2xl mb-12">
-      <div className="bg-white dark:bg-primary-900 shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 overflow-hidden">
+    <section className="w-full max-w-2xl mb-8">
+      <div className="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500 to-blue-500 p-6">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-              <FontAwesomeIcon icon={faRobot} className="text-white text-xl" />
+        <div className="bg-gradient-to-r from-purple-500/90 to-blue-500/90 backdrop-blur-sm p-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
+              <FontAwesomeIcon icon={faRobot} className="text-white text-lg" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-white">
+              <h2 className="text-lg font-semibold text-white">
                 Ask About My Career
               </h2>
-              <p className="text-purple-100 text-sm">
+              <p className="text-purple-100 text-xs">
                 Chat with my AI assistant about my experience & skills
               </p>
             </div>
@@ -174,7 +174,7 @@ const CareerAssistant: React.FC = () => {
         {/* Messages */}
         <div
           ref={messagesContainerRef}
-          className="h-96 overflow-y-auto p-4 space-y-4"
+          className="h-80 overflow-y-auto p-4 space-y-4"
         >
           {messages.map((message) => (
             <div

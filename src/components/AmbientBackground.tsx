@@ -20,70 +20,53 @@ const AmbientBackground: React.FC = () => {
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
 
-    // Swirl ambient background animation
-    let time = 0;
-
-    class SwirlParticle {
+    // Ambient background animation
+    class Particle {
       x: number;
       y: number;
-      angle: number;
-      radius: number;
-      centerX: number;
-      centerY: number;
-      speed: number;
+      vx: number;
+      vy: number;
       size: number;
-      alpha: number;
-      hue: number;
+      life: number;
+      maxLife: number;
 
       constructor() {
-        this.centerX = Math.random() * canvas.width;
-        this.centerY = Math.random() * canvas.height;
-        this.angle = Math.random() * Math.PI * 2;
-        this.radius = Math.random() * 100 + 50;
-        this.speed = (Math.random() - 0.5) * 0.02;
-        this.size = Math.random() * 2 + 1;
-        this.alpha = Math.random() * 0.5 + 0.1;
-        this.hue = Math.random() * 60 + 270; // Purple to blue range
-        this.updatePosition();
-      }
-
-      updatePosition() {
-        this.x = this.centerX + Math.cos(this.angle) * this.radius;
-        this.y = this.centerY + Math.sin(this.angle) * this.radius;
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5;
+        this.size = Math.random() * 3 + 1;
+        this.life = 0;
+        this.maxLife = Math.random() * 300 + 200;
       }
 
       update() {
-        this.angle += this.speed;
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life++;
 
-        // Add swirl effect with time
-        const swirl = Math.sin(time * 0.001 + this.angle * 3) * 0.5;
-        this.radius += swirl;
+        // Boundary wrap
+        if (this.x < 0) this.x = canvas.width;
+        if (this.x > canvas.width) this.x = 0;
+        if (this.y < 0) this.y = canvas.height;
+        if (this.y > canvas.height) this.y = 0;
 
-        // Gentle drift of center points
-        this.centerX += Math.sin(time * 0.0005 + this.angle) * 0.1;
-        this.centerY += Math.cos(time * 0.0005 + this.angle) * 0.1;
-
-        // Wrap around screen
-        if (this.centerX < -100) this.centerX = canvas.width + 100;
-        if (this.centerX > canvas.width + 100) this.centerX = -100;
-        if (this.centerY < -100) this.centerY = canvas.height + 100;
-        if (this.centerY > canvas.height + 100) this.centerY = -100;
-
-        this.updatePosition();
-
-        // Pulsing alpha
-        this.alpha = (Math.sin(time * 0.002 + this.angle * 2) + 1) * 0.15 + 0.05;
+        // Reset when life expires
+        if (this.life > this.maxLife) {
+          this.life = 0;
+          this.x = Math.random() * canvas.width;
+          this.y = Math.random() * canvas.height;
+        }
       }
 
       draw() {
+        const alpha = Math.sin((this.life / this.maxLife) * Math.PI) * 0.3;
         const gradient = ctx.createRadialGradient(
           this.x, this.y, 0,
-          this.x, this.y, this.size * 3
+          this.x, this.y, this.size * 2
         );
-
-        const color = `hsla(${this.hue}, 70%, 60%, ${this.alpha})`;
-        gradient.addColorStop(0, color);
-        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        gradient.addColorStop(0, `rgba(139, 92, 246, ${alpha})`); // purple-500
+        gradient.addColorStop(1, 'rgba(139, 92, 246, 0)');
 
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -92,57 +75,38 @@ const AmbientBackground: React.FC = () => {
       }
     }
 
-    // Create swirl particles
-    const particles: SwirlParticle[] = [];
-    const particleCount = Math.floor((canvas.width * canvas.height) / 20000);
+    // Create particles
+    const particles: Particle[] = [];
+    const particleCount = Math.floor((canvas.width * canvas.height) / 15000);
 
     for (let i = 0; i < particleCount; i++) {
-      particles.push(new SwirlParticle());
+      particles.push(new Particle());
     }
 
     // Animation loop
     const animate = () => {
-      time++;
-
-      // Clear canvas with subtle trailing effect
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.02)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Update and draw particles
       particles.forEach(particle => {
         particle.update();
         particle.draw();
       });
 
-      // Draw swirling connections
-      ctx.strokeStyle = `hsla(280, 60%, 70%, 0.1)`;
-      ctx.lineWidth = 0.5;
-
+      // Draw connections between nearby particles
       for (let i = 0; i < particles.length; i++) {
         for (let j = i + 1; j < particles.length; j++) {
           const dx = particles[i].x - particles[j].x;
           const dy = particles[i].y - particles[j].y;
           const distance = Math.sqrt(dx * dx + dy * dy);
 
-          if (distance < 150) {
-            const alpha = (1 - distance / 150) * 0.08;
-            const swirl = Math.sin(time * 0.005 + distance * 0.01) * 0.5 + 0.5;
-
-            ctx.strokeStyle = `hsla(${280 + swirl * 20}, 60%, 70%, ${alpha})`;
+          if (distance < 120) {
+            const alpha = (1 - distance / 120) * 0.1;
+            ctx.strokeStyle = `rgba(139, 92, 246, ${alpha})`;
+            ctx.lineWidth = 0.5;
             ctx.beginPath();
             ctx.moveTo(particles[i].x, particles[i].y);
-
-            // Create curved lines for swirl effect
-            const midX = (particles[i].x + particles[j].x) / 2;
-            const midY = (particles[i].y + particles[j].y) / 2;
-            const offset = Math.sin(time * 0.01 + distance * 0.02) * 20;
-
-            ctx.quadraticCurveTo(
-              midX + offset,
-              midY + offset,
-              particles[j].x,
-              particles[j].y
-            );
+            ctx.lineTo(particles[j].x, particles[j].y);
             ctx.stroke();
           }
         }
