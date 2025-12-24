@@ -8,7 +8,7 @@ import authorImage from './assets/profile.avif'; // Replace this file with your 
 export const SITE_URL = 'https://feverdream.dev';
 export const SITE_TITLE = 'Ryan Clayton | Senior Web Development Manager';
 export const SITE_DESCRIPTION =
-  'Portfolio of Ryan Clayton - Senior Web Development Manager with 9+ years building scalable platforms, AI automation, and enterprise integrations. Leading technical innovation in fintech/legaltech.';
+  'Senior Web Development Manager with 9+ years leading technical teams and enterprise migrations. Led zero-downtime rebrand across 7 web properties, architected modern Jamstack solutions, and built scalable fintech/legaltech platforms.';
 
 // Profile Configuration
 export const PROFILE_CONFIG = {
