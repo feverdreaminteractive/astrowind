@@ -132,7 +132,7 @@ const CareerAssistant: React.FC = () => {
     };
   }, []);
 
-  // Stop speech on page unload/refresh
+  // Stop speech only on page unload/refresh, but allow window switching
   useEffect(() => {
     const handleBeforeUnload = () => {
       if ('speechSynthesis' in window) {
@@ -140,10 +140,18 @@ const CareerAssistant: React.FC = () => {
       }
     };
 
+    const handleVisibilityChange = () => {
+      // Don't stop speech when window loses focus or becomes hidden
+      // This allows users to switch windows/apps while audio continues playing
+      // Speech will continue in background until page is actually closed/refreshed
+    };
+
     window.addEventListener('beforeunload', handleBeforeUnload);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
