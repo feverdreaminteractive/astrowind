@@ -657,13 +657,13 @@ const CareerAssistant: React.FC = () => {
                       {message.type === 'assistant' && (
                         <button
                           onClick={() => speakText(message.content)}
-                          className="text-xs text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                          className="text-xs text-primary-700 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
                           title="Play audio"
                         >
                           <FontAwesomeIcon icon={faPlay} />
                         </button>
                       )}
-                      <span className="text-xs text-primary-500 dark:text-primary-400">
+                      <span className="text-xs text-primary-700 dark:text-primary-400">
                         {message.timestamp.toLocaleTimeString()}
                       </span>
                     </div>
@@ -710,7 +710,7 @@ const CareerAssistant: React.FC = () => {
                   <span>Voice responses: {voiceEnabled ? 'Enabled' : 'Disabled'} • Use volume button to toggle</span>
                 </div>
               </div>
-              <p className="text-xs text-primary-600 dark:text-primary-400 mb-2">
+              <p className="text-xs text-primary-700 dark:text-primary-400 mb-2">
                 Try asking:
               </p>
               <div className="flex flex-wrap gap-2">
