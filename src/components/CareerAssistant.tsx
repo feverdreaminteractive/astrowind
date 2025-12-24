@@ -11,18 +11,58 @@ interface Message {
 }
 
 const CareerAssistant: React.FC = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      type: 'system',
-      content: 'Hi! I\'m Ryan\'s AI career assistant. Ask me anything about his experience, skills, projects, or background. I\'m here to help you learn more about his professional journey!',
-      timestamp: new Date()
-    }
-  ]);
-
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [welcomeLoaded, setWelcomeLoaded] = useState(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+
+  // Load dynamic welcome message on component mount
+  useEffect(() => {
+    const loadWelcomeMessage = async () => {
+      try {
+        const response = await fetch('/.netlify/functions/claude', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: '__WELCOME_MESSAGE__' // Special flag for welcome message
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          setMessages([{
+            id: '1',
+            type: 'system',
+            content: data.message,
+            timestamp: new Date()
+          }]);
+        } else {
+          // Fallback to static message if API fails
+          setMessages([{
+            id: '1',
+            type: 'system',
+            content: 'Hi! I\'m Ryan\'s AI assistant. I can help with coding questions, discuss my technical projects, or tell you about my development experience. What can I help you with?',
+            timestamp: new Date()
+          }]);
+        }
+      } catch (error) {
+        // Fallback to static message if API fails
+        setMessages([{
+          id: '1',
+          type: 'system',
+          content: 'Hi! I\'m Ryan\'s AI assistant. I can help with coding questions, discuss my technical projects, or tell you about my development experience. What can I help you with?',
+          timestamp: new Date()
+        }]);
+      } finally {
+        setWelcomeLoaded(true);
+      }
+    };
+
+    loadWelcomeMessage();
+  }, []);
 
   const scrollToNewMessage = () => {
     if (messagesContainerRef.current) {
@@ -248,7 +288,7 @@ const CareerAssistant: React.FC = () => {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-xs font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
-                      {message.type === 'assistant' ? 'Career Assistant' :
+                      {message.type === 'assistant' ? "Ryan's AI Career Assistant" :
                        message.type === 'user' ? 'You' : 'Ryan'}
                     </span>
                     <span className="text-xs text-primary-500 dark:text-primary-400">

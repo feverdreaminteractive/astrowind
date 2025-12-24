@@ -137,6 +137,22 @@ exports.handler = async (event, context) => {
 
     console.log('Visitor context:', visitorContext);
 
+    // Handle special welcome message request
+    if (message === '__WELCOME_MESSAGE__') {
+      return {
+        statusCode: 200,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: visitorContext.isLikelyRecruiter
+            ? "Hi! I'm Ryan's AI assistant. I'd love to discuss my background, technical leadership experience, and what I'm looking for in my next role. What would you like to know?"
+            : "Hi! I'm Ryan's AI assistant. I can help with coding questions, discuss my technical projects, or tell you about my development experience. What can I help you with?"
+        }),
+      };
+    }
+
     // Use environment variable for API key
     const apiKey = process.env.CLAUDE_API_KEY;
 
