@@ -444,7 +444,18 @@ const CareerAssistant: React.FC = () => {
     // Cancel any ongoing speech
     window.speechSynthesis.cancel();
 
-    const utterance = new SpeechSynthesisUtterance(text);
+    // Clean markdown formatting for voice playback
+    const cleanText = text
+      .replace(/\*\*(.*?)\*\*/g, '$1')  // Remove **bold**
+      .replace(/\*(.*?)\*/g, '$1')     // Remove *italic*
+      .replace(/`(.*?)`/g, '$1')       // Remove `code`
+      .replace(/#{1,6}\s+/g, '')       // Remove # headers
+      .replace(/^\s*[-*+]\s+/gm, '')   // Remove bullet points
+      .replace(/^\s*\d+\.\s+/gm, '')   // Remove numbered lists
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Remove [link](url)
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
 
     // Configure voice settings
     utterance.rate = 1.1; // Natural speaking speed
