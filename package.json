@@ -11,6 +11,9 @@
 	"dependencies": {
 		"@astrojs/react": "^4.4.2",
 		"@astrojs/sitemap": "^3.6.0",
+		"@fortawesome/fontawesome-svg-core": "^7.1.0",
+		"@fortawesome/free-solid-svg-icons": "^7.1.0",
+		"@fortawesome/react-fontawesome": "^3.1.1",
 		"@iconify-json/lucide": "^1.2.26",
 		"@iconify-json/simple-icons": "^1.2.24",
 		"@tailwindcss/vite": "^4.0.1",
@@ -19,6 +22,8 @@
 		"astro": "^5.15.0",
 		"astro-font": "^0.1.81",
 		"astro-icon": "^1.1.5",
+		"flowbite": "^4.0.1",
+		"flowbite-react": "^0.12.14",
 		"react": "^19.2.3",
 		"react-dom": "^19.2.3",
 		"sharp": "^0.33.5",
