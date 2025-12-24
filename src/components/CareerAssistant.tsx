@@ -642,9 +642,20 @@ const CareerAssistant: React.FC = () => {
                       {message.type === 'assistant' ? "Ryan's AI Career Assistant" :
                        message.type === 'user' ? 'You' : 'Ryan'}
                     </span>
-                    <span className="text-xs text-primary-500 dark:text-primary-400">
-                      {message.timestamp.toLocaleTimeString()}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {message.type === 'assistant' && (
+                        <button
+                          onClick={() => speakText(message.content)}
+                          className="text-xs text-primary-500 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                          title="Play audio"
+                        >
+                          <FontAwesomeIcon icon={faPlay} />
+                        </button>
+                      )}
+                      <span className="text-xs text-primary-500 dark:text-primary-400">
+                        {message.timestamp.toLocaleTimeString()}
+                      </span>
+                    </div>
                   </div>
                   <div className="text-sm text-primary-900 dark:text-primary-100">
                     <pre className="whitespace-pre-wrap font-sans">{message.content}</pre>
