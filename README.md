@@ -1,128 +1,160 @@
-# Linkk - Astro Link in Bio Template
+# Ryan Clayton - AI-Powered Portfolio
 
-A minimal, customizable link-in-bio template built with Astro and Tailwind CSS. Perfect for creators and developers looking for a self-hosted Linktree alternative.
+A modern, interactive portfolio website featuring voice-enabled AI assistant capabilities for an enhanced recruitment experience.
 
-For a detailed list of changes and version history, please see the [CHANGELOG](CHANGELOG.md).
+## Live Site
 
-## ⚙️ Configuration
+Visit the live portfolio at: [ryanclayton.io](https://ryanclayton.io)
 
-The theme can be customized through the `src/consts.ts` file.
+## Key Features
 
-### Configuration Options
+### Voice-Powered Interview Mode
+- **Voice Input**: Click the microphone to ask questions with speech recognition
+- **Audio Responses**: Automatic text-to-speech playback for voice questions
+- **Replay Functionality**: Click play buttons to replay any AI response
+- **Professional Voice**: Uses Alex voice with optimized speech settings
+- **Real-time Transcription**: Shows your words as you speak
 
-- **Site Configuration**
-  - `SITE_URL`: Your site's full URL (used for canonical links and SEO)
-  - `SITE_TITLE`: The name of your site
-  - `SITE_DESCRIPTION`: Default meta description for the site
+### AI Career Assistant
+- **Conversational Interface**: Natural language Q&A about professional background
+- **Intelligent Analytics**: Company detection and recruiter identification
+- **Privacy Protection**: Owner traffic filtering and secure data handling
+- **Third-person Responses**: Professional tone discussing Ryan's experience
 
-- **Profile Configuration**
-  - Edit `PROFILE_CONFIG` in `src/consts.ts` to customize your profile
-  - Configuration includes:
-    ```ts
-    {
-      name: 'Your Name',      // Your display name
-      title: 'Your Title',    // Your job title or descriptor
-      bio: 'Your bio text',   // Brief description about you
-      avatar: authorImage,    // Profile image (import from assets)
-    }
-    ```
+### Modern Tech Stack
+- **Astro**: Static site generation with optimal performance
+- **React + TypeScript**: Interactive components with type safety
+- **Tailwind CSS**: Utility-first styling with dark mode support
+- **Web Speech API**: Browser-native voice recognition and synthesis
+- **Claude AI Integration**: Serverless function proxy for AI responses
 
-- **Social Links**
-  - Edit `SOCIAL_LINKS` in `src/consts.ts` to customize your social links
-  - Each link requires:
-    ```ts
-    {
-      name: 'Platform Name',           // Name of the platform
-      icon: 'simple-icons:platform',   // Icon from Iconify
-      href: 'https://link-url.com',    // URL to your profile
-    }
-    ```
-  - Available icons can be found at [Iconify](https://icon-sets.iconify.design/simple-icons/)
+### Analytics & Insights
+- **Company Intelligence**: Automatic visitor organization detection
+- **Recruitment Tracking**: Enhanced analytics for hiring manager visits
+- **GA4 Integration**: Custom events and user property tracking
+- **Privacy Focused**: Respects user privacy with smart filtering
 
-- **Newsletter Configuration**
-  - Edit `NEWSLETTER_CONFIG` in `src/consts.ts` to customize the newsletter component
-  - Configuration includes:
-    ```ts
-    {
-      title: 'Subscribe title',         // Newsletter title
-      description: 'Newsletter text',   // Description text
-      buttonText: 'Button label',       // Button label
-      placeholderText: 'Placeholder',   // Input placeholder
-      successMessage: 'Success text',   // Success message
-      errorMessage: 'Error text',       // Error message
-    }
-    ```
+## Technical Architecture
 
-## 🎨 Customization
+### Frontend
+- **Framework**: Astro with React islands
+- **Styling**: Tailwind CSS with custom design system
+- **Voice Features**: Web Speech API with cross-browser support
+- **Responsive Design**: Mobile-first approach with adaptive layouts
 
-### Theme Colors
+### Backend
+- **Serverless Functions**: Netlify Functions for API proxy
+- **AI Integration**: Claude API for conversational responses
+- **Analytics**: Google Analytics 4 with custom dimensions
+- **Deployment**: Automatic deployment via Netlify
 
-The theme uses a grayscale color palette by default. Customize colors in `src/styles/global.css`:
+### Voice Technology
+- **Speech Recognition**: Continuous listening with interim results
+- **Text-to-Speech**: Professional voice synthesis with cleanup
+- **Cross-Platform**: Support for Chrome, Safari, Edge browsers
+- **Intelligent Fallbacks**: Graceful degradation for unsupported browsers
 
-```css
-@theme {
-  /* Primary colors - Replace with your brand colors */
-  --color-primary-50: oklch(0.984 0.003 247.858);  /* Lightest */
-  --color-primary-100: oklch(0.968 0.007 247.896);
-  --color-primary-200: oklch(0.929 0.013 255.508);
-  /* ... */
-  --color-primary-900: oklch(0.208 0.042 265.755); /* Darkest */
-}
+## Development
+
+### Prerequisites
+- Node.js 20+
+- npm or yarn package manager
+
+### Local Development
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
 ```
 
-### Link Cards
+### Environment Variables
+Create a `.env` file with:
+```
+CLAUDE_API_KEY=your_claude_api_key_here
+```
 
-Add or edit links using content collections in `src/content/links/`:
+## Deployment
 
-1. Create a new `.md` file in `src/content/links/`
-2. Add frontmatter with the following properties:
+The site is deployed on Netlify with automatic builds from the main branch:
 
-```markdown
+- **Build Command**: `npm run build`
+- **Publish Directory**: `dist`
+- **Node Version**: 20 (specified in .nvmrc)
+
+### Netlify Functions
+- `/netlify/functions/claude.js`: AI assistant API proxy
+- Handles CORS, rate limiting, and response processing
+
+## Performance Features
+
+- **Static Generation**: Pre-built pages for optimal loading
+- **Code Splitting**: Dynamic imports for React components
+- **Image Optimization**: Optimized images with multiple formats
+- **Caching**: Aggressive caching strategies for assets
+- **Minimal JavaScript**: Only essential client-side code
+
+## Privacy & Security
+
+- **Data Protection**: No personal information stored client-side
+- **Secure API**: Serverless functions with proper CORS handling
+- **Analytics Filtering**: Owner traffic excluded from tracking
+- **Content Security**: Sanitized AI responses and user inputs
+
+## Browser Support
+
+- **Chrome**: Full feature support including voice
+- **Safari**: Full feature support including voice
+- **Firefox**: Visual features, voice support limited
+- **Edge**: Full feature support including voice
+
+## Project Structure
+
+```
+src/
+├── components/          # Reusable UI components
+│   ├── CareerAssistant.tsx    # AI chat interface
+│   ├── Profile.astro          # Header profile section
+│   ├── Skills.astro           # Technical skills display
+│   └── Bio.astro             # Professional summary
+├── layouts/            # Page layout templates
+├── pages/             # Astro pages and routes
+├── styles/            # Global CSS and Tailwind config
+└── assets/           # Images and static files
+
+netlify/
+└── functions/        # Serverless API endpoints
+    └── claude.js     # AI assistant proxy
+
+public/
+├── favicon.svg       # Site favicon
+├── og-image.png     # Social media preview image
+└── robots.txt       # SEO directives
+```
+
+## Contributing
+
+This is a personal portfolio project. However, if you find bugs or have suggestions for improvements, feel free to open an issue.
+
+## License
+
+This project is for personal use. The code structure and components may be referenced for learning purposes.
+
+## Contact
+
+For questions about this portfolio or potential opportunities:
+
+- **LinkedIn**: [ryan-clayton-atx](https://linkedin.com/in/ryan-clayton-atx)
+- **GitHub**: [feverdreaminteractive](https://github.com/feverdreaminteractive)
+- **Email**: Available through the portfolio contact form
+
 ---
-title: My Project
-description: Check out my latest project
-href: https://myproject.com
-target: _blank
-order: 1  # Controls the display order
----
-```
 
-The links will automatically appear based on the order specified in the frontmatter.
-
-## 🚀 Project Structure
-
-Inside of your Astro project, you'll see the following folders and files:
-
-```text
-/
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── content/
-│   │   └── links/        # Link card content
-│   ├── components/       # UI components
-│   ├── layouts/          # Page layouts
-│   ├── pages/            # Routes
-│   ├── styles/           # Global styles
-│   └── consts.ts         # Site configuration
-└── package.json
-```
-
-## 🧞 Commands
-
-All commands are run from the root of the project, from a terminal:
-
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
-
-## 🛟 Support
-
-Support is provided as described in the `LICENSE.md` file.
-
-For further help on getting started with Astro, check out the official [Astro documentation](https://docs.astro.build).
+Built with modern web technologies and a focus on creating an engaging, interactive experience for recruiters and potential collaborators.
