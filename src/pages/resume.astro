@@ -209,30 +209,77 @@ import Layout from '../layouts/Layout.astro';
 
 <style>
   .prose h2 {
-    @apply text-2xl font-bold text-primary-900 dark:text-primary-100 mt-8 mb-4 border-b border-primary-200 dark:border-primary-700 pb-2;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: oklch(0.12 0.015 265);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid oklch(0.929 0.013 255.508);
+    padding-bottom: 0.5rem;
+  }
+
+  .dark .prose h2 {
+    color: oklch(0.984 0.003 247.858);
+    border-bottom-color: oklch(0.372 0.044 257.287);
   }
 
   .prose h3 {
-    @apply text-lg font-semibold text-primary-800 dark:text-primary-200 mt-6 mb-3;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: oklch(0.175 0.025 265);
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .dark .prose h3 {
+    color: oklch(0.929 0.013 255.508);
   }
 
   .prose h4 {
-    @apply text-base font-medium text-primary-700 dark:text-primary-300 mt-4 mb-2;
+    font-size: 1rem;
+    font-weight: 500;
+    color: oklch(0.372 0.044 257.287);
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .dark .prose h4 {
+    color: oklch(0.869 0.022 252.894);
   }
 
   .prose p {
-    @apply text-primary-700 dark:text-primary-300 mb-4 leading-relaxed;
+    color: oklch(0.372 0.044 257.287);
+    margin-bottom: 1rem;
+    line-height: 1.625;
+  }
+
+  .dark .prose p {
+    color: oklch(0.869 0.022 252.894);
   }
 
   .prose ul {
-    @apply mb-4 space-y-2;
+    margin-bottom: 1rem;
+  }
+
+  .prose ul > li {
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
   }
 
   .prose li {
-    @apply text-primary-700 dark:text-primary-300;
+    color: oklch(0.372 0.044 257.287);
+  }
+
+  .dark .prose li {
+    color: oklch(0.869 0.022 252.894);
   }
 
   .prose strong {
-    @apply text-primary-900 dark:text-primary-100 font-semibold;
+    color: oklch(0.12 0.015 265);
+    font-weight: 600;
+  }
+
+  .dark .prose strong {
+    color: oklch(0.984 0.003 247.858);
   }
 </style>
