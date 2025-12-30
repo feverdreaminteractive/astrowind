@@ -12,5 +12,21 @@ export default defineConfig({
   integrations: [react(), icon(), sitemap()],
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      proxy: {
+        // Proxy Netlify functions to your deployed site for local development
+        '/.netlify/functions': {
+          target: 'https://ryanclayton.io',
+          changeOrigin: true,
+          secure: true,
+        },
+        // Proxy API calls to your deployed site
+        '/api': {
+          target: 'https://ryanclayton.io',
+          changeOrigin: true,
+          secure: true,
+        }
+      }
+    }
   },
 });

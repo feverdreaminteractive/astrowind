@@ -1,0 +1,171 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Newsletter from '../components/Newsletter.astro';
+---
+
+<Layout showNavigation={true}>
+  <main class="p-4 md:ml-64 h-auto pt-20">
+    <div class="max-w-6xl mx-auto">
+
+      <!-- Experience Header -->
+      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 p-6 mb-8">
+        <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100 mb-2">
+          Professional Experience
+        </h1>
+        <p class="text-lg text-primary-700 dark:text-primary-300">
+          9+ years of experience in web development management, leading technical teams, and building scalable platforms across fintech, legaltech, and AI-powered solutions.
+        </p>
+      </div>
+
+      <!-- Experience Timeline -->
+      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-6 mb-8">
+        <h2 class="text-xl font-bold text-primary-900 dark:text-primary-100 mb-6 flex items-center">
+          <svg class="w-6 h-6 mr-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"></path>
+          </svg>
+          Career Timeline
+        </h2>
+
+        <div class="space-y-8">
+          <!-- Current Position -->
+          <div class="relative pl-8">
+            <div class="absolute left-0 top-0 w-4 h-4 bg-primary-600 rounded-full"></div>
+            <div class="absolute left-2 top-4 w-0.5 h-full bg-primary-200 dark:bg-primary-700"></div>
+
+            <div class="bg-gradient-to-r from-primary-50 to-blue-50 dark:from-primary-900/30 dark:to-blue-900/30 rounded-lg p-6 border border-primary-200 dark:border-primary-700">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
+                <h3 class="text-xl font-semibold text-primary-900 dark:text-primary-100">Senior Web Development Manager</h3>
+                <span class="text-sm font-medium text-primary-600 dark:text-primary-400 bg-primary-100 dark:bg-primary-800 px-3 py-1 rounded-full">2020 - Present</span>
+              </div>
+              <p class="text-primary-700 dark:text-primary-300 font-medium mb-3">Leading Technical Innovation & Team Management</p>
+              <ul class="space-y-2 text-sm text-primary-600 dark:text-primary-400">
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Led enterprise rebrand across 7 web properties with zero downtime
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Architected modern Jamstack solutions using Vue.js, React, and Astro
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Integrated Claude AI for conversational business intelligence and automation
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Managed technical teams and cross-functional project delivery
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Previous Position -->
+          <div class="relative pl-8">
+            <div class="absolute left-0 top-0 w-4 h-4 bg-gray-400 rounded-full"></div>
+            <div class="absolute left-2 top-4 w-0.5 h-full bg-primary-200 dark:bg-primary-700"></div>
+
+            <div class="bg-gray-50 dark:bg-gray-800/50 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Full Stack Developer</h3>
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">2018 - 2020</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300 font-medium mb-3">Fintech & Legaltech Platform Development</p>
+              <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Built scalable web applications with Node.js and modern frontend frameworks
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Implemented CI/CD pipelines and automated deployment processes
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Developed marketing automation and CRM integrations
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Earlier Experience -->
+          <div class="relative pl-8">
+            <div class="absolute left-0 top-0 w-4 h-4 bg-gray-300 rounded-full"></div>
+
+            <div class="bg-gray-50 dark:bg-gray-800/30 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+              <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Web Developer</h3>
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">2015 - 2018</span>
+              </div>
+              <p class="text-gray-700 dark:text-gray-300 font-medium mb-3">Foundation Building & Core Development</p>
+              <ul class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Mastered JavaScript, HTML5/CSS3, and modern web development practices
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Built responsive websites and web applications for various industries
+                </li>
+                <li class="flex items-start">
+                  <svg class="w-4 h-4 mr-2 mt-0.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                  </svg>
+                  Gained expertise in CMS platforms and e-commerce solutions
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Key Achievements -->
+      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-6 mb-8">
+        <h2 class="text-xl font-bold text-primary-900 dark:text-primary-100 mb-6 flex items-center">
+          <svg class="w-6 h-6 mr-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+          </svg>
+          Key Achievements
+        </h2>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="text-center p-4">
+            <div class="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">7</div>
+            <p class="text-sm text-primary-700 dark:text-primary-300">Web Properties Rebranded</p>
+          </div>
+          <div class="text-center p-4">
+            <div class="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">0</div>
+            <p class="text-sm text-primary-700 dark:text-primary-300">Downtime During Migration</p>
+          </div>
+          <div class="text-center p-4">
+            <div class="text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2">9+</div>
+            <p class="text-sm text-primary-700 dark:text-primary-300">Years Experience</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contact & Newsletter -->
+      <div class="w-full max-w-2xl mx-auto">
+        <Newsletter />
+      </div>
+
+    </div>
+  </main>
+</Layout>

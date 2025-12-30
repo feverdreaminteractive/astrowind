@@ -1,0 +1,327 @@
+---
+import { PROFILE_CONFIG } from '../consts';
+---
+
+<div class="antialiased bg-gray-50 dark:bg-gray-900">
+    <nav class="bg-white border-b border-gray-200 px-4 py-2.5 dark:bg-gray-800 dark:border-gray-700 fixed left-0 right-0 top-0 z-50 shadow-sm">
+      <div class="flex flex-wrap justify-between items-center max-w-screen-xl mx-auto">
+        <div class="flex justify-start items-center">
+          <button
+            data-drawer-target="drawer-navigation"
+            data-drawer-toggle="drawer-navigation"
+            aria-controls="drawer-navigation"
+            class="p-2 mr-2 text-gray-600 rounded-lg cursor-pointer md:hidden hover:text-gray-900 hover:bg-gray-100 focus:bg-gray-100 dark:focus:bg-gray-700 focus:ring-2 focus:ring-gray-100 dark:focus:ring-gray-700 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white"
+          >
+            <svg
+              aria-hidden="true"
+              class="w-6 h-6"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h6a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"
+                clip-rule="evenodd"
+              ></path>
+            </svg>
+            <span class="sr-only">Toggle sidebar</span>
+          </button>
+          <div class="flex items-center mr-4">
+            <img src="/logo.png" alt="Logo" class="w-8 h-8 mr-3" />
+            <span class="self-center text-2xl font-semibold whitespace-nowrap dark:text-white">{PROFILE_CONFIG.name}</span>
+          </div>
+        </div>
+        <div class="flex items-center lg:order-2 gap-4">
+          <div class="hidden md:flex items-center gap-4">
+            <a
+              href="https://github.com/feverdreaminteractive"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+            >
+              <i class="fab fa-github text-lg"></i>
+              <span class="text-sm font-medium">GitHub</span>
+            </a>
+
+            <a
+              href="https://linkedin.com/in/ryan-clayton-atx"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+            >
+              <i class="fab fa-linkedin text-lg"></i>
+              <span class="text-sm font-medium">LinkedIn</span>
+            </a>
+
+            <a
+              href="https://apps.apple.com/us/app/fever-dream/id6754286952"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+            >
+              <i class="fab fa-app-store text-lg"></i>
+              <span class="text-sm font-medium">App Store</span>
+            </a>
+
+            <a
+              href="/Ryan_Clayton_Resume.pdf"
+              download="Ryan_Clayton_Resume.pdf"
+              onclick="if (typeof gtag !== 'undefined') { gtag('event', 'resume_download', { event_category: 'recruitment', event_label: 'resume_pdf' }); }"
+              class="inline-flex items-center gap-2 text-gray-700 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors duration-200"
+            >
+              <i class="fas fa-download text-lg"></i>
+              <span class="text-sm font-medium">Resume</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside
+      class="fixed top-0 left-0 z-40 w-64 h-screen pt-14 transition-transform -translate-x-full bg-white/30 backdrop-blur-sm border-r border-gray-200 md:translate-x-0 dark:bg-gray-800/30 dark:border-gray-700 shadow-lg"
+      aria-label="Sidebar navigation"
+      id="drawer-navigation"
+    >
+      <div class="overflow-y-auto py-4 px-3 h-full bg-white/30 dark:bg-gray-800/30">
+        <form action="#" method="GET" class="md:hidden mb-2">
+          <label for="sidebar-search" class="sr-only">Search</label>
+          <div class="relative">
+            <div
+              class="flex absolute inset-y-0 left-0 items-center pl-3 pointer-events-none"
+            >
+              <svg
+                class="w-5 h-5 text-gray-500 dark:text-gray-400"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z"
+                ></path>
+              </svg>
+            </div>
+            <input
+              type="text"
+              name="search"
+              id="sidebar-search"
+              class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+              placeholder="Search"
+            />
+          </div>
+        </form>
+        <ul class="space-y-1 font-medium">
+          <li>
+            <a
+              href="/"
+              class="flex items-center p-2 text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group transition-all duration-200"
+            >
+              <svg
+                class="w-5 h-5 text-gray-500 transition duration-200 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+              >
+                <path d="M10 1a1 1 0 0 1 1 1v3a6 6 0 0 1 5.995 5.774L17 11a1 1 0 1 1-2 0 4 4 0 0 0-8 0 1 1 0 1 1-2 0 6 6 0 0 1 6-6V2a1 1 0 0 1 1-1ZM8 15a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm4-1a1 1 0 1 0-2 0 1 1 0 0 0 2 0Zm2 4a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm-6 0a1 1 0 1 0 0-2 1 1 0 0 0 0 2Zm3-2a1 1 0 1 0-2 0 1 1 0 0 0 2 0Z"/>
+                <circle cx="10" cy="7" r="2"/>
+              </svg>
+              <span class="ms-3">AI Agent</span>
+            </a>
+          </li>
+          <li>
+            <button
+              type="button"
+              class="flex items-center w-full p-2 text-base font-medium text-gray-900 transition duration-200 rounded-lg group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+              aria-controls="dropdown-portfolio"
+              data-collapse-toggle="dropdown-portfolio"
+            >
+              <svg
+                class="flex-shrink-0 w-5 h-5 text-gray-500 transition duration-200 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="currentColor"
+                viewBox="0 0 18 18"
+              >
+                <path d="M6.143 0H1.857A1.857 1.857 0 0 0 0 1.857v4.286C0 7.169.831 8 1.857 8h4.286A1.857 1.857 0 0 0 8 6.143V1.857A1.857 1.857 0 0 0 6.143 0Zm10 0h-4.286A1.857 1.857 0 0 0 10 1.857v4.286C10 7.169 10.831 8 11.857 8h4.286A1.857 1.857 0 0 0 18 6.143V1.857A1.857 1.857 0 0 0 16.143 0Zm-10 10H1.857A1.857 1.857 0 0 0 0 11.857v4.286C0 17.169.831 18 1.857 18h4.286A1.857 1.857 0 0 0 8 16.143v-4.286A1.857 1.857 0 0 0 6.143 10Zm10 0h-4.286A1.857 1.857 0 0 0 10 11.857v4.286c0 1.026.831 1.857 1.857 1.857h4.286A1.857 1.857 0 0 0 18 16.143v-4.286A1.857 1.857 0 0 0 16.143 10Z"/>
+              </svg>
+              <span class="flex-1 ms-3 text-left rtl:text-right whitespace-nowrap">Portfolio</span>
+              <svg
+                class="w-3 h-3 transition-transform duration-200"
+                aria-hidden="true"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 10 6"
+              >
+                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 4 4 4-4"/>
+              </svg>
+            </button>
+            <ul id="dropdown-portfolio" class="py-2 space-y-1">
+              <li>
+                <a
+                  href="/github"
+                  class="nav-link flex items-center w-full p-2 text-gray-900 transition duration-200 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                  data-nav="github"
+                >
+                  <svg class="w-4 h-4 text-gray-500 transition duration-200 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 .333A9.911 9.911 0 0 0 6.866 19.65c.5.092.678-.215.678-.477 0-.237-.01-1.017-.014-1.845-2.757.6-3.338-1.169-3.338-1.169a2.627 2.627 0 0 0-1.1-1.451c-.9-.615.07-.6.07-.6a2.084 2.084 0 0 1 1.518 1.021 2.11 2.11 0 0 0 2.884.823c.044-.503.268-.973.63-1.325-2.2-.25-4.516-1.1-4.516-4.9A3.832 3.832 0 0 1 4.7 7.068a3.56 3.56 0 0 1 .095-2.623s.832-.266 2.726 1.016a9.409 9.409 0 0 1 4.962 0c1.89-1.282 2.717-1.016 2.717-1.016.366.83.402 1.768.1 2.623a3.827 3.827 0 0 1 1.02 2.659c0 3.807-2.319 4.644-4.525 4.889a2.366 2.366 0 0 1 .673 1.834c0 1.326-.012 2.394-.012 2.72 0 .263.18.572.681.475A9.911 9.911 0 0 0 10 .333Z" clip-rule="evenodd"/>
+                  </svg>
+                  <span class="ms-3 whitespace-nowrap">GitHub Repositories</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/skills"
+                  class="nav-link flex items-center w-full p-2 text-gray-900 transition duration-200 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                  data-nav="skills"
+                >
+                  <svg class="w-4 h-4 text-gray-500 transition duration-200 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M18 7.5h-.423l-.452-1.09.3-.3a1.5 1.5 0 0 0 0-2.121L16.01 2.575a1.5 1.5 0 0 0-2.121 0l-.3.3-1.089-.452V2A1.5 1.5 0 0 0 11 .5H9A1.5 1.5 0 0 0 7.5 2v.423l-1.09.452-.3-.3a1.5 1.5 0 0 0-2.121 0L2.576 3.99a1.5 1.5 0 0 0 0 2.121l.3.3L2.423 7.5H2A1.5 1.5 0 0 0 .5 9v2A1.5 1.5 0 0 0 2 12.5h.423l.452 1.09-.3.3a1.5 1.5 0 0 0 0 2.121l1.415 1.413a1.5 1.5 0 0 0 2.121 0l.3-.3 1.09.452V18A1.5 1.5 0 0 0 9 19.5h2a1.5 1.5 0 0 0 1.5-1.5v-.423l1.09-.452.3.3a1.5 1.5 0 0 0 2.121 0L17.425 16.01a1.5 1.5 0 0 0 0-2.121l-.3-.3.452-1.09H18a1.5 1.5 0 0 0 1.5-1.5V9A1.5 1.5 0 0 0 18 7.5ZM10 15a5 5 0 1 1 0-10 5 5 0 0 1 0 10Z"/>
+                  </svg>
+                  <span class="ms-3 whitespace-nowrap">Skills & Expertise</span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/experience"
+                  class="nav-link flex items-center w-full p-2 text-gray-900 transition duration-200 rounded-lg pl-11 group hover:bg-gray-100 dark:text-white dark:hover:bg-gray-700"
+                  data-nav="experience"
+                >
+                  <svg class="w-4 h-4 text-gray-500 transition duration-200 group-hover:text-gray-900 dark:text-gray-400 dark:group-hover:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M5 5V.13a2.96 2.96 0 0 0-1.293.749L.879 3.707A2.96 2.96 0 0 0 .13 5H5Z"/>
+                    <path d="M6.737 11.061a2.961 2.961 0 0 1 .81-1.515l6.117-6.116A4.839 4.839 0 0 1 16 2.141V2a1.97 1.97 0 0 0-1.933-2H7v5a2 2 0 0 1-2 2H0v11a1.969 1.969 0 0 0 1.933 2h12.134A1.97 1.97 0 0 0 16 18v-3.093l-1.546 1.546c-.413.413-.94.695-1.513.81l-3.4.679a2.947 2.947 0 0 1-1.85-.227 2.96 2.96 0 0 1-1.635-3.257l.681-3.397Z"/>
+                    <path d="M8.961 16a.93.93 0 0 0 .189-.019l3.4-.679a.961.961 0 0 0 .49-.263l6.118-6.117a2.884 2.884 0 0 0-4.079-4.078l-6.117 6.117a.96.96 0 0 0-.263.491l-.679 3.4A.961.961 0 0 0 8.961 16Zm7.477-9.8a.958.958 0 0 1 .68-.281.961.961 0 0 1 .682 1.644l-.315.315-1.36-1.36.313-.318Zm-5.911 5.911 4.236-4.236 1.359 1.359-4.236 4.237-1.7.339.341-1.699Z"/>
+                  </svg>
+                  <span class="ms-3 whitespace-nowrap">Experience</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a
+              href="/contact"
+              class="flex items-center p-2 text-base font-medium text-gray-900 rounded-lg dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 group"
+            >
+              <svg
+                aria-hidden="true"
+                class="flex-shrink-0 w-6 h-6 text-gray-500 transition duration-75 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"
+                ></path>
+                <path
+                  d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"
+                ></path>
+              </svg>
+              <span class="flex-1 ml-3 whitespace-nowrap">Contact</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </aside>
+</div>
+
+<script>
+  // Enhanced navigation with better UX
+  document.addEventListener('DOMContentLoaded', function() {
+    const drawerButtons = document.querySelectorAll('[data-drawer-toggle]');
+    const drawer = document.getElementById('drawer-navigation');
+
+    drawerButtons.forEach(button => {
+      button.addEventListener('click', () => {
+        if (drawer) {
+          drawer.classList.toggle('-translate-x-full');
+        }
+      });
+    });
+
+    // Portfolio dropdown management - keep it open and rotate arrow
+    const portfolioButton = document.querySelector('[aria-controls="dropdown-portfolio"]');
+    const portfolioDropdown = document.getElementById('dropdown-portfolio');
+    const portfolioArrow = portfolioButton?.querySelector('svg:last-child');
+
+    // Keep portfolio expanded and rotate arrow
+    if (portfolioArrow) {
+      portfolioArrow.classList.add('rotate-180');
+    }
+
+    // Enhanced portfolio dropdown toggle
+    if (portfolioButton) {
+      portfolioButton.addEventListener('click', () => {
+        if (portfolioDropdown) {
+          const isHidden = portfolioDropdown.classList.contains('hidden');
+          portfolioDropdown.classList.toggle('hidden');
+
+          // Smooth arrow rotation
+          if (portfolioArrow) {
+            portfolioArrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
+            portfolioArrow.style.transition = 'transform 0.2s ease';
+          }
+        }
+      });
+    }
+
+    // Enhanced active state management
+    function updateActiveStates() {
+      const currentPath = window.location.pathname;
+
+      // Reset all nav links
+      document.querySelectorAll('.nav-link').forEach(link => {
+        link.classList.remove('bg-blue-50', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'border-r-2', 'border-blue-500');
+        link.classList.add('text-gray-900', 'dark:text-white');
+      });
+
+      // Also reset the home/dashboard link
+      const homeLink = document.querySelector('a[href="/"]');
+      if (homeLink) {
+        homeLink.classList.remove('bg-blue-50', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'border-r-2', 'border-blue-500');
+        homeLink.classList.add('text-gray-900', 'dark:text-white');
+      }
+
+      // Highlight current page
+      if (currentPath === '/') {
+        // Highlight home/dashboard when on homepage
+        if (homeLink) {
+          homeLink.classList.add('bg-blue-50', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'border-r-2', 'border-blue-500');
+          homeLink.classList.remove('text-gray-900', 'dark:text-white');
+        }
+      } else if (currentPath === '/github') {
+        const githubLink = document.querySelector('[data-nav="github"]');
+        if (githubLink) {
+          githubLink.classList.add('bg-blue-50', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'border-r-2', 'border-blue-500');
+          githubLink.classList.remove('text-gray-900', 'dark:text-white');
+        }
+      } else if (currentPath === '/skills') {
+        const skillsLink = document.querySelector('[data-nav="skills"]');
+        if (skillsLink) {
+          skillsLink.classList.add('bg-blue-50', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'border-r-2', 'border-blue-500');
+          skillsLink.classList.remove('text-gray-900', 'dark:text-white');
+        }
+      } else if (currentPath === '/projects') {
+        const projectsLink = document.querySelector('[data-nav="projects"]');
+        if (projectsLink) {
+          projectsLink.classList.add('bg-blue-50', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'border-r-2', 'border-blue-500');
+          projectsLink.classList.remove('text-gray-900', 'dark:text-white');
+        }
+      } else if (currentPath === '/experience') {
+        const experienceLink = document.querySelector('[data-nav="experience"]');
+        if (experienceLink) {
+          experienceLink.classList.add('bg-blue-50', 'dark:bg-blue-900/50', 'text-blue-700', 'dark:text-blue-300', 'border-r-2', 'border-blue-500');
+          experienceLink.classList.remove('text-gray-900', 'dark:text-white');
+        }
+      }
+    }
+
+    // Update active states on load and navigation
+    updateActiveStates();
+    window.addEventListener('popstate', updateActiveStates);
+    window.addEventListener('load', updateActiveStates);
+  });
+</script>

@@ -93,17 +93,22 @@ const SmartRecruitingFlow: React.FC = () => {
     loadWelcomeMessage();
   }, []);
 
-  // Initialize speech recognition (keeping existing logic)
+  // Initialize speech recognition
   useEffect(() => {
     if (typeof window !== 'undefined' && ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
       const SpeechRecognition = window.SpeechRecognition || (window as any).webkitSpeechRecognition;
       const recognition = new SpeechRecognition();
 
-      recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.continuous = false;
+      recognition.interimResults = false;
       recognition.lang = 'en-US';
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
+      recognition.onstart = () => {
+        setIsListening(true);
+        console.log('Speech recognition started');
+      };
+
+      recognition.onresult = (event: any) => {
         let finalTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           if (event.results[i].isFinal) {
@@ -112,10 +117,8 @@ const SmartRecruitingFlow: React.FC = () => {
         }
 
         if (finalTranscript) {
+          console.log('Speech recognized:', finalTranscript);
           setInput(finalTranscript);
-          setIsListening(false);
-          recognition.stop();
-
           setTimeout(() => {
             sendMessageWithContent(finalTranscript, true);
             setInput('');
@@ -123,7 +126,20 @@ const SmartRecruitingFlow: React.FC = () => {
         }
       };
 
+      recognition.onend = () => {
+        setIsListening(false);
+        console.log('Speech recognition ended');
+      };
+
+      recognition.onerror = (event: any) => {
+        setIsListening(false);
+        console.error('Speech recognition error:', event.error);
+      };
+
       setSpeechRecognition(recognition);
+      console.log('Speech recognition initialized');
+    } else {
+      console.log('Speech recognition not supported');
     }
   }, []);
 
@@ -409,18 +425,41 @@ ${messages.filter(m => m.type === 'user' || m.type === 'assistant').map(m =>
                 }
               </p>
             </div>
-            {interviewData && (
-              <div className="text-right">
-                <div className="text-white text-xs font-semibold">
-                  Score: {interviewData.score}/10
+            <div className="flex items-center space-x-2">
+              {/* Voice toggle buttons */}
+              <button
+                onClick={() => setVoiceEnabled(!voiceEnabled)}
+                className={`p-2 rounded-lg transition-colors ${
+                  voiceEnabled
+                    ? 'bg-white/20 text-white'
+                    : 'bg-white/10 text-white/50'
+                }`}
+                title={`Voice synthesis: ${voiceEnabled ? 'ON' : 'OFF'}`}
+              >
+                <FontAwesomeIcon icon={voiceEnabled ? faVolumeUp : faVolumeMute} className="w-4 h-4" />
+              </button>
+              {isSpeaking && (
+                <button
+                  onClick={() => window.speechSynthesis?.cancel()}
+                  className="p-2 bg-white/20 text-white rounded-lg transition-colors"
+                  title="Stop speaking"
+                >
+                  <FontAwesomeIcon icon={faPause} className="w-4 h-4" />
+                </button>
+              )}
+              {interviewData && (
+                <div className="text-right">
+                  <div className="text-white text-xs font-semibold">
+                    Score: {interviewData.score}/10
+                  </div>
+                  <div className="flex text-yellow-300">
+                    {[...Array(Math.min(5, Math.floor(interviewData.score / 2)))].map((_, i) => (
+                      <FontAwesomeIcon key={i} icon={faStar} className="w-3 h-3" />
+                    ))}
+                  </div>
                 </div>
-                <div className="flex text-yellow-300">
-                  {[...Array(Math.min(5, Math.floor(interviewData.score / 2)))].map((_, i) => (
-                    <FontAwesomeIcon key={i} icon={faStar} className="w-3 h-3" />
-                  ))}
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
 
@@ -493,21 +532,21 @@ ${messages.filter(m => m.type === 'user' || m.type === 'assistant').map(m =>
                 placeholder="Your name"
                 value={candidateInfo.name}
                 onChange={(e) => setCandidateInfo(prev => ({...prev, name: e.target.value}))}
-                className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-600"
               />
               <input
                 type="email"
                 placeholder="Your email"
                 value={candidateInfo.email}
                 onChange={(e) => setCandidateInfo(prev => ({...prev, email: e.target.value}))}
-                className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-600"
               />
               <input
                 type="text"
                 placeholder="Your company (optional)"
                 value={candidateInfo.company}
                 onChange={(e) => setCandidateInfo(prev => ({...prev, company: e.target.value}))}
-                className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                className="w-full px-3 py-2 text-sm border border-green-300 rounded-lg focus:ring-2 focus:ring-green-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-600"
               />
             </div>
             <button
@@ -549,7 +588,7 @@ ${messages.filter(m => m.type === 'user' || m.type === 'assistant').map(m =>
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleSendMessage())}
                 placeholder={isListening ? "Listening..." : "Tell me about yourself and what you're looking for..."}
                 disabled={isLoading}
-                className="flex-1 px-3 py-2 text-sm border border-primary-300 rounded-lg focus:ring-2 focus:ring-purple-500 disabled:opacity-50"
+                className="flex-1 px-3 py-2 text-sm border border-primary-300 rounded-lg focus:ring-2 focus:ring-purple-500 disabled:opacity-50 bg-white dark:bg-gray-800 text-gray-900 dark:text-white dark:border-gray-600"
               />
               <button
                 onClick={toggleVoiceInput}

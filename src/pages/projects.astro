@@ -1,0 +1,108 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LinkList from '../components/LinkList.astro';
+---
+
+<Layout showNavigation={true}>
+  <main class="p-4 md:ml-64 h-auto pt-20">
+    <div class="max-w-6xl mx-auto">
+
+      <!-- Projects Header -->
+      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 p-6 mb-8">
+        <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100 mb-2">
+          Portfolio & Projects
+        </h1>
+        <p class="text-lg text-primary-700 dark:text-primary-300">
+          Explore my full portfolio of web applications, AI projects, and professional work. Each project showcases different aspects of modern web development and AI integration.
+        </p>
+      </div>
+
+      <!-- Featured Projects -->
+      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-6 mb-8">
+        <h2 class="text-xl font-bold text-primary-900 dark:text-primary-100 mb-6 flex items-center">
+          <svg class="w-6 h-6 mr-3 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13V12a1 1 0 011-1z" clip-rule="evenodd"></path>
+          </svg>
+          Featured Projects
+        </h2>
+
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <!-- GTM Sales Dashboard -->
+          <div class="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-blue-600 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">GTM Sales Dashboard</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">AI Sales Operations</p>
+              </div>
+            </div>
+            <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">
+              AI-powered sales operations dashboard with conversational business intelligence. Claude AI integration for natural language lead analysis, content generation, and pipeline insights.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded">React</span>
+              <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded">Claude AI</span>
+              <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs rounded">Next.js</span>
+            </div>
+          </div>
+
+          <!-- Sales Intel AI Extension -->
+          <div class="bg-gradient-to-br from-purple-50 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl p-6 border border-purple-200 dark:border-purple-800 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-purple-600 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M9 3a1 1 0 012 0v5.5a.5.5 0 001 0V4a1 1 0 112 0v4.5a.5.5 0 001 0V6a1 1 0 112 0v6a5 5 0 01-10 0V3z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Sales Intel AI Extension</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Chrome Extension</p>
+              </div>
+            </div>
+            <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">
+              Chrome extension for AI-powered prospect research with Claude integration. Automatically analyzes LinkedIn profiles and company data to generate sales insights.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded">Chrome API</span>
+              <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded">Claude AI</span>
+              <span class="px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300 text-xs rounded">JavaScript</span>
+            </div>
+          </div>
+
+          <!-- Portfolio Website -->
+          <div class="bg-gradient-to-br from-green-50 to-emerald-100 dark:from-green-900/20 dark:to-emerald-900/20 rounded-xl p-6 border border-green-200 dark:border-green-800 hover:shadow-lg transition-all duration-300">
+            <div class="flex items-center mb-4">
+              <div class="w-12 h-12 bg-green-600 rounded-lg flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                </svg>
+              </div>
+              <div class="ml-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">AI Portfolio Website</h3>
+                <p class="text-sm text-gray-600 dark:text-gray-400">This Site</p>
+              </div>
+            </div>
+            <p class="text-gray-700 dark:text-gray-300 text-sm mb-4">
+              Modern portfolio website built with Astro, featuring an AI career assistant powered by Claude AI. Demonstrates modern web development practices and AI integration.
+            </p>
+            <div class="flex flex-wrap gap-2 mb-4">
+              <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs rounded">Astro</span>
+              <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs rounded">React</span>
+              <span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs rounded">Tailwind</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- All Projects -->
+      <div class="w-full max-w-2xl mx-auto">
+        <LinkList />
+      </div>
+
+    </div>
+  </main>
+</Layout>

@@ -1,0 +1,130 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { SKILLS_CONFIG } from '../consts';
+---
+
+<Layout showNavigation={true}>
+  <main class="p-4 md:ml-64 h-auto pt-20">
+    <div class="max-w-6xl mx-auto">
+
+      <!-- Skills Header -->
+      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 p-6 mb-8">
+        <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100 mb-2">
+          Technical Expertise
+        </h1>
+        <p class="text-lg text-primary-700 dark:text-primary-300">
+          Comprehensive overview of my technical skills, frameworks, and tools across web development, AI, infrastructure, and marketing technology.
+        </p>
+      </div>
+
+      <!-- Technical Expertise -->
+      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-6">
+        <div class="grid gap-6">
+          <!-- Web Development -->
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 uppercase tracking-wider flex items-center">
+              <svg class="w-6 h-6 mr-3 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M12.316 3.051a1 1 0 01.633 1.265l-4 12a1 1 0 11-1.898-.632l4-12a1 1 0 011.265-.633zM5.707 6.293a1 1 0 010 1.414L3.414 10l2.293 2.293a1 1 0 11-1.414 1.414l-3-3a1 1 0 010-1.414l3-3a1 1 0 011.414 0zm8.586 0a1 1 0 011.414 0l3 3a1 1 0 010 1.414l-3 3a1 1 0 11-1.414-1.414L16.586 10l-2.293-2.293a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+              </svg>
+              Web Development
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {SKILLS_CONFIG.webDevelopment.map((skill) => (
+                <span class="px-3 py-1.5 text-sm font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full border border-blue-200 dark:border-blue-800">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <!-- AI & Automation -->
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 uppercase tracking-wider flex items-center">
+              <svg class="w-6 h-6 mr-3 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3z"></path>
+              </svg>
+              AI & Automation
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {SKILLS_CONFIG.aiAndAutomation.map((skill) => (
+                <span class="px-3 py-1.5 text-sm font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full border border-purple-200 dark:border-purple-800">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <!-- Infrastructure -->
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 uppercase tracking-wider flex items-center">
+              <svg class="w-6 h-6 mr-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M2 5a2 2 0 012-2h8a2 2 0 012 2v10a2 2 0 002 2H4a2 2 0 01-2-2V5zm3 1h6v4H5V6zm6 6H5v2h6v-2z" clip-rule="evenodd"></path>
+                <path d="M15 7h1a2 2 0 012 2v5.5a1.5 1.5 0 01-3 0V9a1 1 0 00-1-1h-1v-1z"></path>
+              </svg>
+              Infrastructure & DevOps
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {SKILLS_CONFIG.infrastructure.map((skill) => (
+                <span class="px-3 py-1.5 text-sm font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full border border-green-200 dark:border-green-800">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <!-- CMS & Architecture -->
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 uppercase tracking-wider flex items-center">
+              <svg class="w-6 h-6 mr-3 text-orange-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 111.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 111.414-1.414L15.586 13V12a1 1 0 011-1z" clip-rule="evenodd"></path>
+              </svg>
+              CMS & Architecture
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {SKILLS_CONFIG.cms.map((skill) => (
+                <span class="px-3 py-1.5 text-sm font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 rounded-full border border-orange-200 dark:border-orange-800">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <!-- Analytics -->
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 uppercase tracking-wider flex items-center">
+              <svg class="w-6 h-6 mr-3 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z"></path>
+              </svg>
+              Analytics & SEO
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {SKILLS_CONFIG.analytics.map((skill) => (
+                <span class="px-3 py-1.5 text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full border border-yellow-200 dark:border-yellow-800">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <!-- Marketing Tech -->
+          <div class="space-y-3">
+            <h3 class="text-lg font-semibold text-primary-800 dark:text-primary-200 uppercase tracking-wider flex items-center">
+              <svg class="w-6 h-6 mr-3 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+              </svg>
+              Marketing Tech & CRM
+            </h3>
+            <div class="flex flex-wrap gap-2">
+              {SKILLS_CONFIG.marketingTech.map((skill) => (
+                <span class="px-3 py-1.5 text-sm font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 rounded-full border border-red-200 dark:border-red-800">
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</Layout>

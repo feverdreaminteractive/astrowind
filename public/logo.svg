@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="checkerboard" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="white"/>
+      <stop offset="100%" stop-color="black"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Create the optical illusion pattern -->
+  <g transform="translate(200,200)">
+    <!-- Outer rings -->
+    <g id="ring1">
+      <!-- Create alternating black and white segments -->
+      <path d="M 0,-180 A 180,180 0 0,1 90,-155.88 L 85,-147.56 A 170,170 0 0,0 0,-170 Z" fill="black"/>
+      <path d="M 90,-155.88 A 180,180 0 0,1 155.88,-90 L 147.56,-85 A 170,170 0 0,0 85,-147.56 Z" fill="white"/>
+      <path d="M 155.88,-90 A 180,180 0 0,1 180,0 L 170,0 A 170,170 0 0,0 147.56,-85 Z" fill="black"/>
+      <path d="M 180,0 A 180,180 0 0,1 155.88,90 L 147.56,85 A 170,170 0 0,0 170,0 Z" fill="white"/>
+      <path d="M 155.88,90 A 180,180 0 0,1 90,155.88 L 85,147.56 A 170,170 0 0,0 147.56,85 Z" fill="black"/>
+      <path d="M 90,155.88 A 180,180 0 0,1 0,180 L 0,170 A 170,170 0 0,0 85,147.56 Z" fill="white"/>
+      <path d="M 0,180 A 180,180 0 0,1 -90,155.88 L -85,147.56 A 170,170 0 0,0 0,170 Z" fill="black"/>
+      <path d="M -90,155.88 A 180,180 0 0,1 -155.88,90 L -147.56,85 A 170,170 0 0,0 -85,147.56 Z" fill="white"/>
+      <path d="M -155.88,90 A 180,180 0 0,1 -180,0 L -170,0 A 170,170 0 0,0 -147.56,85 Z" fill="black"/>
+      <path d="M -180,0 A 180,180 0 0,1 -155.88,-90 L -147.56,-85 A 170,170 0 0,0 -170,0 Z" fill="white"/>
+      <path d="M -155.88,-90 A 180,180 0 0,1 -90,-155.88 L -85,-147.56 A 170,170 0 0,0 -147.56,-85 Z" fill="black"/>
+      <path d="M -90,-155.88 A 180,180 0 0,1 0,-180 L 0,-170 A 170,170 0 0,0 -85,-147.56 Z" fill="white"/>
+    </g>
+
+    <!-- Middle rings with more segments -->
+    <g id="ring2">
+      <path d="M 0,-160 A 160,160 0 0,1 45.25,-153.56 L 42.43,-144.25 A 150,150 0 0,0 0,-150 Z" fill="white"/>
+      <path d="M 45.25,-153.56 A 160,160 0 0,1 87.77,-130.09 L 82.35,-122.14 A 150,150 0 0,0 42.43,-144.25 Z" fill="black"/>
+      <path d="M 87.77,-130.09 A 160,160 0 0,1 122.87,-94.99 L 115.31,-89.06 A 150,150 0 0,0 82.35,-122.14 Z" fill="white"/>
+      <path d="M 122.87,-94.99 A 160,160 0 0,1 148.04,-53.02 L 138.79,-49.71 A 150,150 0 0,0 115.31,-89.06 Z" fill="black"/>
+      <!-- Continue pattern for full circle -->
+    </g>
+
+    <!-- Inner rings with even more segments -->
+    <g id="ring3">
+      <!-- Create increasingly dense checkerboard pattern toward center -->
+      <circle cx="0" cy="0" r="20" fill="black"/>
+      <circle cx="0" cy="0" r="15" fill="white"/>
+      <circle cx="0" cy="0" r="10" fill="black"/>
+      <circle cx="0" cy="0" r="5" fill="white"/>
+      <circle cx="0" cy="0" r="2" fill="black"/>
+    </g>
+  </g>
+</svg>

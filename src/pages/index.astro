@@ -1,28 +1,22 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import Profile from '../components/Profile.astro';
-import SocialLinks from '../components/SocialLinks.astro';
-import Skills from '../components/Skills.astro';
-import SmartRecruitingFlow from '../components/SmartRecruitingFlow';
-import Bio from '../components/Bio.astro';
-import LinkList from '../components/LinkList.astro';
-import Newsletter from '../components/Newsletter.astro';
-import Footer from '../components/Footer.astro';
-import DarkModeToggle from '../components/DarkModeToggle.astro';
+import CareerAssistant from '../components/CareerAssistant';
+import SlackMeButton from '../components/SlackMeButton';
 ---
 
-<Layout>
-	<main class="p-4 md:ml-64 h-auto pt-20">
+<Layout showNavigation={true}>
+	<main class="p-4 md:ml-64 h-auto pt-16">
 		<div class="flex flex-col items-center max-w-4xl mx-auto">
-			<DarkModeToggle />
 			<Profile />
-			<SocialLinks />
-			<SmartRecruitingFlow client:only="react" />
-			<Bio />
-			<Skills />
-			<LinkList />
-			<Newsletter />
-			<Footer />
+			<div class="-mt-4 mb-4">
+				<CareerAssistant client:only="react" />
+			</div>
 		</div>
 	</main>
+
+	<!-- Homepage Slack Me CTA -->
+	<div class="fixed bottom-6 right-6 z-50">
+		<SlackMeButton client:only="react" />
+	</div>
 </Layout>

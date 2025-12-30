@@ -635,7 +635,7 @@ const CareerAssistant: React.FC = () => {
         {/* Messages */}
         <div
           ref={messagesContainerRef}
-          className="h-80 overflow-y-auto p-4 space-y-4"
+          className="h-60 overflow-y-auto p-4 space-y-3"
         >
           {messages.map((message) => (
             <div
