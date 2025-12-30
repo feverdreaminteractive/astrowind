@@ -16,6 +16,8 @@
 		"@fortawesome/react-fontawesome": "^3.1.1",
 		"@iconify-json/lucide": "^1.2.26",
 		"@iconify-json/simple-icons": "^1.2.24",
+		"@slack/socket-mode": "^2.1.1",
+		"@slack/web-api": "^7.8.0",
 		"@tailwindcss/vite": "^4.0.1",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
@@ -25,7 +27,8 @@
 		"react": "^19.2.3",
 		"react-dom": "^19.2.3",
 		"sharp": "^0.33.5",
-		"tailwindcss": "^4.0.1"
+		"tailwindcss": "^4.0.1",
+		"ws": "^8.18.0"
 	},
 	"packageManager": "pnpm@9.15.0+sha512.76e2379760a4328ec4415815bcd6628dee727af3779aaa4c914e3944156c4299921a89f976381ee107d41f12cfa4b66681ca9c718f0668fa0831ed4c6d8ba56c"
 }

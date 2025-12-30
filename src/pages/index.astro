@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import Profile from '../components/Profile.astro';
 import SocialLinks from '../components/SocialLinks.astro';
 import Skills from '../components/Skills.astro';
-import CareerAssistant from '../components/CareerAssistant';
+import SmartRecruitingFlow from '../components/SmartRecruitingFlow';
 import Bio from '../components/Bio.astro';
 import LinkList from '../components/LinkList.astro';
 import Newsletter from '../components/Newsletter.astro';
@@ -13,7 +13,7 @@ import Footer from '../components/Footer.astro';
 <Layout>
 	<main class="min-h-screen py-2 sm:py-3 px-4 flex flex-col items-center">
 		<Profile />
-		<CareerAssistant client:only="react" />
+		<SmartRecruitingFlow client:only="react" />
 		<Bio />
 		<Skills />
 	</main>
