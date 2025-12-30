@@ -16,7 +16,7 @@
 		"@fortawesome/react-fontawesome": "^3.1.1",
 		"@iconify-json/lucide": "^1.2.26",
 		"@iconify-json/simple-icons": "^1.2.24",
-		"@slack/socket-mode": "^2.1.1",
+		"@slack/socket-mode": "^2.0.5",
 		"@slack/web-api": "^7.8.0",
 		"@tailwindcss/vite": "^4.0.1",
 		"@types/react": "^19.2.7",
