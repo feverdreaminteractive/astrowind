@@ -21,11 +21,6 @@ export const PROFILE_CONFIG = {
 // Social Links Configuration
 export const SOCIAL_LINKS = [
   {
-    name: 'GitHub',
-    icon: 'simple-icons:github',
-    href: 'https://github.com/feverdreaminteractive',
-  },
-  {
     name: 'LinkedIn',
     icon: 'simple-icons:linkedin',
     href: 'https://linkedin.com/in/ryan-clayton-atx',

@@ -8,13 +8,21 @@ import Bio from '../components/Bio.astro';
 import LinkList from '../components/LinkList.astro';
 import Newsletter from '../components/Newsletter.astro';
 import Footer from '../components/Footer.astro';
+import DarkModeToggle from '../components/DarkModeToggle.astro';
 ---
 
 <Layout>
-	<main class="min-h-screen py-2 sm:py-3 px-4 flex flex-col items-center">
-		<Profile />
-		<SmartRecruitingFlow client:only="react" />
-		<Bio />
-		<Skills />
+	<main class="p-4 md:ml-64 h-auto pt-20">
+		<div class="flex flex-col items-center max-w-4xl mx-auto">
+			<DarkModeToggle />
+			<Profile />
+			<SocialLinks />
+			<SmartRecruitingFlow client:only="react" />
+			<Bio />
+			<Skills />
+			<LinkList />
+			<Newsletter />
+			<Footer />
+		</div>
 	</main>
 </Layout>
