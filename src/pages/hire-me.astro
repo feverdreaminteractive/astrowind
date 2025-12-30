@@ -66,14 +66,15 @@ import Layout from '../layouts/Layout.astro';
       <!-- Contact Form Section -->
       <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-8">
         <form
-          name="contact"
+          name="hire-me"
           method="POST"
           data-netlify="true"
           netlify-honeypot="bot-field"
+          data-netlify-recaptcha="true"
           class="space-y-6"
         >
           <!-- Hidden fields for Netlify -->
-          <input type="hidden" name="form-name" value="contact" />
+          <input type="hidden" name="form-name" value="hire-me" />
           <div class="hidden">
             <label>Don't fill this out if you're human: <input name="bot-field" /></label>
           </div>
