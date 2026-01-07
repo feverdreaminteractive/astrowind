@@ -123,6 +123,12 @@ For questions about this portfolio or potential opportunities:
 - **GitHub**: [feverdreaminteractive](https://github.com/feverdreaminteractive)
 - **Email**: Available through the portfolio contact form
 
+## License
+
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](./LICENSE.md).
+
+**Copyright © 2024-2026 Ryan Clayton**
+
 ---
 
 Built with modern web technologies and a focus on creating an engaging, interactive experience for recruiters and potential collaborators.
