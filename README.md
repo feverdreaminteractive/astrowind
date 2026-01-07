@@ -158,3 +158,5 @@ For questions about this portfolio or potential opportunities:
 ---
 
 Built with modern web technologies and a focus on creating an engaging, interactive experience for recruiters and potential collaborators.
+
+*Last updated: January 2026*
