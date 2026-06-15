@@ -6,17 +6,12 @@ import SlackMeButton from '../components/SlackMeButton';
 ---
 
 <Layout showNavigation={true}>
-	<main class="p-4 md:ml-64 h-auto pt-16">
-		<div class="flex flex-col items-center max-w-4xl mx-auto">
+	<main class="p-4 md:ml-64 h-screen flex flex-col items-center justify-center pt-16">
+		<div class="max-w-4xl w-full mx-auto">
 			<Profile />
-			<div class="-mt-4 mb-4">
+			<div class="mt-3">
 				<CareerAssistant client:only="react" />
 			</div>
 		</div>
 	</main>
-
-	<!-- Homepage Slack Me CTA - Temporarily Hidden -->
-	<!-- <div class="fixed bottom-6 right-6 z-50">
-		<SlackMeButton client:only="react" />
-	</div> -->
 </Layout>

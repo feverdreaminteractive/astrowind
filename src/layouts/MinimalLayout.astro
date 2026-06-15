@@ -1,17 +1,14 @@
 ---
 import "../styles/global.css";
 import BaseHead from "../components/BaseHead.astro";
-import AmbientBackground from "../components/AmbientBackground";
-import DynamicNavigation from "../components/DynamicNavigation.astro";
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 
 interface Props {
 	title?: string;
 	description?: string;
-	showNavigation?: boolean;
 }
 
-const { title = SITE_TITLE, description = SITE_DESCRIPTION, showNavigation = true } = Astro.props;
+const { title = SITE_TITLE, description = SITE_DESCRIPTION } = Astro.props;
 ---
 
 <!doctype html>
@@ -19,18 +16,20 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, showNavigation = tru
 	<head>
 		<BaseHead title={title} description={description} />
 		<style>
-			@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
+			@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap');
 
 			body {
 				font-family: 'Inter', system-ui, -apple-system, sans-serif;
 				background: linear-gradient(135deg, #fdfcfb 0%, #f5f3f0 25%, #faf9f7 50%, #ffffff 100%);
 				min-height: 100vh;
 			}
+
+			h1 span:first-child {
+				font-family: 'Playfair Display', serif;
+			}
 		</style>
 	</head>
 	<body>
-		{showNavigation && <DynamicNavigation />}
-
 		<slot />
 	</body>
 </html>

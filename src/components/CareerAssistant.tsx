@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faUser, faRobot, faLightbulb, faComments, faPaperPlane, faMicrophone, faMicrophoneSlash, faVolumeUp, faVolumeMute, faPause, faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faPaperPlane, faPlay } from '@fortawesome/free-solid-svg-icons';
 // Using custom styled components instead of Flowbite due to Tailwind v4 compatibility
 
 interface Message {
@@ -25,6 +25,33 @@ const CareerAssistant: React.FC = () => {
   const lastQuestionWasVoiceRef = useRef(false);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
 
+  // Format markdown content for display
+  const formatMarkdown = (text: string) => {
+    // Split text into parts and process markdown
+    const parts = text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\n)/g);
+
+    return parts.map((part, index) => {
+      // Bold text
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      }
+      // Italic text
+      if (part.startsWith('*') && part.endsWith('*') && !part.startsWith('**')) {
+        return <em key={index}>{part.slice(1, -1)}</em>;
+      }
+      // Inline code
+      if (part.startsWith('`') && part.endsWith('`')) {
+        return <code key={index} className="px-1 py-0.5 bg-gray-100 rounded text-xs">{part.slice(1, -1)}</code>;
+      }
+      // Line breaks
+      if (part === '\n') {
+        return <br key={index} />;
+      }
+      // Regular text
+      return <span key={index}>{part}</span>;
+    });
+  };
+
   // Load dynamic welcome message on component mount
   useEffect(() => {
     const loadWelcomeMessage = async () => {
@@ -41,7 +68,12 @@ const CareerAssistant: React.FC = () => {
           });
         }
 
-        const response = await fetch('/.netlify/functions/claude', {
+        // Use the correct URL for local development vs production
+        const apiUrl = window.location.hostname === 'localhost'
+          ? 'http://localhost:8888/.netlify/functions/claude'
+          : '/.netlify/functions/claude';
+
+        const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -233,24 +265,18 @@ const CareerAssistant: React.FC = () => {
   const scrollToNewMessage = () => {
     if (messagesContainerRef.current) {
       const container = messagesContainerRef.current;
-      const lastMessage = container.lastElementChild as HTMLElement;
+      const messages = container.children;
 
-      if (lastMessage) {
-        // For assistant messages, scroll to show the beginning of the message
-        // For user messages, scroll to bottom as normal
+      if (messages.length > 0) {
+        const lastMessage = messages[messages.length - 1] as HTMLElement;
         const isAssistantMessage = lastMessage.getAttribute('data-message-type') === 'assistant';
 
         if (isAssistantMessage) {
-          // Calculate the position of the message relative to the container
-          const messageTop = lastMessage.offsetTop;
-          // Add some padding to account for the header and avoid overlap
-          const headerHeight = 80; // Approximate header height
-          const paddingOffset = 16; // Additional padding for readability
-          // Scroll the container to show the top of the assistant's response with offset
-          container.scrollTo({
-            top: Math.max(0, messageTop - headerHeight - paddingOffset),
-            behavior: 'smooth'
-          });
+          // Scroll to the top of the assistant message itself
+          // This pins the beginning of the response at the top of the container
+          setTimeout(() => {
+            container.scrollTop = lastMessage.offsetTop - container.offsetTop;
+          }, 50);
         } else {
           // For user messages and system messages, scroll to bottom
           container.scrollTop = container.scrollHeight;
@@ -423,18 +449,6 @@ const CareerAssistant: React.FC = () => {
     }
   };
 
-  const toggleVoiceInput = () => {
-    if (!speechRecognition) {
-      alert('Speech recognition is not supported in your browser. Please try Chrome, Edge, or Safari.');
-      return;
-    }
-
-    if (isListening) {
-      speechRecognition.stop();
-    } else {
-      speechRecognition.start();
-    }
-  };
 
   const speakText = (text: string) => {
     if (!voiceEnabled || !('speechSynthesis' in window)) {
@@ -521,31 +535,6 @@ const CareerAssistant: React.FC = () => {
     window.speechSynthesis.speak(utterance);
   };
 
-  const toggleVoiceResponse = () => {
-    setVoiceEnabled(!voiceEnabled);
-
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
-  };
-
-  const pauseOrResumeVoice = () => {
-    if (window.speechSynthesis.speaking) {
-      if (window.speechSynthesis.paused) {
-        window.speechSynthesis.resume();
-      } else {
-        window.speechSynthesis.pause();
-      }
-    }
-  };
-
-  const stopVoice = () => {
-    if (isSpeaking) {
-      window.speechSynthesis.cancel();
-      setIsSpeaking(false);
-    }
-  };
 
   const suggestedQuestions = [
     "What's Ryan's technical background?",
@@ -554,104 +543,37 @@ const CareerAssistant: React.FC = () => {
     "Tell me about Ryan's recent projects"
   ];
 
-  const getMessageIcon = (type: Message['type']) => {
-    switch (type) {
-      case 'user':
-        return <FontAwesomeIcon icon={faUser} className="text-blue-600" />;
-      case 'assistant':
-        return <FontAwesomeIcon icon={faRobot} className="text-purple-600" />;
-      case 'system':
-        return <FontAwesomeIcon icon={faLightbulb} className="text-gray-500" />;
-      default:
-        return <FontAwesomeIcon icon={faComments} className="text-gray-400" />;
-    }
-  };
-
-  const getMessageBgColor = (type: Message['type']) => {
-    const colors = {
-      user: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700',
-      assistant: 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-700',
-      system: 'bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600'
-    };
-    return colors[type];
-  };
 
   return (
-    <section className="w-full max-w-2xl mb-8">
-      <div className="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 overflow-hidden">
+    <section className="w-full max-w-3xl mx-auto">
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-500/90 to-blue-500/90 backdrop-blur-sm p-3">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-              <FontAwesomeIcon icon={faRobot} className="text-white text-lg" />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold text-white">
-                Ask About My Career
-              </h2>
-              <p className="text-purple-100 text-xs">
-                Chat with my AI assistant about my experience & skills
-              </p>
-            </div>
-            <button
-              onClick={toggleVoiceResponse}
-              className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
-              title={voiceEnabled ? "Voice responses enabled - Click to disable" : "Voice responses disabled - Click to enable"}
-            >
-              <FontAwesomeIcon
-                icon={voiceEnabled ? faVolumeUp : faVolumeMute}
-                className={`text-white text-sm ${isSpeaking ? 'animate-pulse' : ''}`}
-              />
-            </button>
-
-            {isSpeaking && (
-              <>
-                <button
-                  onClick={pauseOrResumeVoice}
-                  className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
-                  title="Pause/Resume speech"
-                >
-                  <FontAwesomeIcon
-                    icon={window.speechSynthesis?.paused ? faPlay : faPause}
-                    className="text-white text-sm"
-                  />
-                </button>
-
-                <button
-                  onClick={stopVoice}
-                  className="w-10 h-10 bg-white/20 hover:bg-white/30 rounded-full flex items-center justify-center transition-colors"
-                  title="Stop speech"
-                >
-                  <FontAwesomeIcon
-                    icon={faVolumeMute}
-                    className="text-white text-sm"
-                  />
-                </button>
-              </>
-            )}
-          </div>
+        <div className="text-center py-3 px-4 border-b border-gray-100">
+          <h2 className="text-lg font-light text-gray-900">
+            What would you like to know?
+          </h2>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Ask me about my experience, skills, or recent projects
+          </p>
         </div>
 
         {/* Messages */}
         <div
           ref={messagesContainerRef}
-          className="h-60 overflow-y-auto p-4 space-y-3"
+          className="h-40 overflow-y-auto p-3 space-y-2 bg-gray-50"
         >
           {messages.map((message) => (
             <div
               key={message.id}
               data-message-type={message.type}
-              className={`border rounded-lg p-3 ${getMessageBgColor(message.type)}`}
+              className={`rounded-lg p-2.5 text-sm ${message.type === 'user' ? 'bg-white ml-8' : message.type === 'assistant' ? 'bg-white mr-8' : 'bg-gray-100'} border border-gray-200`}
             >
               <div className="flex items-start space-x-3">
-                <div className="w-6 h-6 flex-shrink-0 mt-0.5 flex items-center justify-center">
-                  {getMessageIcon(message.type)}
-                </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-medium text-primary-700 dark:text-primary-300 uppercase tracking-wider">
-                      {message.type === 'assistant' ? "Ryan's AI Career Assistant" :
-                       message.type === 'user' ? 'You' : 'Ryan'}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      {message.type === 'assistant' ? "Assistant" :
+                       message.type === 'user' ? 'You' : 'System'}
                     </span>
                     <div className="flex items-center gap-2">
                       {message.type === 'assistant' && (
@@ -663,13 +585,15 @@ const CareerAssistant: React.FC = () => {
                           <FontAwesomeIcon icon={faPlay} />
                         </button>
                       )}
-                      <span className="text-xs text-primary-700 dark:text-primary-400">
+                      <span className="text-xs text-gray-400">
                         {message.timestamp.toLocaleTimeString()}
                       </span>
                     </div>
                   </div>
-                  <div className="text-sm text-primary-900 dark:text-primary-100">
-                    <pre className="whitespace-pre-wrap font-sans">{message.content}</pre>
+                  <div className="text-sm text-gray-700">
+                    <div className="whitespace-pre-wrap font-sans markdown-content">
+                      {formatMarkdown(message.content)}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -677,41 +601,23 @@ const CareerAssistant: React.FC = () => {
           ))}
 
           {isLoading && (
-            <div className="border border-purple-200 bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-              <div className="flex items-center space-x-3">
-                <FontAwesomeIcon icon={faRobot} className="text-purple-600" />
-                <div className="flex items-center space-x-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-purple-600 border-t-transparent"></div>
-                  <span className="text-sm text-purple-700 dark:text-purple-300">
-                    Thinking...
-                  </span>
-                </div>
+            <div className="bg-white rounded-xl p-4 mr-12 border border-gray-200">
+              <div className="flex items-center space-x-2">
+                <div className="animate-spin rounded-full h-3 w-3 border-2 border-gray-400 border-t-transparent"></div>
+                <span className="text-sm text-gray-500">
+                  Thinking...
+                </span>
               </div>
             </div>
           )}
         </div>
 
         {/* Input */}
-        <div className="p-4 border-t border-primary-200 dark:border-primary-700">
+        <div className="p-3 bg-white border-t border-gray-100">
           {messages.length === 1 && (
             <div className="mb-3">
-              <div className="mb-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg border border-purple-200/50 dark:border-purple-700/30">
-                <div className="flex items-center gap-2 mb-2">
-                  <FontAwesomeIcon icon={faMicrophone} className="text-purple-600 dark:text-purple-400" />
-                  <span className="text-sm font-medium text-purple-800 dark:text-purple-200">Interview Mode Available</span>
-                </div>
-                <p className="text-xs text-purple-700 dark:text-purple-300 mb-2">
-                  🎤 <strong>Click the microphone</strong> to ask questions with your voice<br/>
-                  🔊 <strong>Get audio responses</strong> automatically when using voice input<br/>
-                  ▶️ <strong>Replay any response</strong> by clicking the play button
-                </p>
-                <div className="flex items-center gap-2 text-xs text-purple-600 dark:text-purple-400">
-                  <FontAwesomeIcon icon={faVolumeUp} className="text-purple-500" />
-                  <span>Voice responses: {voiceEnabled ? 'Enabled' : 'Disabled'} • Use volume button to toggle</span>
-                </div>
-              </div>
-              <p className="text-xs text-primary-700 dark:text-primary-400 mb-2">
-                Try asking:
+              <p className="text-xs text-gray-500 mb-2">
+                Suggested questions:
               </p>
               <div className="flex flex-wrap gap-2">
                 {suggestedQuestions.map((question, index) => (
@@ -733,7 +639,7 @@ const CareerAssistant: React.FC = () => {
                       }
                       sendMessageWithContent(question, false);
                     }}
-                    className="px-3 py-1 text-xs bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-purple-900/50 transition-colors cursor-pointer"
+                    className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors cursor-pointer border border-gray-200"
                   >
                     {question}
                   </button>
@@ -742,43 +648,26 @@ const CareerAssistant: React.FC = () => {
             </div>
           )}
 
-          <div className="flex space-x-2">
+          <div className="relative">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isListening ? "Listening..." : "Ask me about Ryan's experience..."}
+              placeholder={isListening ? "Listening..." : "Type your question here..."}
               disabled={isLoading}
-              className="flex-1 px-3 py-2 text-sm border border-primary-300 dark:border-primary-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 dark:bg-primary-800 dark:text-primary-100 disabled:opacity-50"
+              className="w-full px-5 py-3 text-sm border border-gray-200 rounded-full focus:outline-none focus:border-gray-400 transition-colors disabled:opacity-50 pr-20"
             />
-            <button
-              onClick={toggleVoiceInput}
-              disabled={isLoading}
-              className={`px-3 py-2 rounded-lg transition-colors text-sm font-medium flex items-center justify-center ${
-                isListening
-                  ? 'bg-red-600 hover:bg-red-700 text-white animate-pulse'
-                  : 'bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-              } disabled:opacity-50 disabled:cursor-not-allowed`}
-              title={isListening ? "Stop listening" : "Start voice input"}
-            >
-              <FontAwesomeIcon
-                icon={isListening ? faMicrophoneSlash : faMicrophone}
-                className="w-4 h-4"
-              />
-            </button>
             <button
               onClick={handleSendMessage}
               disabled={!input.trim() || isLoading}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white disabled:text-gray-200 rounded-lg transition-colors text-sm font-medium flex items-center space-x-2"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-3 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Send message"
             >
               {isLoading ? (
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
               ) : (
-                <>
-                  <FontAwesomeIcon icon={faPaperPlane} className="w-4 h-4" />
-                  <span>Ask</span>
-                </>
+                <FontAwesomeIcon icon={faPaperPlane} className="w-5 h-5 text-gray-600" />
               )}
             </button>
           </div>

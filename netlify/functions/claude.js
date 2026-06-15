@@ -337,9 +337,9 @@ Just chat naturally about my career, experience, skills, or any coding questions
 
 ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUITER CONTEXT:** This visitor appears to be a recruiter or hiring manager from ${visitorContext.company}${visitorContext.location ? ` in ${visitorContext.location}` : ''} (detected through LinkedIn/job site referrer, company network, and behavioral analytics including session engagement, timezone patterns, and professional display setup). You can be more direct about my job search, career goals, and what I'm looking for in my next role. Focus on leadership experience, technical achievements, and culture fit.` : visitorContext.hasCompanyInfo ? `**COMPANY VISITOR:** This person appears to be from ${visitorContext.company}, but treat them as a general visitor unless they specifically ask about recruiting/hiring topics.` : ''}`;
 
-    // Call Claude API
+    // Call Claude API with latest Haiku 4.5 model
     const claudeRequest = {
-      model: 'claude-3-haiku-20240307',
+      model: 'claude-haiku-4-5-20251001',
       max_tokens: 1000,
       temperature: 0.7,
       system: systemPrompt,
