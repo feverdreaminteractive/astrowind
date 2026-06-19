@@ -3,15 +3,230 @@ import Layout from '../layouts/Layout.astro';
 import Profile from '../components/Profile.astro';
 import CareerAssistant from '../components/CareerAssistant';
 import SlackMeButton from '../components/SlackMeButton';
+import LogoCloud from '../components/LogoCloud.astro';
 ---
 
 <Layout showNavigation={true}>
-	<main class="p-4 md:ml-64 h-screen flex flex-col items-center justify-center pt-16">
-		<div class="max-w-4xl w-full mx-auto">
-			<Profile />
-			<div class="mt-3">
-				<CareerAssistant client:only="react" />
+	<main class="min-h-screen bg-black pt-20 relative overflow-hidden">
+		<!-- Gradient background similar to Render -->
+		<div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+
+		<!-- Grid pattern overlay -->
+		<div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+
+		<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+			<!-- Hero Section with Split Layout -->
+			<div class="grid lg:grid-cols-2 gap-12 items-center min-h-[600px]">
+
+				<!-- Left: Headline and CTAs -->
+				<div class="space-y-8">
+					<!-- Main Headline -->
+					<div>
+						<h1 class="text-5xl lg:text-6xl xl:text-7xl font-light leading-none text-white">
+							Your next
+							<span class="block text-gradient font-normal -mt-4">technical leader</span>
+							<span class="block -mt-4">
+								for
+								<span class="rotating-word-container inline-block relative" style="min-width: 450px;">
+									<span class="rotating-word text-gradient font-normal">innovation</span>
+								</span>
+							</span>
+						</h1>
+					</div>
+
+					<!-- Subheadline -->
+					<p class="text-xl text-gray-400 max-w-lg font-light">
+						12+ years architecting scalable web platforms and leading technical teams from startup to enterprise.
+					</p>
+
+					<!-- CTAs -->
+					<div class="flex flex-wrap gap-4">
+						<a href="/experience" class="inline-flex items-center px-6 py-3 text-base font-medium text-black bg-white hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-lg hover:shadow-white/20">
+							View Experience
+							<svg class="ml-2 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+							</svg>
+						</a>
+						<a href="/hire-me" class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-transparent border-2 border-white/30 hover:bg-white/10 hover:border-white/50 transition-all hover:scale-105">
+							Let's Talk
+						</a>
+					</div>
+
+					<!-- Quick Stats -->
+					<div class="flex gap-8 pt-8 border-t border-gray-800">
+						<div>
+							<div class="text-2xl font-light text-white">7+</div>
+							<div class="text-sm text-gray-500 font-light">Web Properties Managed</div>
+						</div>
+						<div>
+							<div class="text-2xl font-light text-white">60%</div>
+							<div class="text-sm text-gray-500 font-light">Tech Debt Reduced</div>
+						</div>
+						<div>
+							<div class="text-2xl font-light text-white">20%</div>
+							<div class="text-sm text-gray-500 font-light">Cost Optimization</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- Right: AI Agent -->
+				<div class="lg:pl-8">
+					<div class="relative">
+						<!-- Decorative gradient glow -->
+						<div class="absolute -inset-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-2xl"></div>
+
+						<!-- AI Agent Card with dark theme -->
+						<div class="relative">
+							<CareerAssistant client:only="react" />
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<!-- Logo Cloud - positioned to peek above fold -->
+			<div class="mt-0 -mb-16">
+				<LogoCloud />
 			</div>
 		</div>
 	</main>
+
+	<!-- Footer with Social Links -->
+	<footer class="bg-black border-t border-white/10 py-12 mt-0">
+		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+			<div class="flex flex-col items-center space-y-6">
+				<!-- Social Links -->
+				<div class="flex items-center space-x-6">
+					<a
+						href="https://apps.apple.com/us/developer/ryan-clayton/id123456789"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-gray-400 hover:text-white transition-colors"
+						title="View on App Store"
+					>
+						<i class="fab fa-app-store text-2xl"></i>
+					</a>
+					<a
+						href="https://www.linkedin.com/in/ryanclayton/"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-gray-400 hover:text-white transition-colors"
+						title="Connect on LinkedIn"
+					>
+						<i class="fab fa-linkedin text-2xl"></i>
+					</a>
+					<a
+						href="https://github.com/ryanclayton"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="text-gray-400 hover:text-white transition-colors"
+						title="Follow on GitHub"
+					>
+						<i class="fab fa-github text-2xl"></i>
+					</a>
+					<a
+						href="mailto:ryanclayton78@gmail.com"
+						class="text-gray-400 hover:text-white transition-colors"
+						title="Send Email"
+					>
+						<i class="fas fa-envelope text-2xl"></i>
+					</a>
+				</div>
+
+				<!-- Copyright -->
+				<div class="text-center">
+					<p class="text-gray-400 text-sm font-light">
+						© {new Date().getFullYear()} Ryan Clayton. All rights reserved.
+					</p>
+				</div>
+			</div>
+		</div>
+	</footer>
 </Layout>
+
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<script>
+  // Rotating words animation
+  const words = ['innovation', 'scale', 'growth', 'transformation', 'collaboration'];
+  let currentIndex = 0;
+
+  function rotateWord() {
+    const wordElement = document.querySelector('.rotating-word');
+    if (wordElement) {
+      // Fade out
+      wordElement.style.opacity = '0';
+      wordElement.style.transform = 'translateY(-10px)';
+
+      setTimeout(() => {
+        // Change word
+        currentIndex = (currentIndex + 1) % words.length;
+        wordElement.textContent = words[currentIndex];
+
+        // Fade in
+        wordElement.style.opacity = '1';
+        wordElement.style.transform = 'translateY(0)';
+      }, 200);
+    }
+  }
+
+  // Start rotation after page loads
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      setInterval(rotateWord, 3000);
+    }, 1000);
+  }
+</script>
+
+<style>
+  .text-gradient {
+    background: linear-gradient(135deg, #a78bfa 0%, #60a5fa 50%, #34d399 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .rotating-word-container {
+    position: relative;
+    height: 1.2em;
+    vertical-align: bottom;
+  }
+
+  .rotating-word {
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: inline-block;
+    transition: all 0.3s ease;
+    font-size: inherit;
+    line-height: inherit;
+  }
+
+  /* Grid pattern background */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
+  /* Animate in on load */
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  main > div > div > div:first-child {
+    animation: slideUp 0.8s ease-out;
+  }
+
+  main > div > div > div:last-child {
+    animation: slideUp 0.8s ease-out 0.2s both;
+  }
+</style>

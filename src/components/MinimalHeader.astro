@@ -1,0 +1,63 @@
+---
+// Minimal header component inspired by Render.com
+const isAvailable = true; // You can toggle this based on your availability
+---
+
+<header class="fixed top-0 left-0 right-0 z-40 bg-white/90 backdrop-blur-sm border-b border-gray-100">
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-14">
+      <!-- Left: Availability Status -->
+      <div class="flex items-center">
+        {isAvailable && (
+          <div class="flex items-center space-x-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span class="text-sm text-gray-600">Available for New Projects</span>
+          </div>
+        )}
+      </div>
+
+      <!-- Center: Navigation -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="/experience" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+          Experience
+        </a>
+        <span class="text-gray-300">•</span>
+        <a href="/projects" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+          Projects
+        </a>
+        <span class="text-gray-300">•</span>
+        <a href="/skills" class="text-sm text-gray-600 hover:text-gray-900 transition-colors">
+          Skills
+        </a>
+      </div>
+
+      <!-- Right: CTA Button -->
+      <div>
+        <a
+          href="/hire-me"
+          class="inline-flex items-center px-4 py-1.5 text-sm font-medium text-white bg-gray-900 rounded-full hover:bg-gray-800 transition-all hover:scale-105"
+        >
+          Let's Talk
+          <svg class="ml-1.5 w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+<style>
+  header {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  @keyframes slideDown {
+    from {
+      transform: translateY(-100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+</style>

@@ -1,0 +1,37 @@
+<!-- This HTML file helps Netlify detect the form during build time -->
+<!-- It won't be displayed to users, but ensures form submission works -->
+<!DOCTYPE html>
+<html>
+<body>
+  <!-- Netlify will detect this form and create the backend handler -->
+  <form name="hire-me" netlify netlify-honeypot="bot-field" hidden>
+    <input type="text" name="name" />
+    <input type="email" name="email" />
+    <select name="subject">
+      <option value="">Select</option>
+      <option value="job-opportunity">Job Opportunity</option>
+      <option value="collaboration">Project Collaboration</option>
+      <option value="consulting">Consulting Inquiry</option>
+      <option value="general">General Question</option>
+      <option value="other">Other</option>
+    </select>
+    <textarea name="message"></textarea>
+    <select name="budget">
+      <option value="">Not specified</option>
+      <option value="under-5k">Under $5,000</option>
+      <option value="5k-15k">$5,000 - $15,000</option>
+      <option value="15k-50k">$15,000 - $50,000</option>
+      <option value="50k-plus">$50,000+</option>
+    </select>
+    <select name="timeline">
+      <option value="">Not specified</option>
+      <option value="asap">ASAP</option>
+      <option value="1-month">Within 1 month</option>
+      <option value="1-3-months">1-3 months</option>
+      <option value="3-6-months">3-6 months</option>
+      <option value="6-months-plus">6+ months</option>
+    </select>
+    <input type="text" name="bot-field" />
+  </form>
+</body>
+</html>

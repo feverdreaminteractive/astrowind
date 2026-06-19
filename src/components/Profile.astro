@@ -19,7 +19,7 @@ const {
 
 <div class="text-center mb-4">
   <!-- Profile image with minimal styling -->
-  <div class="relative inline-block mb-3">
+  <div class="relative inline-block mb-3" transition:animate="fade">
     <Image
       src={image}
       alt={name}
@@ -29,21 +29,67 @@ const {
       quality={90}
       loading="eager"
       class="w-16 h-16 rounded-full object-cover border border-gray-200"
+      transition:name="profile-image"
     />
   </div>
 
   <!-- Text content with elegant typography -->
-  <div>
-    <h1 class="text-3xl font-serif font-bold text-gray-900 mb-0.5" style="font-family: 'Playfair Display', serif;">
+  <div transition:animate="slide">
+    <h1 class="text-3xl font-serif font-bold text-gray-900 mb-0.5" style="font-family: 'Playfair Display', serif;" transition:name="profile-name">
       {name}
     </h1>
-    <p class="text-sm text-gray-600 font-light">
-      {title}
+    <p class="text-lg text-gray-700 mt-2" transition:name="profile-title">
+      I <span class="rotating-word-container">
+        <span class="rotating-word font-semibold text-gray-900">design</span>
+      </span> beautiful web experiences.
     </p>
   </div>
 </div>
 
+<script>
+  // Rotating words animation
+  const words = ['design', 'build', 'ship', 'animate', 'prototype'];
+  let currentIndex = 0;
+
+  function rotateWord() {
+    const wordElement = document.querySelector('.rotating-word');
+    if (wordElement) {
+      // Fade out
+      wordElement.style.opacity = '0';
+      wordElement.style.transform = 'translateY(-10px)';
+
+      setTimeout(() => {
+        // Change word
+        currentIndex = (currentIndex + 1) % words.length;
+        wordElement.textContent = words[currentIndex];
+
+        // Fade in
+        wordElement.style.opacity = '1';
+        wordElement.style.transform = 'translateY(0)';
+      }, 200);
+    }
+  }
+
+  // Start rotation after page loads
+  if (typeof window !== 'undefined') {
+    setTimeout(() => {
+      setInterval(rotateWord, 2500);
+    }, 1000);
+  }
+</script>
+
 <style>
+  .rotating-word-container {
+    display: inline-block;
+    min-width: 100px;
+    text-align: left;
+  }
+
+  .rotating-word {
+    display: inline-block;
+    transition: all 0.3s ease;
+  }
+
   @keyframes gradient-xy {
     0% {
       background-position: 0% 50%;

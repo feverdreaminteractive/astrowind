@@ -41,7 +41,7 @@ const CareerAssistant: React.FC = () => {
       }
       // Inline code
       if (part.startsWith('`') && part.endsWith('`')) {
-        return <code key={index} className="px-1 py-0.5 bg-gray-100 rounded text-xs">{part.slice(1, -1)}</code>;
+        return <code key={index} className="px-1 py-0.5 bg-gray-100 text-xs">{part.slice(1, -1)}</code>;
       }
       // Line breaks
       if (part === '\n') {
@@ -588,14 +588,14 @@ const CareerAssistant: React.FC = () => {
 
 
   return (
-    <section className="w-full max-w-3xl mx-auto">
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
+    <section className="w-full max-w-2xl mx-auto">
+      <div className="bg-black/60 backdrop-blur-md border border-white/10 shadow-2xl overflow-hidden">
         {/* Header */}
-        <div className="text-center py-3 px-4 border-b border-gray-100">
-          <h2 className="text-lg font-light text-gray-900">
+        <div className="text-center py-3 px-4 border-b border-white/10">
+          <h2 className="text-lg font-light text-white">
             What would you like to know?
           </h2>
-          <p className="text-xs text-gray-500 mt-0.5">
+          <p className="text-xs text-gray-400 mt-0.5">
             Ask me about my experience, skills, or recent projects
           </p>
         </div>
@@ -603,18 +603,24 @@ const CareerAssistant: React.FC = () => {
         {/* Messages */}
         <div
           ref={messagesContainerRef}
-          className="h-40 overflow-y-auto p-3 space-y-2 bg-gray-50"
+          className="h-64 overflow-y-auto p-3 space-y-2 bg-black/30"
         >
           {messages.map((message) => (
             <div
               key={message.id}
               data-message-type={message.type}
-              className={`rounded-lg p-2.5 text-sm ${message.type === 'user' ? 'bg-white ml-8' : message.type === 'assistant' ? 'bg-white mr-8' : 'bg-gray-100'} border border-gray-200`}
+              className={`p-2.5 text-sm ${
+                message.type === 'user'
+                  ? 'bg-white/10 ml-8 border-white/20'
+                  : message.type === 'assistant'
+                  ? 'bg-gradient-to-r from-purple-900/30 to-blue-900/30 mr-8 border-purple-500/20'
+                  : 'bg-black/40 border-white/10'
+              } border`}
             >
               <div className="flex items-start space-x-3">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                    <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">
                       {message.type === 'assistant' ? "Assistant" :
                        message.type === 'user' ? 'You' : 'System'}
                     </span>
@@ -622,18 +628,18 @@ const CareerAssistant: React.FC = () => {
                       {message.type === 'assistant' && (
                         <button
                           onClick={() => speakText(message.content)}
-                          className="text-xs text-primary-700 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300 transition-colors"
+                          className="text-xs text-purple-400 hover:text-purple-300 transition-colors"
                           title="Play audio"
                         >
                           <FontAwesomeIcon icon={faPlay} />
                         </button>
                       )}
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-gray-500">
                         {message.timestamp.toLocaleTimeString()}
                       </span>
                     </div>
                   </div>
-                  <div className="text-sm text-gray-700">
+                  <div className="text-sm text-gray-200">
                     <div className="whitespace-pre-wrap font-sans markdown-content">
                       {formatMarkdown(message.content)}
                     </div>
@@ -644,10 +650,10 @@ const CareerAssistant: React.FC = () => {
           ))}
 
           {isLoading && (
-            <div className="bg-white rounded-xl p-4 mr-12 border border-gray-200">
+            <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 p-4 mr-12 border border-purple-500/20">
               <div className="flex items-center space-x-2">
-                <div className="animate-spin rounded-full h-3 w-3 border-2 border-gray-400 border-t-transparent"></div>
-                <span className="text-sm text-gray-500">
+                <div className="animate-spin h-3 w-3 border-2 border-purple-400 border-t-transparent"></div>
+                <span className="text-sm text-purple-300">
                   Thinking...
                 </span>
               </div>
@@ -656,13 +662,10 @@ const CareerAssistant: React.FC = () => {
         </div>
 
         {/* Input */}
-        <div className="p-3 bg-white border-t border-gray-100">
+        <div className="p-4 bg-black/40 border-t border-white/10">
           {messages.length === 1 && (
             <div className="mb-3">
-              <p className="text-xs text-gray-500 mb-2">
-                Suggested questions:
-              </p>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-1.5">
                 {suggestedQuestions.map((question, index) => (
                   <button
                     key={index}
@@ -682,7 +685,7 @@ const CareerAssistant: React.FC = () => {
                       }
                       sendMessageWithContent(question, false);
                     }}
-                    className="px-2.5 py-1 text-xs bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition-colors cursor-pointer border border-gray-200"
+                    className="px-2 py-0.5 text-xs bg-black/20 text-gray-500 hover:bg-white/5 hover:text-gray-300 transition-all cursor-pointer border border-white/5"
                   >
                     {question}
                   </button>
@@ -699,18 +702,19 @@ const CareerAssistant: React.FC = () => {
               onKeyDown={handleKeyDown}
               placeholder={isListening ? "Listening..." : "Type your question here..."}
               disabled={isLoading}
-              className="w-full px-5 py-3 text-sm border border-gray-200 rounded-full focus:outline-none focus:border-gray-400 transition-colors disabled:opacity-50 pr-20"
+              className="w-full px-5 py-4 text-base border border-white/20 bg-black/40 text-white placeholder-gray-400 focus:outline-none focus:border-white/40 transition-colors disabled:opacity-50 pr-24"
+              autoFocus
             />
             <button
               onClick={handleSendMessage}
               disabled={!input.trim() || isLoading}
-              className="absolute right-2 top-1/2 -translate-y-1/2 p-3 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute right-2 top-1/2 -translate-y-1/2 p-3 hover:bg-white/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Send message"
             >
               {isLoading ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-400 border-t-transparent"></div>
+                <div className="animate-spin h-5 w-5 border-2 border-white/40 border-t-transparent"></div>
               ) : (
-                <FontAwesomeIcon icon={faPaperPlane} className="w-5 h-5 text-gray-600" />
+                <FontAwesomeIcon icon={faPaperPlane} className="w-5 h-5 text-white/60 hover:text-white" />
               )}
             </button>
           </div>

@@ -1,0 +1,64 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout showNavigation={true}>
+  <main class="min-h-screen bg-black pt-20 relative overflow-hidden">
+    <!-- Gradient background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+    <!-- Grid pattern overlay -->
+    <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div class="text-center">
+        <!-- Success Icon -->
+        <div class="mb-8">
+          <div class="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+            <svg class="w-12 h-12 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+            </svg>
+          </div>
+        </div>
+
+        <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">
+          Message Sent Successfully!
+        </h1>
+
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto font-light mb-8">
+          Thank you for reaching out. I've received your message and will get back to you within 24-48 hours.
+        </p>
+
+        <div class="space-y-4">
+          <p class="text-gray-400 font-light">
+            In the meantime, feel free to:
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-4 justify-center mt-6">
+            <a
+              href="/"
+              class="inline-flex items-center px-6 py-3 text-base font-medium text-black bg-white rounded-lg hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-lg hover:shadow-white/20"
+            >
+              Return Home
+            </a>
+            <a
+              href="/projects"
+              class="inline-flex items-center px-6 py-3 text-base font-medium text-white bg-transparent border-2 border-white/30 rounded-lg hover:bg-white/10 hover:border-white/50 transition-all hover:scale-105"
+            >
+              View My Projects
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
+
+<style>
+  /* Grid pattern background */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+</style>

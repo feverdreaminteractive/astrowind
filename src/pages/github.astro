@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import { SKILLS_CONFIG } from '../consts';
 
 // GitHub API call to fetch repositories
-const username = 'feverdreaminteractive';
+const username = 'ryanclayton';
 const githubResponse = await fetch(`https://api.github.com/users/${username}/repos?sort=updated&per_page=20`);
 const repos = githubResponse.ok ? await githubResponse.json() : [];
 
@@ -18,26 +18,42 @@ const importantRepos = repos.filter((repo: any) => !repo.fork && !repo.archived)
 ---
 
 <Layout showNavigation={true}>
-  <main class="p-4 md:ml-64 h-auto pt-20">
-    <div class="max-w-6xl mx-auto">
+  <main class="min-h-screen bg-black pt-20 relative overflow-hidden">
+    <!-- Gradient background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+    <!-- Grid pattern overlay -->
+    <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+
+      <!-- Header Section -->
+      <div class="text-center mb-12">
+        <h1 class="text-4xl lg:text-5xl font-light text-white mb-4 flex items-center justify-center">
+          <i class="fab fa-github text-5xl mr-4"></i>
+          Open Source Projects
+        </h1>
+        <p class="text-xl text-gray-400 max-w-2xl mx-auto font-light">
+          Explore my contributions to the open source community and personal projects on GitHub.
+        </p>
+      </div>
 
       <!-- GitHub Profile Header -->
-      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-3xl border border-primary-200 dark:border-primary-700 p-6 mb-8">
+      <div class="bg-black/60 backdrop-blur-md border border-white/10 p-8 mb-8">
         <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
           <img
             src={user.avatar_url}
             alt={`${user.name} avatar`}
-            class="w-24 h-24 rounded-full shadow-lg"
+            class="w-24 h-24 shadow-lg"
           />
           <div class="flex-1">
-            <h1 class="text-3xl font-bold text-primary-900 dark:text-primary-100 mb-2">
+            <h2 class="text-3xl font-light text-white mb-2">
               {user.name || user.login}
-            </h1>
-            <p class="text-lg text-primary-700 dark:text-primary-300 mb-1">@{user.login}</p>
+            </h2>
+            <p class="text-lg text-gray-400 mb-1">@{user.login}</p>
             {user.bio && (
-              <p class="text-primary-600 dark:text-primary-400 mb-4">{user.bio}</p>
+              <p class="text-gray-400 mb-4">{user.bio}</p>
             )}
-            <div class="flex flex-wrap gap-4 text-sm text-primary-600 dark:text-primary-400">
+            <div class="flex flex-wrap gap-4 text-sm text-gray-400">
               <span class="flex items-center gap-1">
                 <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                   <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"></path>
@@ -62,7 +78,7 @@ const importantRepos = repos.filter((repo: any) => !repo.fork && !repo.archived)
             href={user.html_url}
             target="_blank"
             rel="noopener noreferrer"
-            class="px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors font-medium"
+            class="px-4 py-2 bg-white text-black hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-lg hover:shadow-white/20 font-medium"
           >
             View on GitHub
           </a>
@@ -71,55 +87,48 @@ const importantRepos = repos.filter((repo: any) => !repo.fork && !repo.archived)
 
       <!-- Repositories Grid -->
       <div class="mb-8">
-        <h2 class="text-2xl font-bold text-primary-900 dark:text-primary-100 mb-6">
-          Popular Repositories
+        <h2 class="text-2xl font-light text-white mb-6">
+          Featured Projects
         </h2>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {importantRepos.map((repo: any) => (
-            <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-6 hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+            <a href={repo.html_url} target="_blank" rel="noopener noreferrer"
+               class="block bg-black/60 backdrop-blur-md border border-white/10 p-6 hover:border-white/30 transition-all hover:scale-105">
               <div class="flex items-start justify-between mb-4">
-                <h3 class="font-semibold text-lg text-primary-900 dark:text-primary-100 truncate">
-                  <a
-                    href={repo.html_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                  >
-                    {repo.name}
-                  </a>
+                <h3 class="font-light text-lg text-white truncate">
+                  <i class="fas fa-folder mr-2 text-purple-400"></i>
+                  {repo.name}
                 </h3>
-                <span class="text-xs px-2 py-1 bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded-full">
-                  {repo.visibility}
-                </span>
+                {repo.visibility === 'public' && (
+                  <span class="text-xs px-2 py-1 bg-white/10 text-gray-400">
+                    public
+                  </span>
+                )}
               </div>
 
               {repo.description && (
-                <p class="text-sm text-primary-600 dark:text-primary-400 mb-4 line-clamp-3">
+                <p class="text-sm text-gray-400 mb-4 line-clamp-3 font-light">
                   {repo.description}
                 </p>
               )}
 
-              <div class="flex items-center justify-between text-sm text-primary-600 dark:text-primary-400">
+              <div class="flex items-center justify-between text-sm text-gray-500">
                 <div class="flex items-center gap-4">
                   {repo.language && (
                     <span class="flex items-center gap-1">
-                      <span class="w-3 h-3 rounded-full bg-primary-500"></span>
+                      <span class="w-3 h-3 bg-purple-400"></span>
                       {repo.language}
                     </span>
                   )}
                   {repo.stargazers_count > 0 && (
                     <span class="flex items-center gap-1">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                      </svg>
+                      <i class="fas fa-star mr-1"></i>
                       {repo.stargazers_count}
                     </span>
                   )}
                   {repo.forks_count > 0 && (
                     <span class="flex items-center gap-1">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M7.707 3.293a1 1 0 010 1.414L5.414 7H11a7 7 0 017 7v2a1 1 0 11-2 0v-2a5 5 0 00-5-5H5.414l2.293 2.293a1 1 0 11-1.414 1.414L2.586 7l3.707-3.707a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                      </svg>
+                      <i class="fas fa-code-branch mr-1"></i>
                       {repo.forks_count}
                     </span>
                   )}
@@ -128,146 +137,78 @@ const importantRepos = repos.filter((repo: any) => !repo.fork && !repo.archived)
                   Updated {new Date(repo.updated_at).toLocaleDateString()}
                 </span>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </div>
 
       <!-- Activity Stats -->
-      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-6">
-        <h3 class="text-xl font-bold text-primary-900 dark:text-primary-100 mb-4">
+      <div class="bg-black/60 backdrop-blur-md border border-white/10 p-8 mb-8">
+        <h3 class="text-xl font-light text-white mb-4">
           GitHub Activity
         </h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div class="text-center">
-            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+            <div class="text-2xl font-light text-white">
               {repos.length}
             </div>
-            <div class="text-sm text-primary-600 dark:text-primary-400">Total Repos</div>
+            <div class="text-sm text-gray-400 font-light">Total Repos</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+            <div class="text-2xl font-light text-white">
               {repos.reduce((acc: number, repo: any) => acc + repo.stargazers_count, 0)}
             </div>
-            <div class="text-sm text-primary-600 dark:text-primary-400">Total Stars</div>
+            <div class="text-sm text-gray-400 font-light">Total Stars</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+            <div class="text-2xl font-light text-white">
               {repos.reduce((acc: number, repo: any) => acc + repo.forks_count, 0)}
             </div>
-            <div class="text-sm text-primary-600 dark:text-primary-400">Total Forks</div>
+            <div class="text-sm text-gray-400 font-light">Total Forks</div>
           </div>
           <div class="text-center">
-            <div class="text-2xl font-bold text-primary-600 dark:text-primary-400">
+            <div class="text-2xl font-light text-white">
               {repos.filter((repo: any) => !repo.fork).length}
             </div>
-            <div class="text-sm text-primary-600 dark:text-primary-400">Original Repos</div>
+            <div class="text-sm text-gray-400 font-light">Original Repos</div>
           </div>
         </div>
       </div>
 
-      <!-- Technical Expertise -->
-      <div class="bg-white/70 dark:bg-primary-900/70 backdrop-blur-sm shadow-lg rounded-xl border border-primary-200 dark:border-primary-700 p-6 mt-8">
-        <h3 class="text-xl font-bold text-primary-900 dark:text-primary-100 mb-6">
-          Technical Expertise
-        </h3>
-
-        <div class="grid gap-6">
-          <!-- Web Development -->
-          <div class="space-y-3">
-            <h4 class="text-sm font-medium text-primary-800 dark:text-primary-300 uppercase tracking-wider">
-              Web Development
-            </h4>
-            <div class="flex flex-wrap gap-2">
-              {SKILLS_CONFIG.webDevelopment.map((skill) => (
-                <span class="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 rounded-full">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <!-- AI & Automation -->
-          <div class="space-y-3">
-            <h4 class="text-sm font-medium text-primary-800 dark:text-primary-300 uppercase tracking-wider">
-              AI & Automation
-            </h4>
-            <div class="flex flex-wrap gap-2">
-              {SKILLS_CONFIG.aiAndAutomation.map((skill) => (
-                <span class="px-3 py-1 text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300 rounded-full">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <!-- Infrastructure -->
-          <div class="space-y-3">
-            <h4 class="text-sm font-medium text-primary-800 dark:text-primary-300 uppercase tracking-wider">
-              Infrastructure & DevOps
-            </h4>
-            <div class="flex flex-wrap gap-2">
-              {SKILLS_CONFIG.infrastructure.map((skill) => (
-                <span class="px-3 py-1 text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300 rounded-full">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <!-- CMS & Architecture -->
-          <div class="space-y-3">
-            <h4 class="text-sm font-medium text-primary-800 dark:text-primary-300 uppercase tracking-wider">
-              CMS & Architecture
-            </h4>
-            <div class="flex flex-wrap gap-2">
-              {SKILLS_CONFIG.cms.map((skill) => (
-                <span class="px-3 py-1 text-xs font-medium bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300 rounded-full">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <!-- Analytics -->
-          <div class="space-y-3">
-            <h4 class="text-sm font-medium text-primary-800 dark:text-primary-300 uppercase tracking-wider">
-              Analytics & SEO
-            </h4>
-            <div class="flex flex-wrap gap-2">
-              {SKILLS_CONFIG.analytics.map((skill) => (
-                <span class="px-3 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300 rounded-full">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <!-- Marketing Tech -->
-          <div class="space-y-3">
-            <h4 class="text-sm font-medium text-primary-800 dark:text-primary-300 uppercase tracking-wider">
-              Marketing Tech & CRM
-            </h4>
-            <div class="flex flex-wrap gap-2">
-              {SKILLS_CONFIG.marketingTech.map((skill) => (
-                <span class="px-3 py-1 text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300 rounded-full">
-                  {skill}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+      <!-- Call to Action -->
+      <div class="text-center">
+        <a
+          href="https://github.com/ryanclayton"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center px-6 py-3 text-base font-medium text-black bg-white hover:bg-gray-100 transition-all hover:scale-105 hover:shadow-lg hover:shadow-white/20"
+        >
+          <i class="fab fa-github mr-2"></i>
+          View Full GitHub Profile
+        </a>
       </div>
 
     </div>
   </main>
 </Layout>
 
+<!-- Font Awesome CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
 <style>
+  /* Grid pattern background */
+  .bg-grid-pattern {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 50px 50px;
+  }
+
   .line-clamp-3 {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
 </style>

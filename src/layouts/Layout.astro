@@ -3,6 +3,7 @@ import "../styles/global.css";
 import BaseHead from "../components/BaseHead.astro";
 import AmbientBackground from "../components/AmbientBackground";
 import DynamicNavigation from "../components/DynamicNavigation.astro";
+import { ViewTransitions } from 'astro:transitions';
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 
 interface Props {
@@ -18,13 +19,124 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, showNavigation = tru
 <html lang="en" class="antialiased">
 	<head>
 		<BaseHead title={title} description={description} />
+		<ViewTransitions />
 		<style>
 			@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
 
+			html {
+				background-color: #000;
+			}
+
 			body {
 				font-family: 'Inter', system-ui, -apple-system, sans-serif;
-				background: linear-gradient(135deg, #fdfcfb 0%, #f5f3f0 25%, #faf9f7 50%, #ffffff 100%);
+				background-color: #000;
+				color: #fff;
 				min-height: 100vh;
+			}
+
+			/* Astro View Transitions animations */
+			@keyframes fadeIn {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+
+			@keyframes slideUp {
+				from {
+					opacity: 0;
+					transform: translateY(20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes slideDown {
+				from {
+					opacity: 0;
+					transform: translateY(-20px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			@keyframes scaleIn {
+				from {
+					opacity: 0;
+					transform: scale(0.95);
+				}
+				to {
+					opacity: 1;
+					transform: scale(1);
+				}
+			}
+
+			/* Smooth SPA-like transitions */
+			::view-transition-old(root) {
+				animation: fade-out 0.15s ease-in forwards;
+			}
+
+			::view-transition-new(root) {
+				animation: fade-in 0.15s ease-out;
+			}
+
+			@keyframes fade-out {
+				from {
+					opacity: 1;
+				}
+				to {
+					opacity: 0;
+				}
+			}
+
+			@keyframes fade-in {
+				from {
+					opacity: 0;
+				}
+				to {
+					opacity: 1;
+				}
+			}
+
+
+			/* Initial page load animations */
+			@media (prefers-reduced-motion: no-preference) {
+				main {
+					animation: fadeIn 0.5s ease-out;
+				}
+
+				.animate-fade-in {
+					animation: fadeIn 0.6s ease-out;
+				}
+
+				.animate-slide-up {
+					animation: slideUp 0.6s ease-out;
+				}
+
+				.animate-slide-down {
+					animation: slideDown 0.6s ease-out;
+				}
+
+				.animate-scale-in {
+					animation: scaleIn 0.5s ease-out;
+				}
+
+				/* Stagger animations for lists */
+				.animate-stagger > * {
+					animation: slideUp 0.5s ease-out backwards;
+				}
+
+				.animate-stagger > *:nth-child(1) { animation-delay: 0.1s; }
+				.animate-stagger > *:nth-child(2) { animation-delay: 0.2s; }
+				.animate-stagger > *:nth-child(3) { animation-delay: 0.3s; }
+				.animate-stagger > *:nth-child(4) { animation-delay: 0.4s; }
+				.animate-stagger > *:nth-child(5) { animation-delay: 0.5s; }
 			}
 		</style>
 	</head>
