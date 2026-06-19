@@ -76,10 +76,7 @@ const CareerAssistant: React.FC = () => {
           apiUrl = 'http://localhost:8888/.netlify/functions/claude';
         } else if (window.location.hostname.includes('onrender.com')) {
           // Deployed on Render - use Express API service
-          // TODO: Update this URL after deploying your API service on Render
-          // For now, fallback to a placeholder that will show a helpful error
-          apiUrl = 'https://portfolio-api.onrender.com/api/claude';
-          console.warn('Using Render API URL - make sure the API service is deployed');
+          apiUrl = 'https://portfolio-api-50l0.onrender.com/api/claude';
         } else {
           // Deployed on Netlify or custom domain - use Netlify Functions
           apiUrl = '/.netlify/functions/claude';
@@ -399,8 +396,7 @@ const CareerAssistant: React.FC = () => {
       if (window.location.hostname === 'localhost') {
         apiUrl = 'http://localhost:8888/.netlify/functions/claude';
       } else if (window.location.hostname.includes('onrender.com')) {
-        apiUrl = 'https://portfolio-api.onrender.com/api/claude';
-        console.warn('Using Render API URL - make sure the API service is deployed');
+        apiUrl = 'https://portfolio-api-50l0.onrender.com/api/claude';
       } else {
         apiUrl = '/.netlify/functions/claude';
       }
