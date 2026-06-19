@@ -6,15 +6,15 @@
 import authorImage from './assets/profile.avif'; // Replace this file with your headshot
 
 export const SITE_URL = 'https://feverdream.dev';
-export const SITE_TITLE = 'Ryan Clayton | Senior Web Development Manager';
+export const SITE_TITLE = 'Ryan Clayton | Technical Leader for Collaboration';
 export const SITE_DESCRIPTION =
-  'Senior Web Development Manager with 9+ years leading technical teams and enterprise migrations. Led zero-downtime rebrand across 7 web properties, architected modern Jamstack solutions, and built scalable fintech/legaltech platforms.';
+  'Technical leader with 12+ years architecting scalable web platforms and leading teams from startup to enterprise. Specializing in AI integrations, modern cloud infrastructure, and fostering collaborative engineering cultures that deliver innovation at scale.';
 
 // Profile Configuration
 export const PROFILE_CONFIG = {
   name: 'Ryan Clayton',
-  title: 'Senior Web Development Manager',
-  bio: 'Web Development Manager with 9+ years building scalable platforms and AI-powered integrations. Led enterprise rebrand across 7 web properties with zero downtime. Expert in modern Jamstack, conversational AI, and marketing automation.',
+  title: 'Technical Leader for Collaboration',
+  bio: 'Technical leader with 12+ years architecting scalable platforms and AI-powered integrations. Led enterprise migrations with zero downtime, built conversational AI systems, and fostered engineering cultures that drive innovation through collaboration.',
   avatar: authorImage,
 };
 

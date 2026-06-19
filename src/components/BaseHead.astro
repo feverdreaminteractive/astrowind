@@ -48,7 +48,8 @@ const { title, description, image = '/og-image.png' } = Astro.props;
 <meta property="og:image" content={new URL(image, Astro.url)} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
-<meta property="og:image:alt" content="Ryan Clayton - AI-Powered Portfolio" />
+<meta property="og:image:alt" content="Ryan Clayton - Technical Leader specializing in scalable platforms, AI integrations, and collaborative engineering cultures" />
+<meta property="og:locale" content="en_US" />
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
@@ -56,11 +57,13 @@ const { title, description, image = '/og-image.png' } = Astro.props;
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
 <meta property="twitter:image" content={new URL(image, Astro.url)} />
+<meta property="twitter:creator" content="@ryanclayton" />
 
 <!-- LinkedIn -->
-<meta property="og:site_name" content="Ryan Clayton Portfolio" />
+<meta property="og:site_name" content="Ryan Clayton - Technical Leader" />
 <meta name="author" content="Ryan Clayton" />
 <meta name="robots" content="index, follow" />
+<meta name="keywords" content="technical leader, engineering manager, web development, AI integration, cloud architecture, team leadership, startup to enterprise, React, Node.js, AWS" />
 
 <!-- Google Analytics with Enhanced Company Tracking -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-V9V10NNF3Y"></script>
