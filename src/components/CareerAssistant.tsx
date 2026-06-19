@@ -75,8 +75,9 @@ const CareerAssistant: React.FC = () => {
           // Local development
           apiUrl = 'http://localhost:8888/.netlify/functions/claude';
         } else if (window.location.hostname.includes('onrender.com')) {
-          // Deployed on Render - use Express API at /api/claude
-          apiUrl = '/api/claude';
+          // Deployed on Render - use Express API service
+          // Update this URL after deploying your API service on Render
+          apiUrl = 'https://portfolio-api.onrender.com/api/claude';
         } else {
           // Deployed on Netlify or custom domain - use Netlify Functions
           apiUrl = '/.netlify/functions/claude';
@@ -390,7 +391,7 @@ const CareerAssistant: React.FC = () => {
       if (window.location.hostname === 'localhost') {
         apiUrl = 'http://localhost:8888/.netlify/functions/claude';
       } else if (window.location.hostname.includes('onrender.com')) {
-        apiUrl = '/api/claude';
+        apiUrl = 'https://portfolio-api.onrender.com/api/claude';
       } else {
         apiUrl = '/.netlify/functions/claude';
       }
