@@ -68,10 +68,19 @@ const CareerAssistant: React.FC = () => {
           });
         }
 
-        // Use the correct URL for local development vs production
-        const apiUrl = window.location.hostname === 'localhost'
-          ? 'http://localhost:8888/.netlify/functions/claude'
-          : '/.netlify/functions/claude';
+        // Use the correct API endpoint based on deployment platform
+        let apiUrl: string;
+
+        if (window.location.hostname === 'localhost') {
+          // Local development
+          apiUrl = 'http://localhost:8888/.netlify/functions/claude';
+        } else if (window.location.hostname.includes('onrender.com')) {
+          // Deployed on Render - use Express API at /api/claude
+          apiUrl = '/api/claude';
+        } else {
+          // Deployed on Netlify or custom domain - use Netlify Functions
+          apiUrl = '/.netlify/functions/claude';
+        }
 
         const response = await fetch(apiUrl, {
           method: 'POST',
@@ -375,7 +384,18 @@ const CareerAssistant: React.FC = () => {
         messageCount: messages.length
       };
 
-      const response = await fetch('/.netlify/functions/claude', {
+      // Use the correct API endpoint based on deployment platform
+      let apiUrl: string;
+
+      if (window.location.hostname === 'localhost') {
+        apiUrl = 'http://localhost:8888/.netlify/functions/claude';
+      } else if (window.location.hostname.includes('onrender.com')) {
+        apiUrl = '/api/claude';
+      } else {
+        apiUrl = '/.netlify/functions/claude';
+      }
+
+      const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

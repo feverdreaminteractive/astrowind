@@ -6,7 +6,9 @@
 		"dev": "astro dev",
 		"build": "astro build",
 		"preview": "astro preview",
-		"astro": "astro"
+		"astro": "astro",
+		"api": "node api-server.js",
+		"start:api": "node api-server.js"
 	},
 	"dependencies": {
 		"@astrojs/react": "^4.4.2",
@@ -24,6 +26,9 @@
 		"astro": "^5.15.0",
 		"astro-font": "^0.1.81",
 		"astro-icon": "^1.1.5",
+		"cors": "^2.8.5",
+		"express": "^4.18.2",
+		"node-fetch": "^3.3.2",
 		"react": "^19.2.3",
 		"react-dom": "^19.2.3",
 		"sharp": "^0.33.5",
