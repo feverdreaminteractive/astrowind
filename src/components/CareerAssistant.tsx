@@ -76,13 +76,16 @@ const CareerAssistant: React.FC = () => {
           apiUrl = 'http://localhost:8888/.netlify/functions/claude';
         } else if (window.location.hostname.includes('onrender.com')) {
           // Deployed on Render - use Express API service
-          // Update this URL after deploying your API service on Render
+          // TODO: Update this URL after deploying your API service on Render
+          // For now, fallback to a placeholder that will show a helpful error
           apiUrl = 'https://portfolio-api.onrender.com/api/claude';
+          console.warn('Using Render API URL - make sure the API service is deployed');
         } else {
           // Deployed on Netlify or custom domain - use Netlify Functions
           apiUrl = '/.netlify/functions/claude';
         }
 
+        console.log('Loading welcome message from:', apiUrl);
         const response = await fetch(apiUrl, {
           method: 'POST',
           headers: {
@@ -94,7 +97,12 @@ const CareerAssistant: React.FC = () => {
         });
 
         if (response.ok) {
-          const data = await response.json();
+          const responseText = await response.text();
+          console.log('Welcome response:', responseText);
+          if (!responseText) {
+            throw new Error('Empty response from API');
+          }
+          const data = JSON.parse(responseText);
           setMessages([{
             id: '1',
             type: 'system',
@@ -392,10 +400,12 @@ const CareerAssistant: React.FC = () => {
         apiUrl = 'http://localhost:8888/.netlify/functions/claude';
       } else if (window.location.hostname.includes('onrender.com')) {
         apiUrl = 'https://portfolio-api.onrender.com/api/claude';
+        console.warn('Using Render API URL - make sure the API service is deployed');
       } else {
         apiUrl = '/.netlify/functions/claude';
       }
 
+      console.log('Sending message to:', apiUrl);
       const response = await fetch(apiUrl, {
         method: 'POST',
         headers: {
@@ -407,11 +417,27 @@ const CareerAssistant: React.FC = () => {
         })
       });
 
+      console.log('Response status:', response.status);
+      console.log('Response headers:', response.headers);
+
+      const responseText = await response.text();
+      console.log('Response body:', responseText);
+
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error(`HTTP error! status: ${response.status}, body: ${responseText}`);
       }
 
-      const data = await response.json();
+      if (!responseText) {
+        throw new Error('Empty response from API');
+      }
+
+      let data;
+      try {
+        data = JSON.parse(responseText);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        throw new Error(`Invalid JSON response: ${responseText.substring(0, 100)}`);
+      }
 
       const assistantMessage: Message = {
         id: `assistant_${Date.now()}`,
