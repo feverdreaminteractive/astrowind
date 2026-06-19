@@ -5,7 +5,7 @@
 // These values are used throughout the site to provide consistent branding and descriptions.
 import authorImage from './assets/profile.avif'; // Replace this file with your headshot
 
-export const SITE_URL = 'https://feverdream.dev';
+export const SITE_URL = 'https://ryanclayton.io';
 export const SITE_TITLE = 'Ryan Clayton | Technical Leader for Collaboration';
 export const SITE_DESCRIPTION =
   'Technical leader with 12+ years architecting scalable web platforms and leading teams from startup to enterprise. Specializing in AI integrations, modern cloud infrastructure, and fostering collaborative engineering cultures that deliver innovation at scale.';
