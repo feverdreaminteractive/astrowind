@@ -22,12 +22,11 @@ import LogoCloud from '../components/LogoCloud.astro';
 				<div class="space-y-8">
 					<!-- Main Headline -->
 					<div>
-						<h1 class="text-5xl lg:text-6xl xl:text-7xl font-light leading-none text-white">
-							Your next
-							<span class="block text-gradient font-normal -mt-4">technical leader</span>
-							<span class="block -mt-4">
+						<h1 class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-light leading-none text-white">
+							Your next <span class="text-gradient font-normal">technical leader</span>
+							<span class="block -mt-2 sm:-mt-4">
 								for
-								<span class="rotating-word-container inline-block relative" style="min-width: 450px;">
+								<span class="rotating-word-container inline-block relative">
 									<span class="rotating-word text-gradient font-normal">innovation</span>
 								</span>
 							</span>
@@ -35,7 +34,7 @@ import LogoCloud from '../components/LogoCloud.astro';
 					</div>
 
 					<!-- Subheadline -->
-					<p class="text-xl text-gray-400 max-w-lg font-light">
+					<p class="text-lg sm:text-xl text-gray-400 max-w-lg font-light">
 						12+ years architecting scalable web platforms and leading technical teams from startup to enterprise.
 					</p>
 
@@ -70,10 +69,10 @@ import LogoCloud from '../components/LogoCloud.astro';
 				</div>
 
 				<!-- Right: AI Agent -->
-				<div class="lg:pl-8">
+				<div class="lg:pl-8 overflow-hidden">
 					<div class="relative">
-						<!-- Decorative gradient glow -->
-						<div class="absolute -inset-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-2xl"></div>
+						<!-- Decorative gradient glow - hidden on mobile to prevent overflow -->
+						<div class="hidden sm:block absolute -inset-4 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-2xl"></div>
 
 						<!-- AI Agent Card with dark theme -->
 						<div class="relative">

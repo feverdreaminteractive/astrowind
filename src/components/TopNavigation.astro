@@ -10,18 +10,18 @@ const navItems = [
 ];
 ---
 
-<header class="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10" transition:persist>
-  <nav class="max-w-7xl mx-auto px-6 lg:px-8">
+<header class="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10 overflow-x-hidden" transition:persist>
+  <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <!-- Left: Logo -->
       <div class="flex items-center space-x-10">
-        <a href="/" class="flex items-center space-x-3">
+        <a href="/" class="flex items-center space-x-2 sm:space-x-3">
           <img
             src="https://github.com/ryanclayton.png"
             alt="Ryan Clayton"
-            class="w-10 h-10 rounded-full border border-white/20"
+            class="w-8 sm:w-10 h-8 sm:h-10 rounded-full border border-white/20"
           />
-          <span class="text-white font-normal text-lg">Ryan Clayton</span>
+          <span class="hidden sm:inline text-white font-normal text-lg">Ryan Clayton</span>
         </a>
 
         <!-- Main Navigation -->
