@@ -159,16 +159,42 @@ const navItems = [
     const mobileMenu = document.getElementById('mobile-menu');
 
     if (menuButton && mobileMenu) {
-      menuButton.addEventListener('click', () => {
+      // Toggle menu on button click
+      menuButton.addEventListener('click', (e) => {
+        e.stopPropagation();
         mobileMenu.classList.toggle('hidden');
       });
 
       // Close menu when clicking outside
       document.addEventListener('click', (e) => {
-        if (!menuButton.contains(e.target) && !mobileMenu.contains(e.target)) {
+        if (!mobileMenu.contains(e.target)) {
           mobileMenu.classList.add('hidden');
         }
       });
+
+      // Close menu when clicking on any link inside the menu
+      const menuLinks = mobileMenu.querySelectorAll('a');
+      menuLinks.forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+        });
+      });
+
+      // Close menu on page navigation (Astro View Transitions)
+      document.addEventListener('astro:after-swap', () => {
+        mobileMenu.classList.add('hidden');
+      });
+    }
+  });
+
+  // Re-initialize after Astro page transitions
+  document.addEventListener('astro:after-swap', () => {
+    const menuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    if (menuButton && mobileMenu) {
+      // Ensure menu is hidden after navigation
+      mobileMenu.classList.add('hidden');
     }
   });
 </script>
