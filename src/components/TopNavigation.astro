@@ -2,15 +2,23 @@
 // Top navigation component - Render.com inspired
 const currentPath = Astro.url.pathname;
 
+// Helper function to check if a path is active
+const isActive = (href: string) => {
+  // Exact match check
+  return currentPath === href;
+};
+
 const navItems = [
+  { name: 'Home', href: '/' },
   { name: 'Experience', href: '/experience' },
   { name: 'GitHub', href: '/github' },
   { name: 'Skills', href: '/skills' },
   { name: 'Resume', href: '/resume' },
+  { name: 'AI Builder', href: '/builder' },
 ];
 ---
 
-<header class="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10 overflow-x-hidden" transition:persist>
+<header class="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10 overflow-x-hidden">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <!-- Left: Logo -->
@@ -29,13 +37,16 @@ const navItems = [
           {navItems.map((item) => (
             <a
               href={item.href}
-              class={`text-sm transition-colors ${
-                currentPath === item.href
-                  ? 'text-white'
+              class={`relative text-sm transition-colors ${
+                isActive(item.href)
+                  ? 'text-white font-medium'
                   : 'text-gray-400 hover:text-white'
               }`}
             >
               {item.name}
+              {isActive(item.href) && (
+                <span class="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-white"></span>
+              )}
             </a>
           ))}
         </div>
@@ -73,7 +84,11 @@ const navItems = [
         </a>
         <a
           href="/hire-me"
-          class="inline-flex items-center px-4 h-16 text-sm text-black bg-white hover:bg-gray-100 transition-all"
+          class={`inline-flex items-center px-4 h-16 text-sm transition-all ${
+            isActive('/hire-me')
+              ? 'text-white bg-gray-800 hover:bg-gray-700'
+              : 'text-black bg-white hover:bg-gray-100'
+          }`}
         >
           Contact
         </a>
@@ -100,8 +115,8 @@ const navItems = [
         <a
           href={item.href}
           class={`block px-3 py-2 text-base ${
-            currentPath === item.href
-              ? 'text-white'
+            isActive(item.href)
+              ? 'text-white font-medium'
               : 'text-gray-400 hover:text-white'
           }`}
         >
