@@ -4,8 +4,20 @@ const currentPath = Astro.url.pathname;
 
 // Helper function to check if a path is active
 const isActive = (href: string) => {
-  // Exact match check
-  return currentPath === href;
+  // For debugging in production
+  if (typeof window === 'undefined') {
+    console.log(`Server: Checking ${href} against ${currentPath}`);
+  }
+
+  // Handle trailing slashes and exact match
+  const normalizedCurrent = currentPath.endsWith('/') && currentPath !== '/'
+    ? currentPath.slice(0, -1)
+    : currentPath;
+  const normalizedHref = href.endsWith('/') && href !== '/'
+    ? href.slice(0, -1)
+    : href;
+
+  return normalizedCurrent === normalizedHref;
 };
 
 const navItems = [
@@ -42,7 +54,7 @@ const resumeLink = {
           {navItems.map((item) => (
             <a
               href={item.href}
-              class={`relative text-sm transition-colors ${
+              class={`nav-item relative text-sm transition-colors ${
                 isActive(item.href)
                   ? 'text-white font-medium'
                   : 'text-gray-400 hover:text-white'
@@ -130,7 +142,7 @@ const resumeLink = {
       {navItems.map((item) => (
         <a
           href={item.href}
-          class={`block px-3 py-2 text-base ${
+          class={`mobile-nav-item block px-3 py-2 text-base ${
             isActive(item.href)
               ? 'text-white font-medium'
               : 'text-gray-400 hover:text-white'
@@ -195,8 +207,54 @@ const resumeLink = {
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <script>
-  // Mobile menu toggle
+  // Set active navigation state on client side as fallback
   document.addEventListener('DOMContentLoaded', () => {
+    const currentPath = window.location.pathname;
+
+    // Update desktop nav items
+    document.querySelectorAll('.nav-item').forEach(link => {
+      const href = link.getAttribute('href');
+      const isActive = (href === '/' && currentPath === '/') ||
+                       (href !== '/' && currentPath === href);
+
+      if (isActive) {
+        link.classList.add('text-white', 'font-medium');
+        link.classList.remove('text-gray-400');
+
+        // Add underline if it doesn't exist
+        if (!link.querySelector('.nav-underline')) {
+          const underline = document.createElement('span');
+          underline.className = 'nav-underline absolute -bottom-[21px] left-0 right-0 h-[2px] bg-white';
+          link.appendChild(underline);
+        }
+      } else {
+        link.classList.remove('text-white', 'font-medium');
+        link.classList.add('text-gray-400');
+
+        // Remove underline if it exists
+        const underline = link.querySelector('.nav-underline');
+        if (underline) {
+          underline.remove();
+        }
+      }
+    });
+
+    // Update mobile nav items
+    document.querySelectorAll('.mobile-nav-item').forEach(link => {
+      const href = link.getAttribute('href');
+      const isActive = (href === '/' && currentPath === '/') ||
+                       (href !== '/' && currentPath === href);
+
+      if (isActive) {
+        link.classList.add('text-white', 'font-medium');
+        link.classList.remove('text-gray-400');
+      } else {
+        link.classList.remove('text-white', 'font-medium');
+        link.classList.add('text-gray-400');
+      }
+    });
+
+    // Mobile menu toggle
     const menuButton = document.getElementById('mobile-menu-button');
     const mobileMenu = document.getElementById('mobile-menu');
 
