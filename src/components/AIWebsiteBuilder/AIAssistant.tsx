@@ -1553,8 +1553,436 @@ console.log('Landing page loaded');`
         }
       ];
     } else {
-      // Generic response for other requests
-      responseMessage = "I've updated the code based on your request. The changes have been applied to your files.";
+      // Extract key terms from the prompt to customize the site
+      const promptLower = userMessage.toLowerCase();
+
+      // Check if this is a modification request for existing project
+      const isModificationRequest = project.files.length > 0 && (
+        promptLower.includes('make') || promptLower.includes('change') ||
+        promptLower.includes('add') || promptLower.includes('update') ||
+        promptLower.includes('dark') || promptLower.includes('theme')
+      );
+
+      if (isModificationRequest) {
+        // Handle modification requests
+        responseMessage = `I'll update your website based on your request: "${userMessage}"`;
+
+        // Modify existing files based on request
+        const currentFiles = [...project.files];
+
+        // Check what kind of modification is requested
+        const isDarkTheme = promptLower.includes('dark') && promptLower.includes('theme');
+        const isLightTheme = promptLower.includes('light') && promptLower.includes('theme');
+        const addingCards = promptLower.includes('card') || promptLower.includes('product');
+        const addingFeature = promptLower.includes('add') && (promptLower.includes('feature') || promptLower.includes('section'));
+
+        // Find and update CSS file for theme changes
+        if (isDarkTheme || isLightTheme) {
+          const cssFileIndex = currentFiles.findIndex(f => f.name === 'styles.css');
+          if (cssFileIndex !== -1) {
+            currentFiles[cssFileIndex].content = isDarkTheme ?
+              `/* Dark Theme Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    background-color: #111827;
+    color: #e5e7eb;
+    min-height: 100vh;
+}
+
+nav {
+    background-color: #1f2937 !important;
+    border-bottom: 1px solid #374151 !important;
+}
+
+nav a {
+    color: #e5e7eb !important;
+}
+
+nav a:hover {
+    color: #60a5fa !important;
+}
+
+section {
+    background-color: #111827 !important;
+    color: #e5e7eb !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #f3f4f6 !important;
+}
+
+.text-gray-500 {
+    color: #9ca3af !important;
+}
+
+.text-gray-900 {
+    color: #f3f4f6 !important;
+}
+
+.bg-white {
+    background-color: #1f2937 !important;
+}
+
+.border-gray-200 {
+    border-color: #374151 !important;
+}
+
+.bg-gray-50 {
+    background-color: #1f2937 !important;
+}
+
+.bg-blue-600 {
+    background-color: #2563eb !important;
+}
+
+.bg-blue-600:hover {
+    background-color: #1d4ed8 !important;
+}
+
+.shadow {
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+input, textarea {
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #e5e7eb !important;
+}
+
+footer {
+    background-color: #1f2937 !important;
+    border-top: 1px solid #374151;
+}` :
+              `/* Light Theme Styles - Clean and Modern */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    color: #111827;
+}
+
+/* Custom styles can be added here */`;
+
+            responseMessage = isDarkTheme ?
+              "I've applied a dark theme to your website. All colors have been updated for better readability in dark mode." :
+              "I've switched back to a light theme for your website.";
+          }
+        }
+
+        // Handle adding cards/products
+        if (addingCards) {
+          const htmlFileIndex = currentFiles.findIndex(f => f.name === 'index.html');
+          if (htmlFileIndex !== -1) {
+            let htmlContent = currentFiles[htmlFileIndex].content || '';
+
+            // Check if it's specifically about products
+            if (promptLower.includes('product')) {
+              // Add product cards section
+              const productSection = `
+    <!-- Products Section -->
+    <section class="py-8 px-4 mx-auto max-w-screen-xl">
+        <h2 class="mb-8 text-3xl font-bold text-center">Our Products</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white border border-gray-200 rounded-lg shadow">
+                <img src="https://picsum.photos/400/300?random=10" alt="Product 1" class="rounded-t-lg w-full">
+                <div class="p-5">
+                    <h3 class="mb-2 text-xl font-bold">Premium Product</h3>
+                    <p class="mb-3 text-gray-700">High-quality product with excellent features and durability.</p>
+                    <p class="text-2xl font-bold text-blue-600">$99.99</p>
+                    <button class="mt-3 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Add to Cart</button>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg shadow">
+                <img src="https://picsum.photos/400/300?random=11" alt="Product 2" class="rounded-t-lg w-full">
+                <div class="p-5">
+                    <h3 class="mb-2 text-xl font-bold">Standard Product</h3>
+                    <p class="mb-3 text-gray-700">Reliable product perfect for everyday use and great value.</p>
+                    <p class="text-2xl font-bold text-blue-600">$49.99</p>
+                    <button class="mt-3 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Add to Cart</button>
+                </div>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg shadow">
+                <img src="https://picsum.photos/400/300?random=12" alt="Product 3" class="rounded-t-lg w-full">
+                <div class="p-5">
+                    <h3 class="mb-2 text-xl font-bold">Basic Product</h3>
+                    <p class="mb-3 text-gray-700">Essential product with core features at an affordable price.</p>
+                    <p class="text-2xl font-bold text-blue-600">$29.99</p>
+                    <button class="mt-3 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </section>`;
+
+              // Insert the product section before footer if it doesn't exist
+              if (!htmlContent.includes('Our Products')) {
+                htmlContent = htmlContent.replace('<!-- Footer -->', productSection + '\n\n    <!-- Footer -->');
+                currentFiles[htmlFileIndex].content = htmlContent;
+                responseMessage = "I've added a products section with three product cards to your website.";
+              }
+            } else {
+              // Generic card addition
+              const cardsSection = `
+    <!-- Features Section -->
+    <section class="py-8 px-4 mx-auto max-w-screen-xl">
+        <h2 class="mb-8 text-3xl font-bold text-center">Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <i class="fas fa-rocket text-4xl text-blue-600 mb-4"></i>
+                <h3 class="mb-2 text-xl font-bold">Fast Performance</h3>
+                <p class="text-gray-700">Lightning-fast loading times and smooth user experience.</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <i class="fas fa-shield-alt text-4xl text-blue-600 mb-4"></i>
+                <h3 class="mb-2 text-xl font-bold">Secure & Reliable</h3>
+                <p class="text-gray-700">Built with security best practices and reliable infrastructure.</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <i class="fas fa-chart-line text-4xl text-blue-600 mb-4"></i>
+                <h3 class="mb-2 text-xl font-bold">Analytics</h3>
+                <p class="text-gray-700">Comprehensive analytics to track and improve performance.</p>
+            </div>
+        </div>
+    </section>`;
+
+              if (!htmlContent.includes('Features')) {
+                htmlContent = htmlContent.replace('<!-- Footer -->', cardsSection + '\n\n    <!-- Footer -->');
+                currentFiles[htmlFileIndex].content = htmlContent;
+                responseMessage = "I've added feature cards to your website.";
+              }
+            }
+          }
+        }
+
+        generatedFiles = currentFiles;
+
+      } else {
+        // Create new website from scratch
+        responseMessage = `I'll create a new website for you. Here's a clean, modern site using Flowbite components.`;
+
+        // Extract key terms from the prompt to customize the site
+        const promptLower = userMessage.toLowerCase();
+
+        // Generate a proper title based on the request
+        let title = "My Website";
+
+        // Try to extract a meaningful title from the prompt
+        if (promptLower.includes('for')) {
+          const forIndex = promptLower.indexOf('for');
+          const afterFor = userMessage.substring(forIndex + 4).trim();
+          title = afterFor.split(' ').slice(0, 3).map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          ).join(' ');
+        } else if (promptLower.includes('about')) {
+          const aboutIndex = promptLower.indexOf('about');
+          const afterAbout = userMessage.substring(aboutIndex + 6).trim();
+          title = afterAbout.split(' ').slice(0, 3).map(word =>
+            word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+          ).join(' ');
+        } else {
+          // Default: use first few meaningful words
+          const words = userMessage.split(' ').filter(word =>
+            !['create', 'make', 'build', 'a', 'an', 'the', 'website', 'site', 'page'].includes(word.toLowerCase())
+          );
+          if (words.length > 0) {
+            title = words.slice(0, 3).map(word =>
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+          }
+        }
+
+        // Detect what kind of content to include based on the prompt
+        const hasForm = promptLower.includes('form') || promptLower.includes('contact') ||
+                       promptLower.includes('signup') || promptLower.includes('subscribe');
+        const hasGallery = promptLower.includes('gallery') || promptLower.includes('photo') ||
+                          promptLower.includes('image') || promptLower.includes('portfolio');
+        const hasCards = promptLower.includes('card') || promptLower.includes('service') ||
+                        promptLower.includes('feature') || promptLower.includes('product') ||
+                        !hasForm && !hasGallery; // Default to cards if no specific type
+
+      generatedFiles = [
+        {
+          name: 'index.html',
+          type: 'file' as const,
+          path: '/index.html',
+          language: 'html',
+          content: `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>` + title + `</title>
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="bg-white border-b border-gray-200">
+        <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+            <span class="text-2xl font-semibold">` + title + `</span>
+            <button data-collapse-toggle="navbar" type="button" class="md:hidden p-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+            <div class="hidden w-full md:block md:w-auto" id="navbar">
+                <ul class="flex flex-col md:flex-row md:space-x-8 mt-4 md:mt-0">
+                    <li><a href="#" class="block py-2 px-3 text-gray-900 hover:text-blue-600">Home</a></li>
+                    <li><a href="#about" class="block py-2 px-3 text-gray-900 hover:text-blue-600">About</a></li>
+                    <li><a href="#services" class="block py-2 px-3 text-gray-900 hover:text-blue-600">Services</a></li>
+                    <li><a href="#contact" class="block py-2 px-3 text-gray-900 hover:text-blue-600">Contact</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="bg-white">
+        <div class="py-8 px-4 mx-auto max-w-screen-xl text-center lg:py-16">
+            <h1 class="mb-4 text-4xl font-extrabold tracking-tight leading-none text-gray-900 md:text-5xl lg:text-6xl">
+                ` + title + `
+            </h1>
+            <p class="mb-8 text-lg font-normal text-gray-500 lg:text-xl sm:px-16 lg:px-48">
+                Welcome to our website. Explore our services and discover what we can do for you.
+            </p>
+            <div class="flex flex-col space-y-4 sm:flex-row sm:justify-center sm:space-y-0 sm:space-x-4">
+                <a href="#" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-white rounded-lg bg-blue-600 hover:bg-blue-700">
+                    Get started
+                </a>
+                <a href="#" class="inline-flex justify-center items-center py-3 px-5 text-base font-medium text-center text-gray-900 rounded-lg border border-gray-300 hover:bg-gray-100">
+                    Learn more
+                </a>
+            </div>
+        </div>
+    </section>
+
+    ` + (hasCards ? `
+    <!-- Features/Cards Section -->
+    <section class="py-8 px-4 mx-auto max-w-screen-xl">
+        <h2 class="mb-8 text-3xl font-bold text-center text-gray-900">Features</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <h3 class="mb-2 text-xl font-bold text-gray-900">Feature One</h3>
+                <p class="text-gray-500">Description of the first feature or service offered.</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <h3 class="mb-2 text-xl font-bold text-gray-900">Feature Two</h3>
+                <p class="text-gray-500">Description of the second feature or service offered.</p>
+            </div>
+            <div class="bg-white border border-gray-200 rounded-lg shadow p-6">
+                <h3 class="mb-2 text-xl font-bold text-gray-900">Feature Three</h3>
+                <p class="text-gray-500">Description of the third feature or service offered.</p>
+            </div>
+        </div>
+    </section>` : '') + `
+
+    ` + (hasGallery ? `
+    <!-- Gallery Section -->
+    <section class="py-8 px-4 mx-auto max-w-screen-xl">
+        <h2 class="mb-8 text-3xl font-bold text-center text-gray-900">Gallery</h2>
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <img src="https://picsum.photos/400/300?random=1" alt="Gallery image" class="rounded-lg">
+            <img src="https://picsum.photos/400/300?random=2" alt="Gallery image" class="rounded-lg">
+            <img src="https://picsum.photos/400/300?random=3" alt="Gallery image" class="rounded-lg">
+            <img src="https://picsum.photos/400/300?random=4" alt="Gallery image" class="rounded-lg">
+            <img src="https://picsum.photos/400/300?random=5" alt="Gallery image" class="rounded-lg">
+            <img src="https://picsum.photos/400/300?random=6" alt="Gallery image" class="rounded-lg">
+        </div>
+    </section>` : '') + `
+
+    ` + (hasForm ? `
+    <!-- Contact Form -->
+    <section id="contact" class="py-8 px-4 mx-auto max-w-screen-xl">
+        <h2 class="mb-8 text-3xl font-bold text-center text-gray-900">Contact Us</h2>
+        <form class="max-w-md mx-auto">
+            <div class="mb-5">
+                <label class="block mb-2 text-sm font-medium text-gray-900">Your email</label>
+                <input type="email" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="name@example.com" required>
+            </div>
+            <div class="mb-5">
+                <label class="block mb-2 text-sm font-medium text-gray-900">Message</label>
+                <textarea rows="4" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" placeholder="Your message..."></textarea>
+            </div>
+            <button type="submit" class="text-white bg-blue-600 hover:bg-blue-700 font-medium rounded-lg text-sm w-full px-5 py-2.5 text-center">Send Message</button>
+        </form>
+    </section>` : '') + `
+
+    <!-- Footer -->
+    <footer class="bg-gray-50 mt-12">
+        <div class="mx-auto max-w-screen-xl p-4 py-6 lg:py-8">
+            <div class="sm:flex sm:items-center sm:justify-between">
+                <span class="text-sm text-gray-500">© 2024 ` + title + `. All Rights Reserved.</span>
+                <div class="flex mt-4 space-x-6 sm:mt-0">
+                    <a href="#" class="text-gray-500 hover:text-gray-900">Privacy Policy</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-900">Terms of Service</a>
+                    <a href="#" class="text-gray-500 hover:text-gray-900">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>`
+        },
+        {
+          name: 'styles.css',
+          type: 'file' as const,
+          path: '/styles.css',
+          language: 'css',
+          content: `/* Custom styles - Flowbite handles most styling */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    line-height: 1.6;
+    color: #111827;
+}
+
+/* Add any custom styles here */`
+        },
+        {
+          name: 'script.js',
+          type: 'file' as const,
+          path: '/script.js',
+          language: 'javascript',
+          content: `// Initialize website
+console.log('Website loaded: ` + title + `');
+
+// Add any custom JavaScript here
+document.addEventListener('DOMContentLoaded', function() {
+    // Mobile menu toggle is handled by Flowbite
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({ behavior: 'smooth' });
+            }
+        });
+    });
+});`
+        }
+      ];
+      }
     }
 
     // Update files if we generated new ones

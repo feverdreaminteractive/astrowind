@@ -259,23 +259,29 @@ const resumeLink = {
     const mobileMenu = document.getElementById('mobile-menu');
 
     if (menuButton && mobileMenu) {
+      // Remove any existing listeners to avoid duplicates
+      const newMenuButton = menuButton.cloneNode(true);
+      menuButton.parentNode.replaceChild(newMenuButton, menuButton);
+
       // Toggle menu on button click
-      menuButton.addEventListener('click', (e) => {
+      newMenuButton.addEventListener('click', (e) => {
         e.stopPropagation();
+        e.preventDefault();
         mobileMenu.classList.toggle('hidden');
       });
 
       // Close menu when clicking outside
       document.addEventListener('click', (e) => {
-        if (!mobileMenu.contains(e.target)) {
+        if (!mobileMenu.contains(e.target) && !newMenuButton.contains(e.target)) {
           mobileMenu.classList.add('hidden');
         }
       });
 
-      // Close menu when clicking on any link inside the menu
+      // Close menu when clicking on any navigation link (not the menu button)
       const menuLinks = mobileMenu.querySelectorAll('a');
       menuLinks.forEach(link => {
         link.addEventListener('click', () => {
+          // Only close if it's an actual navigation
           mobileMenu.classList.add('hidden');
         });
       });
