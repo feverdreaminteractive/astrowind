@@ -1,37 +1,38 @@
 // Netlify Function for Claude API Proxy - Portfolio Career Assistant
 
-export const handler = async (event, context) => {
+// CORS headers shared by every response.
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
+// Helper to return a JSON response with CORS headers.
+const jsonResponse = (body, statusCode = 200) =>
+  new Response(JSON.stringify(body), {
+    status: statusCode,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+
+// Netlify v2 function. The modern function runtime injects the AI Gateway
+// credentials (ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL) that a legacy v1 handler
+// never receives at runtime — which is why direct-key calls returned 500s.
+export default async (req, context) => {
   // Handle CORS preflight requests
-  if (event.httpMethod === 'OPTIONS') {
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      },
-      body: '',
-    };
+  if (req.method === 'OPTIONS') {
+    return new Response('', { status: 204, headers: CORS_HEADERS });
   }
 
   // Only allow POST requests
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ error: 'Method Not Allowed' }),
-    };
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method Not Allowed' }, 405);
   }
 
   try {
-    console.log('Function called with method:', event.httpMethod);
-    console.log('Event body:', event.body);
+    console.log('Function called with method:', req.method);
 
     // Parse request body
-    const requestBody = JSON.parse(event.body);
+    const requestBody = await req.json();
     const { message, browserData } = requestBody;
 
     console.log('Parsed message:', message);
@@ -42,11 +43,11 @@ export const handler = async (event, context) => {
     const isBuilderRequest = !!(browserData && (browserData.isWebBuilder || browserData.isWebContainer));
 
     // Get visitor context for smart recruiter detection
-    const visitorIP = event.headers['x-forwarded-for']?.split(',')[0] ||
-                     event.headers['x-real-ip'] ||
+    const visitorIP = req.headers.get('x-forwarded-for')?.split(',')[0] ||
+                     req.headers.get('x-real-ip') ||
                      'unknown';
-    const referrer = event.headers['referer'] || event.headers['referrer'] || '';
-    const userAgent = event.headers['user-agent'] || '';
+    const referrer = req.headers.get('referer') || req.headers.get('referrer') || '';
+    const userAgent = req.headers.get('user-agent') || '';
 
     let visitorContext = {
       hasCompanyInfo: false,
@@ -56,6 +57,9 @@ export const handler = async (event, context) => {
       org: null,
       signals: []
     };
+    // Declared in the outer scope so the __GET_VISITOR_INFO__ handler below can
+    // read it even when the IP-lookup block is skipped (builder / unknown IP).
+    let recruiterScore = 0;
 
     // Try to get company info from IPinfo.io (50k free requests/month)
     if (!isBuilderRequest && visitorIP && visitorIP !== 'unknown') {
@@ -90,7 +94,7 @@ export const handler = async (event, context) => {
         }
 
         // Enhanced recruiter detection using multiple signals
-        let recruiterScore = 0;
+        recruiterScore = 0;
 
         // Referrer signals (strongest indicators)
         if (referrer.includes('linkedin.com')) {
@@ -185,60 +189,52 @@ export const handler = async (event, context) => {
 
     // Handle special welcome message request
     if (message === '__WELCOME_MESSAGE__') {
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          message: visitorContext.isLikelyRecruiter
-            ? "Hi! I'm Ryan's AI assistant. I'd love to discuss my background, technical leadership experience, and what I'm looking for in my next role. What would you like to know?"
-            : "Hi! I'm Ryan's AI assistant. I can help with coding questions, discuss my technical projects, or tell you about my development experience. What can I help you with?"
-        }),
-      };
+      return jsonResponse({
+        message: visitorContext.isLikelyRecruiter
+          ? "Hi! I'm Ryan's AI assistant. I'd love to discuss my background, technical leadership experience, and what I'm looking for in my next role. What would you like to know?"
+          : "Hi! I'm Ryan's AI assistant. I can help with coding questions, discuss my technical projects, or tell you about my development experience. What can I help you with?"
+      });
     }
 
     // Handle visitor info request for GA4 tracking
     if (message === '__GET_VISITOR_INFO__') {
-      return {
-        statusCode: 200,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          companyInfo: {
-            company: visitorContext.company,
-            location: visitorContext.location,
-            isLikelyRecruiter: visitorContext.isLikelyRecruiter,
-            signals: visitorContext.signals,
-            score: recruiterScore,
-            referrerType: referrer.includes('linkedin.com') ? 'linkedin' :
-                         referrer.includes('indeed.com') || referrer.includes('glassdoor.com') ? 'job_board' :
-                         referrer.includes('google.com') ? 'google' : 'direct',
-            hasCompanyInfo: visitorContext.hasCompanyInfo
-          }
-        }),
-      };
+      return jsonResponse({
+        companyInfo: {
+          company: visitorContext.company,
+          location: visitorContext.location,
+          isLikelyRecruiter: visitorContext.isLikelyRecruiter,
+          signals: visitorContext.signals,
+          score: recruiterScore,
+          referrerType: referrer.includes('linkedin.com') ? 'linkedin' :
+                       referrer.includes('indeed.com') || referrer.includes('glassdoor.com') ? 'job_board' :
+                       referrer.includes('google.com') ? 'google' : 'direct',
+          hasCompanyInfo: visitorContext.hasCompanyInfo
+        }
+      });
     }
 
-    // Use environment variable for API key
-    const apiKey = process.env.CLAUDE_API_KEY;
+    // Resolve AI credentials. Prefer the Netlify AI Gateway (injected into the
+    // v2 runtime as ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL), then the raw gateway
+    // variables, then a directly-configured Anthropic key. This keeps the
+    // function working whether or not a site-level CLAUDE_API_KEY is set.
+    let apiUrl;
+    let authHeaders;
 
-    console.log('API key exists:', !!apiKey);
-    console.log('API key length:', apiKey ? apiKey.length : 0);
-
-    if (!apiKey) {
-      console.error('No API key found in environment');
-      return {
-        statusCode: 500,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ error: 'AI service temporarily unavailable - no API key' }),
-      };
+    if (process.env.ANTHROPIC_BASE_URL && process.env.ANTHROPIC_API_KEY) {
+      apiUrl = `${process.env.ANTHROPIC_BASE_URL.replace(/\/$/, '')}/v1/messages`;
+      authHeaders = { 'x-api-key': process.env.ANTHROPIC_API_KEY };
+      console.log('Using Anthropic via AI Gateway (ANTHROPIC_BASE_URL)');
+    } else if (process.env.NETLIFY_AI_GATEWAY_BASE_URL && process.env.NETLIFY_AI_GATEWAY_KEY) {
+      apiUrl = `${process.env.NETLIFY_AI_GATEWAY_BASE_URL.replace(/\/$/, '')}/anthropic/v1/messages`;
+      authHeaders = { 'Authorization': `Bearer ${process.env.NETLIFY_AI_GATEWAY_KEY}` };
+      console.log('Using Anthropic via AI Gateway (NETLIFY_AI_GATEWAY_BASE_URL)');
+    } else if (process.env.CLAUDE_API_KEY) {
+      apiUrl = 'https://api.anthropic.com/v1/messages';
+      authHeaders = { 'x-api-key': process.env.CLAUDE_API_KEY };
+      console.log('Using Anthropic directly (CLAUDE_API_KEY)');
+    } else {
+      console.error('No AI credentials found in environment');
+      return jsonResponse({ error: 'AI service temporarily unavailable - no credentials' }, 500);
     }
 
     // Check if this is a request from the AI Website Builder
@@ -502,23 +498,20 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
     console.log('Portfolio Claude API request:', {
       model: claudeRequest.model,
       max_tokens: claudeRequest.max_tokens,
-      hasApiKey: !!apiKey
+      endpoint: apiUrl
     });
 
-    console.log('Calling Claude API with request:', JSON.stringify(claudeRequest, null, 2));
-
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        ...authHeaders,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify(claudeRequest)
     });
 
     console.log('Claude API response status:', response.status);
-    console.log('Claude API response headers:', response.headers);
 
     if (!response.ok) {
       const errorText = await response.text().catch(() => 'Unknown error');
@@ -533,16 +526,9 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
 
       console.error('Claude API error:', errorData);
 
-      return {
-        statusCode: response.status,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          error: `AI service error: ${response.status} - ${errorData.error?.message || errorData.error || 'Unknown error'}`
-        }),
-      };
+      return jsonResponse({
+        error: `AI service error: ${response.status} - ${errorData.error?.message || errorData.error || 'Unknown error'}`
+      }, response.status);
     }
 
     const data = await response.json();
@@ -552,32 +538,18 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
       usage: data.usage
     });
 
-    return {
-      statusCode: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        response: data.content[0]?.text || "I'm not sure how to respond to that.",
-        message: data.content[0]?.text || "I'm not sure how to respond to that.",
-        id: data.id,
-        usage: data.usage
-      }),
-    };
+    return jsonResponse({
+      response: data.content[0]?.text || "I'm not sure how to respond to that.",
+      message: data.content[0]?.text || "I'm not sure how to respond to that.",
+      id: data.id,
+      usage: data.usage
+    });
 
   } catch (error) {
     console.error('Portfolio function error:', error);
 
-    return {
-      statusCode: 500,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        error: 'AI assistant temporarily unavailable. Please try again later.'
-      }),
-    };
+    return jsonResponse({
+      error: 'AI assistant temporarily unavailable. Please try again later.'
+    }, 500);
   }
 };
