@@ -50,150 +50,122 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
           ? 'http://localhost:9999/.netlify/functions/claude'
           : '/.netlify/functions/claude';
 
-        // Build context about current project - include FULL content for modification
-        let context = '';
-        let existingHTML = '';
-        let existingCSS = '';
-        let existingJS = '';
+        // Helpers ----------------------------------------------------------
+        const languageFor = (name: string) =>
+          name.endsWith('.html') ? 'html' :
+          name.endsWith('.css') ? 'css' :
+          name.endsWith('.js') ? 'javascript' : 'plaintext';
 
-        if (project.files.length > 0) {
-          const htmlFile = project.files.find((f: any) => f.name === 'index.html');
-          const cssFile = project.files.find((f: any) => f.name === 'styles.css');
-          const jsFile = project.files.find((f: any) => f.name === 'script.js');
+        // The model is asked to return raw file contents, but strip any stray
+        // markdown fences or JSON markers just in case.
+        const cleanContent = (raw: string) =>
+          raw
+            .replace(/<<<JSON_(START|END)>>>/g, '')
+            .replace(/^\s*```[a-zA-Z]*\n?/, '')
+            .replace(/```\s*$/, '')
+            .trim();
 
-          if (htmlFile) existingHTML = htmlFile.content;
-          if (cssFile) existingCSS = cssFile.content;
-          if (jsFile) existingJS = jsFile.content;
+        const upsertFile = (files: any[], node: any) => {
+          const idx = files.findIndex((f: any) => f.name === node.name);
+          if (idx === -1) return [...files, node];
+          const next = [...files];
+          next[idx] = { ...next[idx], ...node };
+          return next;
+        };
 
-          context = `EXISTING PROJECT FILES (DO NOT REGENERATE FROM SCRATCH - MODIFY THESE):
-HTML: ${existingHTML ? 'Present' : 'None'}
-CSS: ${existingCSS ? 'Present' : 'None'}
-JS: ${existingJS ? 'Present' : 'None'}`;
-        }
+        const isModification = project.files.length > 0;
+        const getExisting = (name: string) =>
+          project.files.find((f: any) => f.name === name)?.content || '';
 
-        // Create the prompt for Claude with modification instructions
-        const systemPrompt = `You are an AI website builder that MODIFIES existing code based on user requests.
+        // Decide which files to generate. For an existing project we regenerate
+        // each existing file; for a new project we scaffold the standard three.
+        const targets = isModification
+          ? project.files
+              .filter((f: any) => f.type !== 'folder')
+              .map((f: any) => ({ name: f.name, path: f.path, language: f.language || languageFor(f.name) }))
+          : [
+              { name: 'index.html', path: '/index.html', language: 'html' },
+              { name: 'styles.css', path: '/styles.css', language: 'css' },
+              { name: 'script.js', path: '/script.js', language: 'javascript' },
+            ];
 
-${context}
+        // Announce chunked generation so the user sees progress.
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `${isModification ? 'Updating' : 'Generating'} your site one file at a time (${targets.map((t: any) => t.name).join(', ')})…`
+        }]);
 
-User request: "${userMessage}"
+        // Request each file in its own small request so responses stay fast and
+        // never get truncated by the token limit. Update the project as we go.
+        let workingFiles: any[] = [...project.files];
+        const generated: Record<string, string> = {};
 
-CRITICAL INSTRUCTIONS:
-${existingHTML ? `- MODIFY the existing HTML, don't replace it entirely
-- Keep the existing structure and only change what's requested
-- Preserve existing content unless specifically asked to change it` :
-`- Create a new website using Tailwind CSS (via CDN)
-- Use a consistent design system`}
+        for (const target of targets) {
+          const html = generated['index.html'] ?? getExisting('index.html');
+          const css = generated['styles.css'] ?? getExisting('styles.css');
 
-- For styling changes: Update specific CSS rules, don't rewrite everything
-- For new sections: Add to existing HTML, don't replace the whole file
-- For "add cards" requests: Insert new elements into existing structure
-- Use Tailwind CSS classes for consistent design
-- Always return the COMPLETE modified files, not just snippets
-{
-  "message": "Brief description of what you did",
-  "files": [
-    {
-      "name": "index.html",
-      "type": "file",
-      "path": "/index.html",
-      "content": "complete HTML content here"
-    },
-    {
-      "name": "styles.css",
-      "type": "file",
-      "path": "/styles.css",
-      "content": "complete CSS content here"
-    },
-    {
-      "name": "script.js",
-      "type": "file",
-      "path": "/script.js",
-      "content": "complete JS content here"
-    }
-  ]
-}`;
-
-        const response = await fetch(apiUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            message: userMessage, // Send just the user message
-            browserData: {
-              isWebBuilder: true,
-              existingFiles: project.files.length > 0 ? project.files.map((f: any) => ({
-                name: f.name,
-                content: f.content
-              })) : []
-            }
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-
-          try {
-            // Try to parse the AI response as JSON
-            let aiResponse;
-
-            // Get the response text from either message or response field
-            const responseText = data.message || data.response || '';
-
-            // Remove ```json wrapper if present
-            const cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-
-            // Look for JSON between markers
-            const jsonStart = cleanedResponse.indexOf('<<<JSON_START>>>');
-            const jsonEnd = cleanedResponse.indexOf('<<<JSON_END>>>');
-
-            if (jsonStart !== -1 && jsonEnd !== -1) {
-              const jsonStr = cleanedResponse.substring(jsonStart + 16, jsonEnd);
-              aiResponse = JSON.parse(jsonStr);
-            } else {
-              // Try to extract JSON from the response
-              const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
-              if (jsonMatch) {
-                aiResponse = JSON.parse(jsonMatch[0]);
-              } else {
-                throw new Error('No JSON found in response');
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: userMessage,
+              browserData: {
+                isWebBuilder: true,
+                targetFile: target.name,
+                existingContent: getExisting(target.name),
+                // Give CSS/JS the HTML (and JS the CSS) so they stay consistent.
+                referenceHtml: target.name !== 'index.html' ? html : '',
+                referenceCss: target.name === 'script.js' ? css : '',
               }
-            }
+            })
+          });
 
-            if (aiResponse.files && Array.isArray(aiResponse.files)) {
-              // Update project with AI-generated files
-              const updatedFiles = aiResponse.files.map((f: any) => ({
-                ...f,
-                language: f.name.endsWith('.html') ? 'html' :
-                          f.name.endsWith('.css') ? 'css' :
-                          f.name.endsWith('.js') ? 'javascript' : 'plaintext'
-              }));
-
-              console.log('Generated files:', updatedFiles);
-
-              setProject({
-                ...project,
-                name: project.name || 'ai-website',
-                files: updatedFiles
-              });
-
-              // Add AI response message
-              setMessages(prev => [...prev, {
-                role: 'assistant',
-                content: aiResponse.message || "I've generated your website based on your request."
-              }]);
-
-              setIsLoading(false);
-              if (isFirstMessage) {
-                setIsFirstMessage(false);
-                if (onFirstMessage) onFirstMessage();
-              }
-              return;
-            }
-          } catch (parseError) {
-            console.error('Failed to parse AI response:', parseError);
-            // Fall through to mock response
+          if (!response.ok) {
+            throw new Error(`Request for ${target.name} failed with ${response.status}`);
           }
+
+          const data = await response.json();
+          const content = cleanContent(data.response || data.message || '');
+          if (!content) {
+            throw new Error(`Empty response for ${target.name}`);
+          }
+
+          generated[target.name] = content;
+
+          // Persist this file immediately so the preview updates incrementally.
+          const fileNode = {
+            name: target.name,
+            type: 'file' as const,
+            path: target.path,
+            language: target.language,
+            content,
+          };
+          workingFiles = upsertFile(workingFiles, fileNode);
+          setProject({
+            ...project,
+            name: project.name || 'ai-website',
+            files: workingFiles,
+          });
+
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `✓ ${target.name}`
+          }]);
         }
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: isModification
+            ? "Done — updated your site."
+            : "Done — your site is ready. Ask for any changes and I'll update it."
+        }]);
+
+        setIsLoading(false);
+        if (isFirstMessage) {
+          setIsFirstMessage(false);
+          if (onFirstMessage) onFirstMessage();
+        }
+        return;
       } catch (error) {
         console.error('AI API error:', error);
         // Fall through to mock response
