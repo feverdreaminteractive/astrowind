@@ -50,28 +50,46 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
           ? 'http://localhost:9999/.netlify/functions/claude'
           : '/.netlify/functions/claude';
 
-        // Build context about current project
+        // Build context about current project - include FULL content for modification
         let context = '';
+        let existingHTML = '';
+        let existingCSS = '';
+        let existingJS = '';
+
         if (project.files.length > 0) {
-          context = 'Current project files:\n';
-          project.files.forEach((file: any) => {
-            context += `\nFile: ${file.name}\n${file.content?.substring(0, 300)}...\n`;
-          });
+          const htmlFile = project.files.find((f: any) => f.name === 'index.html');
+          const cssFile = project.files.find((f: any) => f.name === 'styles.css');
+          const jsFile = project.files.find((f: any) => f.name === 'script.js');
+
+          if (htmlFile) existingHTML = htmlFile.content;
+          if (cssFile) existingCSS = cssFile.content;
+          if (jsFile) existingJS = jsFile.content;
+
+          context = `EXISTING PROJECT FILES (DO NOT REGENERATE FROM SCRATCH - MODIFY THESE):
+HTML: ${existingHTML ? 'Present' : 'None'}
+CSS: ${existingCSS ? 'Present' : 'None'}
+JS: ${existingJS ? 'Present' : 'None'}`;
         }
 
-        // Create the prompt for Claude
-        const systemPrompt = `You are an AI website builder. Generate complete HTML, CSS, and JavaScript files based on the user's request.
+        // Create the prompt for Claude with modification instructions
+        const systemPrompt = `You are an AI website builder that MODIFIES existing code based on user requests.
 
-${context || 'Create a new website from scratch.'}
+${context}
 
 User request: "${userMessage}"
 
-Important:
-- Use Flowbite CSS framework (include CDN)
-- Make it responsive and modern
-- For "dark theme" requests, modify CSS colors
-- For "add products/cards" requests, add HTML sections
-- Always return a valid JSON object with this structure:
+CRITICAL INSTRUCTIONS:
+${existingHTML ? `- MODIFY the existing HTML, don't replace it entirely
+- Keep the existing structure and only change what's requested
+- Preserve existing content unless specifically asked to change it` :
+`- Create a new website using Tailwind CSS (via CDN)
+- Use a consistent design system`}
+
+- For styling changes: Update specific CSS rules, don't rewrite everything
+- For new sections: Add to existing HTML, don't replace the whole file
+- For "add cards" requests: Insert new elements into existing structure
+- Use Tailwind CSS classes for consistent design
+- Always return the COMPLETE modified files, not just snippets
 {
   "message": "Brief description of what you did",
   "files": [
@@ -100,8 +118,14 @@ Important:
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message: userMessage, // Send just the user message, not the whole prompt
-            browserData: { isWebBuilder: true }
+            message: userMessage, // Send just the user message
+            browserData: {
+              isWebBuilder: true,
+              existingFiles: project.files.length > 0 ? project.files.map((f: any) => ({
+                name: f.name,
+                content: f.content
+              })) : []
+            }
           })
         });
 

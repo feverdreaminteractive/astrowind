@@ -315,20 +315,31 @@ I'll build this with [tech stack]."
 Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
       console.log('Node.js WebContainer request - generating full-stack application');
     } else if (browserData && browserData.isWebBuilder) {
-      // Simple prompt for web builder
-      systemPrompt = `Build a website: ${message}
-Return JSON with HTML, CSS, JS files.
+      // Website builder with modification capability
+      const hasExistingFiles = browserData.existingFiles && browserData.existingFiles.length > 0;
+
+      let contextPrompt = '';
+      if (hasExistingFiles) {
+        contextPrompt = `You have existing files to MODIFY (not replace):
+${browserData.existingFiles.map((f) => `- ${f.name}: ${f.content?.length || 0} chars`).join('\n')}
+
+IMPORTANT: Keep existing content and structure, only modify what's requested.`;
+      }
+
+      systemPrompt = `${hasExistingFiles ? 'MODIFY' : 'Create'} website: ${message}
+${contextPrompt}
+Use Tailwind CSS. Return complete files in JSON:
 <<<JSON_START>>>
 {
-  "message": "Created website",
+  "message": "What was changed",
   "files": [
-    {"name": "index.html", "type": "file", "path": "/index.html", "content": "full HTML"},
-    {"name": "styles.css", "type": "file", "path": "/styles.css", "content": "full CSS"},
-    {"name": "script.js", "type": "file", "path": "/script.js", "content": "full JS"}
+    {"name": "index.html", "type": "file", "path": "/index.html", "content": "complete HTML"},
+    {"name": "styles.css", "type": "file", "path": "/styles.css", "content": "complete CSS"},
+    {"name": "script.js", "type": "file", "path": "/script.js", "content": "complete JS"}
   ]
 }
 <<<JSON_END>>>`;
-      console.log('AI Website Builder request');
+      console.log('AI Website Builder request - ', hasExistingFiles ? 'modifying existing' : 'creating new');
     } else {
       // Regular career assistant prompt
       systemPrompt = `You are Ryan Clayton's AI career assistant. You help visitors learn about Ryan's professional background, skills, and experience in a conversational way.

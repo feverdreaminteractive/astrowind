@@ -448,14 +448,14 @@ const AIWebsiteBuilder: React.FC = () => {
         </div>
       )}
 
-      {/* Browser Console Output */}
-      {project.files.length > 0 && (
+      {/* Browser Console Output - Commented out for now */}
+      {/* {project.files.length > 0 && (
         <TerminalDrawer
           output={terminalOutput}
           onCommand={undefined}
           isRunning={false}
         />
-      )}
+      )} */}
     </div>
   );
 };
