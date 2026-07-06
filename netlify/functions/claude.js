@@ -36,6 +36,11 @@ export const handler = async (event, context) => {
 
     console.log('Parsed message:', message);
 
+    // Requests from the AI Website Builder / WebContainer don't need visitor
+    // profiling. Skip the IPInfo lookup for them so we don't spend the function's
+    // limited execution budget on an unrelated network round-trip.
+    const isBuilderRequest = !!(browserData && (browserData.isWebBuilder || browserData.isWebContainer));
+
     // Get visitor context for smart recruiter detection
     const visitorIP = event.headers['x-forwarded-for']?.split(',')[0] ||
                      event.headers['x-real-ip'] ||
@@ -53,7 +58,7 @@ export const handler = async (event, context) => {
     };
 
     // Try to get company info from IPinfo.io (50k free requests/month)
-    if (visitorIP && visitorIP !== 'unknown') {
+    if (!isBuilderRequest && visitorIP && visitorIP !== 'unknown') {
       try {
         const ipInfoResponse = await fetch(`https://ipinfo.io/${visitorIP}/json`);
         if (ipInfoResponse.ok) {
@@ -314,6 +319,35 @@ I'll build this with [tech stack]."
 
 Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
       console.log('Node.js WebContainer request - generating full-stack application');
+    } else if (browserData && browserData.isWebBuilder && browserData.targetFile) {
+      // Website builder in CHUNKED mode: generate ONE file at a time so each
+      // response stays small and fast (avoids truncation and function timeouts).
+      const target = browserData.targetFile;
+      const isModification = !!(browserData.existingContent && browserData.existingContent.length > 0);
+
+      let referenceBlock = '';
+      if (browserData.referenceHtml) {
+        referenceBlock += `\nFor consistency, here is the current index.html to match:\n\n${browserData.referenceHtml}\n`;
+      }
+      if (browserData.referenceCss) {
+        referenceBlock += `\nFor consistency, here is the current styles.css to match:\n\n${browserData.referenceCss}\n`;
+      }
+
+      systemPrompt = `You are an AI website builder. Generate the COMPLETE contents of a SINGLE file: ${target}.
+
+User request: "${message}"
+
+${isModification
+  ? `MODIFY the current ${target} below. Keep everything that is not related to the request; only change what was asked for.\n\nCurrent ${target}:\n\n${browserData.existingContent}`
+  : `Create ${target} for a new website. Use Tailwind CSS via the CDN. Use a clean, consistent design system.`}
+${referenceBlock}
+
+CRITICAL OUTPUT RULES:
+- Output ONLY the raw contents of ${target}, nothing else.
+- Do NOT wrap the output in markdown code fences (no \`\`\`).
+- Do NOT include any explanation, preamble, or JSON.
+- The output must be valid ${target} content that can be written directly to the file.`;
+      console.log('AI Website Builder chunked request - file:', target, isModification ? '(modify)' : '(create)');
     } else if (browserData && browserData.isWebBuilder) {
       // Website builder with modification capability
       const hasExistingFiles = browserData.existingFiles && browserData.existingFiles.length > 0;
@@ -444,8 +478,13 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
     } // Close the else block for career assistant prompt
 
     // Call Claude API with latest Haiku 4.5 model
-    // Increased token limit to get full responses
-    const maxTokens = browserData && browserData.isWebBuilder ? 4000 : 1000;
+    // Chunked builder requests generate one file at a time, so they can use a
+    // larger per-request budget while each response still returns quickly.
+    const maxTokens = browserData && browserData.targetFile
+      ? 8000
+      : browserData && (browserData.isWebBuilder || browserData.isWebContainer)
+        ? 4000
+        : 1000;
 
     const claudeRequest = {
       model: 'claude-haiku-4-5-20251001',
