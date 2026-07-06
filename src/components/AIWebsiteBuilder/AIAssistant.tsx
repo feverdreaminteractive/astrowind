@@ -40,6 +40,124 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
+    // Try to use real AI first
+    const USE_REAL_AI = true; // Set to false to use mock responses
+
+    if (USE_REAL_AI) {
+      try {
+        // Prepare the API URL
+        const apiUrl = import.meta.env.DEV
+          ? 'http://localhost:3001/api/claude'
+          : 'https://api-portfolio-self.onrender.com/api/claude';
+
+        // Build context about current project
+        let context = '';
+        if (project.files.length > 0) {
+          context = 'Current project files:\n';
+          project.files.forEach((file: any) => {
+            context += `\nFile: ${file.name}\n${file.content?.substring(0, 300)}...\n`;
+          });
+        }
+
+        // Create the prompt for Claude
+        const systemPrompt = `You are an AI website builder. Generate complete HTML, CSS, and JavaScript files based on the user's request.
+
+${context || 'Create a new website from scratch.'}
+
+User request: "${userMessage}"
+
+Important:
+- Use Flowbite CSS framework (include CDN)
+- Make it responsive and modern
+- For "dark theme" requests, modify CSS colors
+- For "add products/cards" requests, add HTML sections
+- Always return a valid JSON object with this structure:
+{
+  "message": "Brief description of what you did",
+  "files": [
+    {
+      "name": "index.html",
+      "type": "file",
+      "path": "/index.html",
+      "content": "complete HTML content here"
+    },
+    {
+      "name": "styles.css",
+      "type": "file",
+      "path": "/styles.css",
+      "content": "complete CSS content here"
+    },
+    {
+      "name": "script.js",
+      "type": "file",
+      "path": "/script.js",
+      "content": "complete JS content here"
+    }
+  ]
+}`;
+
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: systemPrompt,
+            browserData: { isWebBuilder: true }
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+
+          try {
+            // Try to parse the AI response as JSON
+            let aiResponse;
+
+            // Claude might wrap JSON in markdown or text
+            const jsonMatch = data.response.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              aiResponse = JSON.parse(jsonMatch[0]);
+            } else {
+              aiResponse = JSON.parse(data.response);
+            }
+
+            if (aiResponse.files && Array.isArray(aiResponse.files)) {
+              // Update project with AI-generated files
+              setProject({
+                ...project,
+                name: project.name || 'ai-website',
+                files: aiResponse.files.map((f: any) => ({
+                  ...f,
+                  language: f.name.endsWith('.html') ? 'html' :
+                            f.name.endsWith('.css') ? 'css' :
+                            f.name.endsWith('.js') ? 'javascript' : 'plaintext'
+                }))
+              });
+
+              // Add AI response message
+              setMessages(prev => [...prev, {
+                role: 'assistant',
+                content: aiResponse.message || "I've generated your website based on your request."
+              }]);
+
+              setIsLoading(false);
+              if (isFirstMessage) {
+                setIsFirstMessage(false);
+                if (onFirstMessage) onFirstMessage();
+              }
+              return;
+            }
+          } catch (parseError) {
+            console.error('Failed to parse AI response:', parseError);
+            // Fall through to mock response
+          }
+        }
+      } catch (error) {
+        console.error('AI API error:', error);
+        // Fall through to mock response
+      }
+    }
+
+    // If AI fails or is disabled, continue with mock response
     // If this is the first message and no files exist, create starter files
     if (isFirstMessage && project.files.length === 0) {
       setIsFirstMessage(false);
