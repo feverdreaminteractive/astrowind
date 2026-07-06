@@ -54,6 +54,19 @@ const AIWebsiteBuilder: React.FC = () => {
   const [activePanel, setActivePanel] = useState<'editor' | 'preview'>('preview');
   const [showDeployment, setShowDeployment] = useState(false);
   const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
+  // Bumped to force the AI Assistant to remount (and drop its persisted chat)
+  // when the user explicitly starts fresh with a new or deleted project.
+  const [chatResetToken, setChatResetToken] = useState(0);
+
+  // Clear the persisted conversation and draft so a fresh project starts with a
+  // clean chat. Persisted prompts otherwise survive navigation, as intended.
+  const resetChat = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('aiWebBuilder_chatMessages');
+      localStorage.removeItem('aiWebBuilder_chatDraft');
+    }
+    setChatResetToken(prev => prev + 1);
+  };
 
   // Handle mounting and load saved projects
   useEffect(() => {
@@ -124,8 +137,8 @@ const AIWebsiteBuilder: React.FC = () => {
     setProject(newProject);
     setSelectedFile(null);
     setCurrentProjectId('new');
-    setHasStarted(false);
     setShowProjectManager(false);
+    resetChat();
   };
 
   // Delete a saved project
@@ -147,13 +160,13 @@ const AIWebsiteBuilder: React.FC = () => {
     setProject(newProject);
     setSelectedFile(null);
     setCurrentProjectId('new');
-    setHasStarted(false);
     setActivePanel('preview'); // Switch to preview to see the start screen
 
     // Clear localStorage
     localStorage.removeItem('aiWebBuilder_currentProject');
     // Force a re-render by updating localStorage with empty project
     localStorage.setItem('aiWebBuilder_currentProject', JSON.stringify(newProject));
+    resetChat();
   };
 
   // Handle file selection
@@ -217,6 +230,7 @@ const AIWebsiteBuilder: React.FC = () => {
       {/* Left Sidebar - AI Assistant */}
       <div className="w-96 bg-[#1a1a1a] border-r border-gray-800 flex flex-col">
         <AIAssistant
+          key={chatResetToken}
           project={project}
           setProject={setProject}
           selectedFile={selectedFile}

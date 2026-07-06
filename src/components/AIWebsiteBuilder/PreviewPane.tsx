@@ -214,9 +214,7 @@ const PreviewPane: React.FC<Props> = ({ project, onConsoleOutput }) => {
           </body>
           </html>
         `;
-        iframeDoc.open();
-        iframeDoc.write(startScreenHTML);
-        iframeDoc.close();
+        iframe.srcdoc = startScreenHTML;
         setTimeout(() => setIsLoading(false), 300);
         return;
       }
@@ -233,13 +231,17 @@ const PreviewPane: React.FC<Props> = ({ project, onConsoleOutput }) => {
       }
 
       if (jsFile) {
-        html = html.replace('</body>', `<script>${jsFile.content}</script></body>`);
+        // Escape any literal </script> in the generated JS so it can't break out
+        // of the inline <script> tag and leave stray, unparseable tokens.
+        const safeJs = jsFile.content.replace(/<\/script>/gi, '<\\/script>');
+        html = html.replace('</body>', `<script>${safeJs}</script></body>`);
         html = html.replace('<script src="script.js"></script>', '');
       }
 
-        iframeDoc.open();
-        iframeDoc.write(html);
-        iframeDoc.close();
+        // Render via srcdoc rather than document.open()/write()/close(). Writing
+        // into the sandboxed same-origin iframe could throw "Failed to execute
+        // 'write' on 'Document'"; assigning srcdoc parses the markup reliably.
+        iframe.srcdoc = html;
 
         setTimeout(() => setIsLoading(false), 300);
       }
