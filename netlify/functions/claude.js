@@ -1,6 +1,6 @@
 // Netlify Function for Claude API Proxy - Portfolio Career Assistant
 
-exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   // Handle CORS preflight requests
   if (event.httpMethod === 'OPTIONS') {
     return {
@@ -236,8 +236,102 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Create career-focused system prompt
-    const systemPrompt = `You are Ryan Clayton's AI career assistant. You help visitors learn about Ryan's professional background, skills, and experience in a conversational way.
+    // Check if this is a request from the AI Website Builder
+    let systemPrompt;
+
+    if (browserData && browserData.isWebContainer) {
+      // Full-stack Node.js project with architecture recommendations
+      systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.
+
+User request: "${message}"
+
+IMPORTANT: First provide architecture recommendations, then build the complete project.
+
+Your response should:
+1. Suggest the best architecture and tech stack for their needs
+2. Explain why these choices are optimal
+3. Create a complete, working Node.js application
+
+Include:
+- package.json with all dependencies
+- Server files (Express/Fastify/Next.js etc)
+- Database models and migrations if needed
+- API routes and controllers
+- Frontend if applicable (React/Vue/Angular)
+- Environment configuration
+- Docker files if appropriate
+- Testing setup
+- README with complete setup instructions
+
+For specific project types:
+- E-commerce: Full shopping cart, payment integration setup, admin panel
+- SaaS: Authentication, billing, dashboards, API
+- API Service: RESTful or GraphQL endpoints, middleware, validation
+- Real-time Apps: WebSocket setup, live updates
+- Microservices: Service separation, communication patterns
+
+Response format:
+"Based on your requirements, I recommend [architecture]. Here's why: [reasoning].
+
+I'll build this with [tech stack]."
+
+<<<JSON_START>>>
+{
+  "files": [
+    {
+      "name": "package.json",
+      "type": "file",
+      "path": "/package.json",
+      "content": "{ complete package.json with scripts and dependencies }"
+    },
+    {
+      "name": "server.js",
+      "type": "file",
+      "path": "/server.js",
+      "content": "// Complete server code"
+    },
+    {
+      "name": "src/routes/api.js",
+      "type": "file",
+      "path": "/src/routes/api.js",
+      "content": "// API routes"
+    },
+    {
+      "name": ".env.example",
+      "type": "file",
+      "path": "/.env.example",
+      "content": "# Environment variables"
+    },
+    {
+      "name": "README.md",
+      "type": "file",
+      "path": "/README.md",
+      "content": "# Complete setup guide"
+    }
+  ]
+}
+<<<JSON_END>>>
+
+Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
+      console.log('Node.js WebContainer request - generating full-stack application');
+    } else if (browserData && browserData.isWebBuilder) {
+      // Simple prompt for web builder
+      systemPrompt = `Build a website: ${message}
+Return JSON with HTML, CSS, JS files.
+<<<JSON_START>>>
+{
+  "message": "Created website",
+  "files": [
+    {"name": "index.html", "type": "file", "path": "/index.html", "content": "full HTML"},
+    {"name": "styles.css", "type": "file", "path": "/styles.css", "content": "full CSS"},
+    {"name": "script.js", "type": "file", "path": "/script.js", "content": "full JS"}
+  ]
+}
+<<<JSON_END>>>`;
+      console.log('AI Website Builder request');
+    } else {
+      // Regular career assistant prompt
+      systemPrompt = `You are Ryan Clayton's AI career assistant. You help visitors learn about Ryan's professional background, skills, and experience in a conversational way.
 
 IMPORTANT: You are Ryan's AI Career Assistant. Respond naturally about Ryan in third person using "Ryan", "his", "him" instead of "I", "my", "me". Keep responses professional and direct - avoid overly casual language, filler phrases like "Well, I'm glad you asked!", emotional descriptions, asterisk actions like "*responds in a friendly, professional tone*", markdown formatting like **bold text**, and excessive meta-commentary. Keep any commentary brief and relevant. Answer questions directly. Use emojis sparingly when appropriate.
 
@@ -336,11 +430,15 @@ Share code snippets, ask for architecture advice, get help debugging, or just ex
 Just chat naturally about my career, experience, skills, or any coding questions you have. No need to follow specific formats - respond like a knowledgeable colleague who knows my work well.
 
 ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUITER CONTEXT:** This visitor appears to be a recruiter or hiring manager from ${visitorContext.company}${visitorContext.location ? ` in ${visitorContext.location}` : ''} (detected through LinkedIn/job site referrer, company network, and behavioral analytics including session engagement, timezone patterns, and professional display setup). You can be more direct about my job search, career goals, and what I'm looking for in my next role. Focus on leadership experience, technical achievements, and culture fit.` : visitorContext.hasCompanyInfo ? `**COMPANY VISITOR:** This person appears to be from ${visitorContext.company}, but treat them as a general visitor unless they specifically ask about recruiting/hiring topics.` : ''}`;
+    } // Close the else block for career assistant prompt
 
     // Call Claude API with latest Haiku 4.5 model
+    // Increased token limit to get full responses
+    const maxTokens = browserData && browserData.isWebBuilder ? 4000 : 1000;
+
     const claudeRequest = {
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 1000,
+      max_tokens: maxTokens,
       temperature: 0.7,
       system: systemPrompt,
       messages: [
@@ -411,6 +509,7 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
+        response: data.content[0]?.text || "I'm not sure how to respond to that.",
         message: data.content[0]?.text || "I'm not sure how to respond to that.",
         id: data.id,
         usage: data.usage

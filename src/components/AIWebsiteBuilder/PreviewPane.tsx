@@ -2,13 +2,37 @@ import React, { useEffect, useRef, useState } from 'react';
 
 interface Props {
   project: any;
+  onConsoleOutput?: (message: string) => void;
 }
 
-const PreviewPane: React.FC<Props> = ({ project }) => {
+const PreviewPane: React.FC<Props> = ({ project, onConsoleOutput }) => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [device, setDevice] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [iframeReady, setIframeReady] = useState(false);
+
+  // Listen for console messages from iframe
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data?.type === 'console' && onConsoleOutput) {
+        const { level, args } = event.data;
+        const message = args.join(' ');
+
+        let prefix = '';
+        switch (level) {
+          case 'error': prefix = '❌ '; break;
+          case 'warn': prefix = '⚠️ '; break;
+          case 'info': prefix = 'ℹ️ '; break;
+          default: prefix = ''; break;
+        }
+
+        onConsoleOutput(`${prefix}${message}`);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [onConsoleOutput]);
 
   useEffect(() => {
     if (iframeReady) {
@@ -30,6 +54,86 @@ const PreviewPane: React.FC<Props> = ({ project }) => {
       const htmlFile = project.files.find((f: any) => f.name.endsWith('.html'));
       const cssFile = project.files.find((f: any) => f.name.endsWith('.css'));
       const jsFile = project.files.find((f: any) => f.name.endsWith('.js'));
+
+      // Inject console capture script
+      const consoleScript = `
+        <script>
+          (function() {
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+            const originalInfo = console.info;
+
+            console.log = function(...args) {
+              window.parent.postMessage({
+                type: 'console',
+                level: 'log',
+                args: args.map(arg => {
+                  try {
+                    return typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg);
+                  } catch (e) {
+                    return String(arg);
+                  }
+                })
+              }, '*');
+              originalLog.apply(console, args);
+            };
+
+            console.error = function(...args) {
+              window.parent.postMessage({
+                type: 'console',
+                level: 'error',
+                args: args.map(arg => {
+                  try {
+                    return typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg);
+                  } catch (e) {
+                    return String(arg);
+                  }
+                })
+              }, '*');
+              originalError.apply(console, args);
+            };
+
+            console.warn = function(...args) {
+              window.parent.postMessage({
+                type: 'console',
+                level: 'warn',
+                args: args.map(arg => {
+                  try {
+                    return typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg);
+                  } catch (e) {
+                    return String(arg);
+                  }
+                })
+              }, '*');
+              originalWarn.apply(console, args);
+            };
+
+            console.info = function(...args) {
+              window.parent.postMessage({
+                type: 'console',
+                level: 'info',
+                args: args.map(arg => {
+                  try {
+                    return typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg);
+                  } catch (e) {
+                    return String(arg);
+                  }
+                })
+              }, '*');
+              originalInfo.apply(console, args);
+            };
+
+            window.addEventListener('error', function(event) {
+              window.parent.postMessage({
+                type: 'console',
+                level: 'error',
+                args: [event.message + ' at ' + event.filename + ':' + event.lineno + ':' + event.colno]
+              }, '*');
+            });
+          })();
+        </script>
+      `;
 
       // If no files, show start screen
       if (project.files.length === 0) {
@@ -118,6 +222,9 @@ const PreviewPane: React.FC<Props> = ({ project }) => {
       }
 
       let html = htmlFile?.content || '<h1>No HTML file found</h1>';
+
+      // Inject console capture script first
+      html = html.replace('</head>', `${consoleScript}</head>`);
 
       // Inject CSS and JS inline for preview
       if (cssFile) {

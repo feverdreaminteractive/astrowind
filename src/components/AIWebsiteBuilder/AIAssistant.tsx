@@ -46,9 +46,9 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
     if (USE_REAL_AI) {
       try {
         // Prepare the API URL
-        const apiUrl = import.meta.env.DEV
-          ? 'http://localhost:3001/api/claude'
-          : 'https://api-portfolio-self.onrender.com/api/claude';
+        const apiUrl = window.location.hostname === 'localhost'
+          ? 'http://localhost:9999/.netlify/functions/claude'
+          : '/.netlify/functions/claude';
 
         // Build context about current project
         let context = '';
@@ -100,7 +100,7 @@ Important:
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            message: systemPrompt,
+            message: userMessage, // Send just the user message, not the whole prompt
             browserData: { isWebBuilder: true }
           })
         });
@@ -112,25 +112,44 @@ Important:
             // Try to parse the AI response as JSON
             let aiResponse;
 
-            // Claude might wrap JSON in markdown or text
-            const jsonMatch = data.response.match(/\{[\s\S]*\}/);
-            if (jsonMatch) {
-              aiResponse = JSON.parse(jsonMatch[0]);
+            // Get the response text from either message or response field
+            const responseText = data.message || data.response || '';
+
+            // Remove ```json wrapper if present
+            const cleanedResponse = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+
+            // Look for JSON between markers
+            const jsonStart = cleanedResponse.indexOf('<<<JSON_START>>>');
+            const jsonEnd = cleanedResponse.indexOf('<<<JSON_END>>>');
+
+            if (jsonStart !== -1 && jsonEnd !== -1) {
+              const jsonStr = cleanedResponse.substring(jsonStart + 16, jsonEnd);
+              aiResponse = JSON.parse(jsonStr);
             } else {
-              aiResponse = JSON.parse(data.response);
+              // Try to extract JSON from the response
+              const jsonMatch = cleanedResponse.match(/\{[\s\S]*\}/);
+              if (jsonMatch) {
+                aiResponse = JSON.parse(jsonMatch[0]);
+              } else {
+                throw new Error('No JSON found in response');
+              }
             }
 
             if (aiResponse.files && Array.isArray(aiResponse.files)) {
               // Update project with AI-generated files
+              const updatedFiles = aiResponse.files.map((f: any) => ({
+                ...f,
+                language: f.name.endsWith('.html') ? 'html' :
+                          f.name.endsWith('.css') ? 'css' :
+                          f.name.endsWith('.js') ? 'javascript' : 'plaintext'
+              }));
+
+              console.log('Generated files:', updatedFiles);
+
               setProject({
                 ...project,
                 name: project.name || 'ai-website',
-                files: aiResponse.files.map((f: any) => ({
-                  ...f,
-                  language: f.name.endsWith('.html') ? 'html' :
-                            f.name.endsWith('.css') ? 'css' :
-                            f.name.endsWith('.js') ? 'javascript' : 'plaintext'
-                }))
+                files: updatedFiles
               });
 
               // Add AI response message

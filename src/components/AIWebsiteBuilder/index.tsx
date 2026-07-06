@@ -4,6 +4,7 @@ import AIAssistant from './AIAssistant';
 import FileExplorer from './FileExplorer';
 import PreviewPane from './PreviewPane';
 import DeploymentPanel from './DeploymentPanel';
+import TerminalDrawer from './TerminalDrawer';
 
 interface FileNode {
   name: string;
@@ -22,7 +23,6 @@ export interface Project {
 
 const AIWebsiteBuilder: React.FC = () => {
   const [isMounted, setIsMounted] = useState(false);
-  const [hasStarted, setHasStarted] = useState(false);
   const [showProjectManager, setShowProjectManager] = useState(false);
   const [savedProjects, setSavedProjects] = useState<{[key: string]: Project}>({});
   const [currentProjectId, setCurrentProjectId] = useState<string>('default');
@@ -53,6 +53,7 @@ const AIWebsiteBuilder: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<FileNode | null>(project.files[0]);
   const [activePanel, setActivePanel] = useState<'editor' | 'preview'>('preview');
   const [showDeployment, setShowDeployment] = useState(false);
+  const [terminalOutput, setTerminalOutput] = useState<string[]>([]);
 
   // Handle mounting and load saved projects
   useEffect(() => {
@@ -219,7 +220,7 @@ const AIWebsiteBuilder: React.FC = () => {
           project={project}
           setProject={setProject}
           selectedFile={selectedFile}
-          onFirstMessage={() => setHasStarted(true)}
+          onFirstMessage={() => {}}
         />
       </div>
 
@@ -336,6 +337,7 @@ const AIWebsiteBuilder: React.FC = () => {
                 <PreviewPane
                   project={project}
                   key={`${project.name}-${project.files.length}`} // Force re-render on project change
+                  onConsoleOutput={(msg) => setTerminalOutput(prev => [...prev, msg])}
                 />
               </div>
             )}
@@ -444,6 +446,15 @@ const AIWebsiteBuilder: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Browser Console Output */}
+      {project.files.length > 0 && (
+        <TerminalDrawer
+          output={terminalOutput}
+          onCommand={undefined}
+          isRunning={false}
+        />
       )}
     </div>
   );
