@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Local Figma Processor">
+  <div id="local-processor-root"></div>
+
+  <script>
+    import LocalFigmaProcessor from '../components/LocalFigmaProcessor.tsx';
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+
+    const container = document.getElementById('local-processor-root');
+    if (container) {
+      const root = createRoot(container);
+      root.render(React.createElement(LocalFigmaProcessor));
+    }
+  </script>
+</Layout>
