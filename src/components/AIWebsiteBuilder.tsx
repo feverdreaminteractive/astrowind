@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Component, ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 interface FileNode {
@@ -9,7 +9,104 @@ interface FileNode {
   path: string;
 }
 
-const AIWebsiteBuilder: React.FC = () => {
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error?: Error;
+}
+
+class ErrorBoundary extends Component<{ children: ReactNode }, ErrorBoundaryState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error('ErrorBoundary caught error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error!</strong>
+          <span className="block sm:inline"> {this.state.error?.message || 'Something went wrong'}</span>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            className="absolute top-0 bottom-0 right-0 px-4 py-3"
+          >
+            <span className="sr-only">Dismiss</span>
+            <svg className="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+              <path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/>
+            </svg>
+          </button>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Validation functions
+const validateFigmaData = (data: any): boolean => {
+  if (!data) return false;
+  if (data.layouts && Array.isArray(data.layouts)) {
+    return data.layouts.every((layout: any) =>
+      typeof layout.x === 'number' &&
+      typeof layout.y === 'number' &&
+      typeof layout.width === 'number' &&
+      typeof layout.height === 'number'
+    );
+  }
+  return false;
+};
+
+const validatePayload = (payload: any): string[] => {
+  const errors: string[] = [];
+
+  if (!payload.message || typeof payload.message !== 'string') {
+    errors.push('Message is required and must be a string');
+  }
+
+  if (payload.browserData) {
+    if (payload.browserData.figmaContext) {
+      const context = payload.browserData.figmaContext;
+      if (context.layouts && !Array.isArray(context.layouts)) {
+        errors.push('Figma layouts must be an array');
+      }
+      // Check payload size (Netlify has limits)
+      const payloadSize = JSON.stringify(payload).length;
+      if (payloadSize > 500000) { // 500KB limit
+        errors.push(`Payload too large: ${payloadSize} bytes. Maximum: 500KB`);
+      }
+    }
+  }
+
+  return errors;
+};
+
+const AIWebsiteBuilderInner: React.FC = () => {
+  // Clean up any stored projects with problematic code on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('aiProjects');
+    if (stored) {
+      try {
+        const projects = JSON.parse(stored);
+        const cleanedProjects = projects.map((project: any) => ({
+          ...project,
+          content: project.content ? cleanGeneratedCode(project.content) : project.content
+        }));
+        localStorage.setItem('aiProjects', JSON.stringify(cleanedProjects));
+      } catch (e) {
+        // Invalid stored data, ignore
+      }
+    }
+  }, []);
+
   const [files, setFiles] = useState<FileNode[]>([
     {
       name: 'index.html',
@@ -69,14 +166,30 @@ const AIWebsiteBuilder: React.FC = () => {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Clean dangerous code patterns
+  const cleanGeneratedCode = (code: string): string => {
+    return code
+      // Remove track.js references
+      .replace(/<script[^>]*src=['"]track\.js['"][^>]*><\/script>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?track\.js[\s\S]*?<\/script>/gi, '')
+      // Remove aisource.vercel.app
+      .replace(/aisource\.vercel\.app/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?aisource[\s\S]*?<\/script>/gi, '')
+      // Remove Tailwind CDN
+      .replace(/<script[^>]*src=['"]https:\/\/cdn\.tailwindcss\.com['"][^>]*><\/script>/gi, '')
+      // Fix dangerous iframe sandbox
+      .replace(/sandbox=['"]allow-scripts allow-same-origin[^'"]*['"]/gi, 'sandbox="allow-scripts"');
+  };
+
   // Update preview when code changes
   useEffect(() => {
     if (iframeRef.current && selectedFile?.name.endsWith('.html')) {
       const iframe = iframeRef.current;
       const iframeDoc = iframe.contentDocument || iframe.contentWindow?.document;
       if (iframeDoc) {
+        const cleanedCode = cleanGeneratedCode(code);
         iframeDoc.open();
-        iframeDoc.write(code);
+        iframeDoc.write(cleanedCode);
         iframeDoc.close();
       }
     }
@@ -414,23 +527,43 @@ Build an EXACT replica matching these positions and dimensions.`;
       console.log('REQUEST PAYLOAD:', JSON.stringify(requestPayload, null, 2));
       console.log('Figma context size:', JSON.stringify(requestPayload.browserData.figmaContext || {}).length, 'bytes');
 
+      // Validate payload before sending
+      const validationErrors = validatePayload(requestPayload);
+      if (validationErrors.length > 0) {
+        throw new Error(`Validation failed: ${validationErrors.join(', ')}`);
+      }
+
       const response = await fetch('/api/claude', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(requestPayload),
+        signal: AbortSignal.timeout(90000), // 90 second timeout
       });
 
-      if (!response.ok) throw new Error('Failed to generate code');
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        throw new Error(`API Error (${response.status}): ${errorText.substring(0, 200)}`);
+      }
 
       const data = await response.json();
-      const generatedCode = data.response || data.message; // Use the correct response field
+      console.log('Response from API:', data);
+
+      let generatedCode = data.response || data.message; // Use the correct response field
+
+      // Clean the generated code before using it
+      generatedCode = cleanGeneratedCode(generatedCode);
+
       handleCodeChange(generatedCode);
       setPrompt('');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating code:', error);
-      alert('Failed to generate code. Please try again.');
+      const errorMessage = error.name === 'AbortError'
+        ? 'Request timed out after 90 seconds. Please try a simpler request.'
+        : error.message || 'Failed to generate code. Please try again.';
+      alert(errorMessage);
     } finally {
       setIsGenerating(false);
     }
@@ -558,6 +691,15 @@ Build an EXACT replica matching these positions and dimensions.`;
         </div>
       </div>
     </div>
+  );
+};
+
+// Wrap with error boundary
+const AIWebsiteBuilder: React.FC = () => {
+  return (
+    <ErrorBoundary>
+      <AIWebsiteBuilderInner />
+    </ErrorBoundary>
   );
 };
 
