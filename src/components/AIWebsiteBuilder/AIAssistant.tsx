@@ -230,6 +230,9 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
     }
   };
 
+  const [showFigmaInput, setShowFigmaInput] = useState(false);
+  const [figmaUrl, setFigmaUrl] = useState('');
+
   const quickActions = project.files.length === 0 ? [
     { icon: 'fa-briefcase', label: 'Portfolio', prompt: 'Create a modern portfolio website with projects showcase' },
     { icon: 'fa-rocket', label: 'Landing Page', prompt: 'Build a landing page for a startup' },
@@ -241,6 +244,24 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
     { icon: 'fa-mobile-alt', label: 'Make Responsive', prompt: 'Make the website mobile responsive' },
     { icon: 'fa-bolt', label: 'Add Animations', prompt: 'Add smooth animations and transitions' },
   ];
+
+  const handleFigmaImport = async () => {
+    if (!figmaUrl.trim()) return;
+
+    // Extract Figma file key from URL
+    const figmaFileKey = figmaUrl.match(/figma\.com\/file\/([^/]+)/)?.[1];
+    if (!figmaFileKey) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Please provide a valid Figma file URL (e.g., https://www.figma.com/file/...)'
+      }]);
+      return;
+    }
+
+    setInput(`Build a website from this Figma design: ${figmaUrl}`);
+    setShowFigmaInput(false);
+    setFigmaUrl('');
+  };
 
   return (
     <div className="h-full flex flex-col bg-[#1a1a1a]">
@@ -258,7 +279,23 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
 
       {/* Quick Actions */}
       <div className="px-4 py-3 border-b border-gray-800">
-        <div className="text-xs text-gray-500 mb-2">Quick Actions</div>
+        <div className="flex items-center justify-between mb-2">
+          <div className="text-xs text-gray-500">Quick Actions</div>
+          <button
+            onClick={() => setShowFigmaInput(true)}
+            className="px-2 py-1 bg-purple-600 hover:bg-purple-700 rounded text-xs text-white transition-colors flex items-center gap-1"
+            title="Import from Figma"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill="#1ABCFE" d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
+              <path fill="#0ACF83" d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z"/>
+              <path fill="#FF7262" d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z"/>
+              <path fill="#F24E1E" d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z"/>
+              <path fill="#A259FF" d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z"/>
+            </svg>
+            Import Figma
+          </button>
+        </div>
         <div className="grid grid-cols-2 gap-2">
           {quickActions.map((action, i) => (
             <button
@@ -272,6 +309,64 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
           ))}
         </div>
       </div>
+
+      {/* Figma Import Modal */}
+      {showFigmaInput && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-[#1a1a1a] border border-gray-800 rounded-lg p-6 m-4 max-w-md w-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-white font-semibold flex items-center gap-2">
+                <svg className="w-5 h-5" viewBox="0 0 38 57" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#1ABCFE" d="M19 28.5C19 23.2533 23.2533 19 28.5 19C33.7467 19 38 23.2533 38 28.5C38 33.7467 33.7467 38 28.5 38C23.2533 38 19 33.7467 19 28.5Z"/>
+                  <path fill="#0ACF83" d="M0 47.5C0 42.2533 4.25329 38 9.5 38H19V47.5C19 52.7467 14.7467 57 9.5 57C4.25329 57 0 52.7467 0 47.5Z"/>
+                  <path fill="#FF7262" d="M19 0V19H28.5C33.7467 19 38 14.7467 38 9.5C38 4.25329 33.7467 0 28.5 0H19Z"/>
+                  <path fill="#F24E1E" d="M0 9.5C0 14.7467 4.25329 19 9.5 19H19V0H9.5C4.25329 0 0 4.25329 0 9.5Z"/>
+                  <path fill="#A259FF" d="M0 28.5C0 33.7467 4.25329 38 9.5 38H19V19H9.5C4.25329 19 0 23.2533 0 28.5Z"/>
+                </svg>
+                Import from Figma
+              </h3>
+              <button
+                onClick={() => setShowFigmaInput(false)}
+                className="text-gray-400 hover:text-white"
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+            <p className="text-gray-400 text-sm mb-4">
+              Paste your Figma file URL to convert the design to code
+            </p>
+            <input
+              type="url"
+              value={figmaUrl}
+              onChange={(e) => setFigmaUrl(e.target.value)}
+              placeholder="https://www.figma.com/file/..."
+              className="w-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded text-white placeholder-gray-500 text-sm focus:outline-none focus:border-purple-500 mb-4"
+              autoFocus
+            />
+            <div className="flex gap-2">
+              <button
+                onClick={handleFigmaImport}
+                disabled={!figmaUrl.trim()}
+                className="flex-1 px-4 py-2 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-700 disabled:cursor-not-allowed rounded text-white text-sm transition-colors"
+              >
+                Import Design
+              </button>
+              <button
+                onClick={() => setShowFigmaInput(false)}
+                className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded text-white text-sm transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+            <div className="mt-4 p-3 bg-[#0a0a0a] border border-gray-800 rounded">
+              <p className="text-xs text-gray-500">
+                <i className="fas fa-info-circle mr-1"></i>
+                Note: Make sure your Figma file is publicly accessible or you've provided a shareable link.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">

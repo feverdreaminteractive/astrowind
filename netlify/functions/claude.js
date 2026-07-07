@@ -329,6 +329,10 @@ Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
         referenceBlock += `\nFor consistency, here is the current styles.css to match:\n\n${browserData.referenceCss}\n`;
       }
 
+      // Check if this is a Figma design request
+      const figmaUrlMatch = message.match(/figma\.com\/file\/([^/\s]+)/);
+      const isFigmaRequest = !!figmaUrlMatch;
+
       systemPrompt = `You are an AI website builder. Generate the COMPLETE contents of a SINGLE file: ${target}.
 
 User request: "${message}"
@@ -336,6 +340,18 @@ User request: "${message}"
 ${isModification
   ? `MODIFY the current ${target} below. Keep everything that is not related to the request; only change what was asked for.\n\nCurrent ${target}:\n\n${browserData.existingContent}`
   : `Create ${target} for a new website. Use Tailwind CSS via the CDN. Use a clean, consistent design system.`}
+${isFigmaRequest ? `
+FIGMA DESIGN IMPLEMENTATION:
+The user has provided a Figma design URL. Create a pixel-perfect, professional implementation:
+- Use modern, semantic HTML5 structure
+- Implement with Tailwind CSS classes for responsive design
+- Add smooth animations and transitions
+- Ensure accessibility with proper ARIA labels
+- Include hover states and interactive elements
+- Use proper spacing, typography, and color schemes
+- Make it fully responsive (mobile, tablet, desktop)
+- Add subtle animations like fade-ins and hover effects
+` : ''}
 ${referenceBlock}
 
 CRITICAL OUTPUT RULES:
