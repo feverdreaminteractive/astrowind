@@ -3,6 +3,7 @@ import { WebContainer } from '@webcontainer/api';
 import Editor from '@monaco-editor/react';
 import AIAssistant from './AIAssistant';
 import FileExplorer from './FileExplorer';
+import PreviewPane from './PreviewPane';
 
 interface FileNode {
   name: string;
@@ -675,18 +676,24 @@ const AIBuilderWithContainer: React.FC = () => {
             {/* Preview Panel */}
             {activePanel === 'preview' && (
               <div className="w-full h-full">
-                {previewUrl ? (
+                {webcontainerInstance && previewUrl ? (
                   <iframe
                     src={previewUrl}
                     className="w-full h-full border-0"
                     title="Preview"
+                  />
+                ) : project.files.length > 0 ? (
+                  <PreviewPane
+                    project={project}
+                    key={`${project.name}-${project.files.length}`}
+                    onConsoleOutput={(msg) => addTerminalLine(msg)}
                   />
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-500">
                     <div className="text-center">
                       <i className="fas fa-eye text-4xl mb-4"></i>
                       <p>No preview available</p>
-                      <p className="text-sm mt-2">Start WebContainer and run a dev server</p>
+                      <p className="text-sm mt-2">Choose a template to get started</p>
                     </div>
                   </div>
                 )}

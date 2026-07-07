@@ -1,13 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import AIBuilderWithContainer from '../components/AIWebsiteBuilder/AIBuilderWithContainer';
+import AIBuilderPro from '../components/AIWebsiteBuilder/AIBuilderPro';
 ---
 
 <Layout showNavigation={true}>
   <main class="min-h-screen bg-black pt-16 relative overflow-hidden">
     <!-- Container for the builder interface -->
     <div class="h-[calc(100vh-4rem)]">
-      <AIBuilderWithContainer client:only="react" />
+      <AIBuilderPro client:only="react" />
     </div>
   </main>
 </Layout>

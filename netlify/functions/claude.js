@@ -273,8 +273,16 @@ export default async (req, context) => {
     console.log('=== END DEBUG ===');
 
     if (browserData && browserData.isWebContainer) {
-      // Full-stack Node.js project with architecture recommendations
-      systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.
+      // Handle different WebContainer request types
+      if (browserData.requestType === 'analyze_project') {
+        // Analyze project and return structure
+        systemPrompt = browserData.systemPrompt || `You are a web development assistant. Analyze the user's request and return a detailed project structure.`;
+      } else if (browserData.requestType === 'generate_file') {
+        // Generate specific file content
+        systemPrompt = browserData.systemPrompt || `Generate the file content for ${browserData.targetFile}.`;
+      } else {
+        // Full-stack Node.js project with architecture recommendations
+        systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.
 
 User request: "${message}"
 
@@ -346,7 +354,8 @@ I'll build this with [tech stack]."
 <<<JSON_END>>>
 
 Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
-      console.log('Node.js WebContainer request - generating full-stack application');
+        console.log('Node.js WebContainer request - generating full-stack application');
+      }
     } else if (browserData && browserData.isWebBuilder && browserData.targetFile) {
       // Website builder in CHUNKED mode: generate ONE file at a time so each
       // response stays small and fast (avoids truncation and function timeouts).
