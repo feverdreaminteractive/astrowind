@@ -846,13 +846,34 @@ console.log('Output written to output.html');
     setLogs(prev => [...prev, '🔌 Starting MCP client...']);
 
     try {
+      // Try to use server proxy first if no token provided
+      let tokenToUse = figmaToken;
+
+      if (!tokenToUse) {
+        setLogs(prev => [...prev, '📡 Using server token from Netlify environment...']);
+        // Try using the proxy to get the data first
+        try {
+          const response = await fetch(`/.netlify/functions/figma-proxy?url=${encodeURIComponent(figmaUrl)}`);
+          if (response.ok) {
+            const data = await response.json();
+            await webcontainerInstance.fs.writeFile('input.json', JSON.stringify(data, null, 2));
+            setJsonInput(JSON.stringify(data, null, 2));
+            setLogs(prev => [...prev, '✅ Fetched via server proxy']);
+            await processFigmaJSON(data);
+            return;
+          }
+        } catch (e) {
+          setLogs(prev => [...prev, '⚠️ Server proxy unavailable, token required']);
+        }
+      }
+
       // Write token to env if available
-      if (figmaToken) {
-        await webcontainerInstance.fs.writeFile('.env', 'FIGMA_TOKEN=' + figmaToken);
+      if (tokenToUse) {
+        await webcontainerInstance.fs.writeFile('.env', 'FIGMA_TOKEN=' + tokenToUse);
       }
 
       // Run MCP client to fetch
-      const fetchProcess = await webcontainerInstance.spawn('node', ['mcp-client.js', figmaUrl, figmaToken || '']);
+      const fetchProcess = await webcontainerInstance.spawn('node', ['mcp-client.js', figmaUrl, tokenToUse || '']);
 
       fetchProcess.output.pipeTo(new WritableStream({
         write(data) {
@@ -1049,7 +1070,7 @@ console.log('Output written to output.html');
                 {showTokenInput && (
                   <div className="mb-4">
                     <p className="text-xs text-gray-400 mb-2">
-                      For MCP access, provide your Figma API token:
+                      Optional: Provide your own Figma API token (server token will be used if empty):
                     </p>
                     <input
                       type="password"
@@ -1060,7 +1081,7 @@ console.log('Output written to output.html');
                           localStorage.setItem('figmaToken', e.target.value);
                         }
                       }}
-                      placeholder="Your Figma API token (required for MCP)"
+                      placeholder="Optional: Your Figma API token"
                       className="w-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white placeholder-gray-500"
                     />
                   </div>
