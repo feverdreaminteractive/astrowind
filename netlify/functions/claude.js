@@ -329,8 +329,8 @@ Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
         referenceBlock += `\nFor consistency, here is the current styles.css to match:\n\n${browserData.referenceCss}\n`;
       }
 
-      // Check if this is a Figma design request
-      const figmaUrlMatch = message.match(/figma\.com\/file\/([^/\s]+)/);
+      // Check if this is a Figma design request - supports both /file/ and /design/ formats
+      const figmaUrlMatch = message.match(/figma\.com\/(?:file|design)\/([^/?\s]+)/);
       const isFigmaRequest = !!figmaUrlMatch;
 
       systemPrompt = `You are an AI website builder. Generate the COMPLETE contents of a SINGLE file: ${target}.

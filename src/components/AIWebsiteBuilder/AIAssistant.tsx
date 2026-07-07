@@ -248,12 +248,12 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
   const handleFigmaImport = async () => {
     if (!figmaUrl.trim()) return;
 
-    // Extract Figma file key from URL
-    const figmaFileKey = figmaUrl.match(/figma\.com\/file\/([^/]+)/)?.[1];
+    // Extract Figma file key from URL - supports both /file/ and /design/ formats
+    const figmaFileKey = figmaUrl.match(/figma\.com\/(?:file|design)\/([^/?]+)/)?.[1];
     if (!figmaFileKey) {
       setMessages(prev => [...prev, {
         role: 'assistant',
-        content: 'Please provide a valid Figma file URL (e.g., https://www.figma.com/file/...)'
+        content: 'Please provide a valid Figma URL (e.g., https://www.figma.com/design/... or https://www.figma.com/file/...)'
       }]);
       return;
     }
