@@ -340,6 +340,25 @@ const AIWebsiteBuilder: React.FC = () => {
     }
 
     try {
+      // DEBUG: Log what we're about to send
+      console.log('=== CLIENT SIDE DEBUG ===');
+      console.log('Prompt:', prompt);
+      console.log('Has uploaded image:', !!uploadedImage);
+      console.log('Has Figma JSON:', !!figmaJson);
+      console.log('Has Figma Data:', !!figmaData);
+      console.log('Has Figma Context:', !!figmaContext);
+
+      if (figmaData) {
+        console.log('Figma Data Details:', {
+          hasLayouts: !!figmaData.layouts,
+          layoutCount: figmaData.layouts?.length,
+          hasSections: !!figmaData.sections,
+          sectionCount: figmaData.sections?.length,
+          dimensions: figmaData.dimensions,
+          firstLayout: figmaData.layouts?.[0]
+        });
+      }
+
       // Prepare message with design context
       let enhancedPrompt = prompt;
 
@@ -378,22 +397,29 @@ Build an EXACT replica matching these positions and dimensions.`;
         enhancedPrompt = `${prompt}\n\nEXTRACTED FIGMA DESIGN DATA:\nColors: ${figmaContext.colors?.slice(0, 10).join(', ')}\nTypography: ${JSON.stringify(figmaContext.typography?.slice(0, 5))}\nDimensions: ${figmaContext.dimensions?.width}x${figmaContext.dimensions?.height}\nStructure Preview:\n${figmaContext.structure?.substring(0, 500)}`;
       }
 
+      // Build request payload
+      const requestPayload = {
+        message: prompt, // Send original prompt, not enhanced
+        browserData: {
+          isWebBuilder: true,
+          targetFile: selectedFile?.name || 'index.html',
+          existingContent: code,
+          figmaContext: figmaData || figmaContext, // Use processed JSON data if available
+          hasUploadedImage: !!uploadedImage,
+          imageDescription: uploadedImage ? enhancedPrompt : null
+        }
+      };
+
+      // DEBUG: Log exact payload being sent
+      console.log('REQUEST PAYLOAD:', JSON.stringify(requestPayload, null, 2));
+      console.log('Figma context size:', JSON.stringify(requestPayload.browserData.figmaContext || {}).length, 'bytes');
+
       const response = await fetch('/api/claude', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          message: prompt, // Send original prompt, not enhanced
-          browserData: {
-            isWebBuilder: true,
-            targetFile: selectedFile?.name || 'index.html',
-            existingContent: code,
-            figmaContext: figmaData || figmaContext, // Use processed JSON data if available
-            hasUploadedImage: !!uploadedImage,
-            imageDescription: uploadedImage ? enhancedPrompt : null
-          }
-        }),
+        body: JSON.stringify(requestPayload),
       });
 
       if (!response.ok) throw new Error('Failed to generate code');

@@ -240,6 +240,38 @@ export default async (req, context) => {
     // Check if this is a request from the AI Website Builder
     let systemPrompt;
 
+    // COMPREHENSIVE LOGGING FOR DEBUGGING
+    console.log('=== AI WEBSITE BUILDER REQUEST DEBUG ===');
+    console.log('Request type:', {
+      isWebBuilder: browserData?.isWebBuilder,
+      isWebContainer: browserData?.isWebContainer,
+      targetFile: browserData?.targetFile,
+      hasFigmaContext: !!browserData?.figmaContext
+    });
+
+    if (browserData?.figmaContext) {
+      console.log('Figma Context Received:', {
+        type: typeof browserData.figmaContext,
+        hasLayouts: !!browserData.figmaContext.layouts,
+        layoutCount: browserData.figmaContext.layouts?.length,
+        hasColors: !!browserData.figmaContext.colors,
+        colorCount: browserData.figmaContext.colors?.length,
+        hasDimensions: !!browserData.figmaContext.dimensions,
+        dimensions: browserData.figmaContext.dimensions,
+        firstLayout: browserData.figmaContext.layouts?.[0] ? {
+          name: browserData.figmaContext.layouts[0].name,
+          type: browserData.figmaContext.layouts[0].type,
+          x: browserData.figmaContext.layouts[0].x,
+          y: browserData.figmaContext.layouts[0].y,
+          width: browserData.figmaContext.layouts[0].width,
+          height: browserData.figmaContext.layouts[0].height
+        } : null
+      });
+    } else {
+      console.log('No Figma context received');
+    }
+    console.log('=== END DEBUG ===');
+
     if (browserData && browserData.isWebContainer) {
       // Full-stack Node.js project with architecture recommendations
       systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.
