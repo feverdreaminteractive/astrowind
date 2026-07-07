@@ -20,7 +20,7 @@ const WebContainerBuilder: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
-  // Enhanced file system with Figma parser
+  // Enhanced file system with Figma MCP server
   const files = {
     'package.json': {
       file: {
@@ -28,12 +28,359 @@ const WebContainerBuilder: React.FC = () => {
           name: 'figma-processor',
           type: 'module',
           dependencies: {
-            'cheerio': '^1.0.0-rc.12'
+            '@modelcontextprotocol/sdk': '^0.5.0',
+            'node-fetch': '^3.3.2'
           },
           scripts: {
-            process: 'node processor.js'
+            process: 'node processor.js',
+            'mcp-server': 'node mcp-server.js',
+            'fetch': 'node mcp-client.js',
+            'fetch-and-process': 'node mcp-client.js && node processor.js'
           }
         }, null, 2)
+      }
+    },
+    'mcp-server.js': {
+      file: {
+        contents: `
+import { Server } from '@modelcontextprotocol/sdk/server/index.js';
+import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import fetch from 'node-fetch';
+
+// Official Figma MCP Server implementation
+class FigmaMCPServer {
+  constructor() {
+    this.server = new Server({
+      name: 'figma-mcp',
+      version: '1.0.0',
+      description: 'MCP server for fetching Figma designs'
+    }, {
+      capabilities: {
+        tools: {}
+      }
+    });
+
+    this.setupHandlers();
+  }
+
+  setupHandlers() {
+    // List available tools
+    this.server.setRequestHandler('tools/list', async () => ({
+      tools: [
+        {
+          name: 'get_file',
+          description: 'Get a Figma file by key',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              fileKey: {
+                type: 'string',
+                description: 'The key/ID of the Figma file'
+              },
+              token: {
+                type: 'string',
+                description: 'Figma personal access token (optional if FIGMA_TOKEN env var is set)'
+              },
+              geometry: {
+                type: 'string',
+                description: 'Comma-separated list of paths to export (optional)'
+              },
+              version: {
+                type: 'string',
+                description: 'Version ID to fetch (optional)'
+              }
+            },
+            required: ['fileKey']
+          }
+        },
+        {
+          name: 'get_file_nodes',
+          description: 'Get specific nodes from a Figma file',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              fileKey: { type: 'string', description: 'The Figma file key' },
+              ids: { type: 'string', description: 'Comma-separated node IDs' },
+              token: { type: 'string', description: 'Figma token (optional)' }
+            },
+            required: ['fileKey', 'ids']
+          }
+        },
+        {
+          name: 'get_images',
+          description: 'Export images from a Figma file',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              fileKey: { type: 'string' },
+              ids: { type: 'string', description: 'Node IDs to export' },
+              scale: { type: 'number', default: 1 },
+              format: { type: 'string', enum: ['jpg', 'png', 'svg', 'pdf'], default: 'png' },
+              token: { type: 'string' }
+            },
+            required: ['fileKey', 'ids']
+          }
+        },
+        {
+          name: 'extract_from_url',
+          description: 'Extract file key from a Figma URL',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              url: { type: 'string', description: 'The Figma file URL' }
+            },
+            required: ['url']
+          }
+        }
+      ]
+    }));
+
+    // Handle tool calls
+    this.server.setRequestHandler('tools/call', async (request) => {
+      const { name, arguments: args } = request.params;
+
+      // Get token from args or environment
+      const token = args.token || process.env.FIGMA_TOKEN;
+
+      switch (name) {
+        case 'extract_from_url': {
+          const match = args.url.match(/figma\.com\/(?:file|design)\/([^/\\?]+)/);
+          if (match) {
+            return {
+              content: [{
+                type: 'text',
+                text: \`File key: \${match[1]}\`
+              }]
+            };
+          }
+          throw new Error('Invalid Figma URL');
+        }
+
+        case 'get_file': {
+          if (!token) {
+            throw new Error('No Figma token provided. Set FIGMA_TOKEN environment variable or pass token parameter.');
+          }
+
+          const url = \`https://api.figma.com/v1/files/\${args.fileKey}\`;
+          const params = new URLSearchParams();
+          if (args.geometry) params.append('geometry', args.geometry);
+          if (args.version) params.append('version', args.version);
+
+          const fullUrl = params.toString() ? \`\${url}?\${params}\` : url;
+
+          const response = await fetch(fullUrl, {
+            headers: { 'X-Figma-Token': token }
+          });
+
+          if (!response.ok) {
+            const error = await response.text();
+            throw new Error(\`Figma API error (\${response.status}): \${error}\`);
+          }
+
+          const data = await response.json();
+
+          // Save to cache file for processor
+          const fs = await import('fs');
+          fs.writeFileSync('figma-cache.json', JSON.stringify(data, null, 2));
+
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify({
+                success: true,
+                name: data.name,
+                lastModified: data.lastModified,
+                version: data.version,
+                documentName: data.document?.name,
+                pages: data.document?.children?.length || 0,
+                cached: true
+              }, null, 2)
+            }]
+          };
+        }
+
+        case 'get_file_nodes': {
+          if (!token) {
+            throw new Error('No Figma token provided');
+          }
+
+          const url = \`https://api.figma.com/v1/files/\${args.fileKey}/nodes?ids=\${args.ids}\`;
+
+          const response = await fetch(url, {
+            headers: { 'X-Figma-Token': token }
+          });
+
+          if (!response.ok) {
+            throw new Error(\`Figma API error: \${response.status}\`);
+          }
+
+          const data = await response.json();
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(data, null, 2)
+            }]
+          };
+        }
+
+        case 'get_images': {
+          if (!token) {
+            throw new Error('No Figma token provided');
+          }
+
+          const url = \`https://api.figma.com/v1/images/\${args.fileKey}\`;
+          const params = new URLSearchParams({
+            ids: args.ids,
+            scale: args.scale || 1,
+            format: args.format || 'png'
+          });
+
+          const response = await fetch(\`\${url}?\${params}\`, {
+            headers: { 'X-Figma-Token': token }
+          });
+
+          if (!response.ok) {
+            throw new Error(\`Figma API error: \${response.status}\`);
+          }
+
+          const data = await response.json();
+          return {
+            content: [{
+              type: 'text',
+              text: JSON.stringify(data, null, 2)
+            }]
+          };
+        }
+
+        default:
+          throw new Error(\`Unknown tool: \${name}\`);
+      }
+    });
+  }
+
+  async start() {
+    const transport = new StdioServerTransport();
+    await this.server.connect(transport);
+    console.error('Figma MCP Server started successfully');
+  }
+}
+
+// Start the server
+const server = new FigmaMCPServer();
+server.start().catch(console.error);
+`
+      }
+    },
+    'mcp-client.js': {
+      file: {
+        contents: `
+import { Client } from '@modelcontextprotocol/sdk/client/index.js';
+import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
+import { spawn } from 'child_process';
+import fs from 'fs';
+
+// MCP Client to interact with the Figma MCP Server
+class FigmaMCPClient {
+  constructor() {
+    this.client = new Client({
+      name: 'figma-mcp-client',
+      version: '1.0.0'
+    });
+  }
+
+  async connect() {
+    // Start the MCP server as a subprocess
+    const serverProcess = spawn('node', ['mcp-server.js'], {
+      stdio: ['pipe', 'pipe', 'pipe']
+    });
+
+    const transport = new StdioClientTransport({
+      stdioProcess: serverProcess
+    });
+
+    await this.client.connect(transport);
+    console.log('Connected to Figma MCP Server');
+  }
+
+  async fetchFigmaFile(fileKey, token) {
+    try {
+      // Extract file key from URL if needed
+      if (fileKey.includes('figma.com')) {
+        const extractResult = await this.client.callTool('extract_from_url', {
+          url: fileKey
+        });
+        const match = extractResult.content[0].text.match(/File key: (.+)/);
+        if (match) {
+          fileKey = match[1];
+        }
+      }
+
+      console.log(\`Fetching Figma file: \${fileKey}\`);
+
+      // Fetch the file
+      const result = await this.client.callTool('get_file', {
+        fileKey: fileKey,
+        token: token || process.env.FIGMA_TOKEN
+      });
+
+      // The server already saved to figma-cache.json
+      if (fs.existsSync('figma-cache.json')) {
+        const data = JSON.parse(fs.readFileSync('figma-cache.json', 'utf8'));
+
+        // Copy to input.json for processor
+        fs.writeFileSync('input.json', JSON.stringify(data, null, 2));
+
+        console.log('✅ Figma file fetched successfully!');
+        console.log(\`File: \${data.name}\`);
+        console.log(\`Pages: \${data.document?.children?.length || 0}\`);
+
+        return data;
+      }
+
+      return JSON.parse(result.content[0].text);
+    } catch (error) {
+      console.error('Error fetching Figma file:', error.message);
+      throw error;
+    }
+  }
+
+  async disconnect() {
+    await this.client.close();
+  }
+}
+
+// CLI usage
+async function main() {
+  const fileKeyOrUrl = process.argv[2];
+  const token = process.argv[3] || process.env.FIGMA_TOKEN;
+
+  if (!fileKeyOrUrl) {
+    console.log('Usage: node mcp-client.js <figma-url-or-file-key> [token]');
+    console.log('Token can also be set via FIGMA_TOKEN environment variable');
+    process.exit(1);
+  }
+
+  const client = new FigmaMCPClient();
+
+  try {
+    await client.connect();
+    await client.fetchFigmaFile(fileKeyOrUrl, token);
+    await client.disconnect();
+
+    console.log('\nReady to process! Run: node processor.js');
+  } catch (error) {
+    console.error('Failed:', error.message);
+    process.exit(1);
+  }
+}
+
+// Run if called directly
+if (process.argv[1].includes('mcp-client.js')) {
+  main();
+}
+
+export { FigmaMCPClient };
+`
       }
     },
     'processor.js': {
@@ -403,7 +750,7 @@ console.log('Output written to output.html');
           await generatePreview(data);
           return;
         } else if (response.status === 429) {
-          const errorData = await response.json();
+          await response.json();  // Read response to clear buffer
           setLogs(prev => [...prev, '⚠️ Rate limit reached. Designs are cached for 30 minutes.']);
           setLogs(prev => [...prev, '💡 Tip: You can paste Figma JSON directly in the JSON tab']);
           setActiveTab('json');
@@ -487,6 +834,58 @@ ${html}
       setLogs(prev => [...prev, `❌ Generation error: ${error.message}`]);
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  // Fetch using MCP client
+  const fetchViaMCP = async () => {
+    if (!webcontainerInstance) {
+      setLogs(prev => [...prev, '❌ WebContainer not ready']);
+      return;
+    }
+
+    if (!figmaUrl) {
+      setLogs(prev => [...prev, '❌ Please enter a Figma URL']);
+      return;
+    }
+
+    setIsProcessing(true);
+    setLogs(prev => [...prev, '🔌 Starting MCP client...']);
+
+    try {
+      // Write token to env if available
+      if (figmaToken) {
+        await webcontainerInstance.fs.writeFile('.env', `FIGMA_TOKEN=${figmaToken}`);
+      }
+
+      // Run MCP client to fetch
+      const fetchProcess = await webcontainerInstance.spawn('node', ['mcp-client.js', figmaUrl, figmaToken || '']);
+
+      fetchProcess.output.pipeTo(new WritableStream({
+        write(data) {
+          setLogs(prev => [...prev, data]);
+        }
+      }));
+
+      await fetchProcess.exit;
+
+      // Check if file was fetched
+      try {
+        const jsonData = await webcontainerInstance.fs.readFile('input.json', 'utf-8');
+        const data = JSON.parse(jsonData);
+        setJsonInput(jsonData);
+        setLogs(prev => [...prev, '✅ Fetched via MCP']);
+
+        // Now process it
+        await processFigmaJSON(data);
+      } catch (e) {
+        setLogs(prev => [...prev, '❌ Failed to read fetched data']);
+      }
+
+    } catch (error: any) {
+      setLogs(prev => [...prev, `❌ MCP Error: ${error.message}`]);
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -667,13 +1066,22 @@ ${html}
                     />
                   </div>
                 )}
-                <button
-                  onClick={fetchFigmaData}
-                  disabled={!webcontainerInstance || !figmaUrl || isProcessing || isGenerating}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-                >
-                  {isGenerating ? '🤖 Generating...' : isProcessing ? '⚙️ Processing...' : '🎨 Fetch & Generate Preview'}
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={fetchFigmaData}
+                    disabled={!webcontainerInstance || !figmaUrl || isProcessing || isGenerating}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isGenerating ? '🤖 Generating...' : isProcessing ? '⚙️ Processing...' : '🎨 Fetch via Proxy'}
+                  </button>
+                  <button
+                    onClick={fetchViaMCP}
+                    disabled={!webcontainerInstance || !figmaUrl || isProcessing || isGenerating}
+                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {isProcessing ? '⚙️ Processing...' : '🔌 Fetch via MCP'}
+                  </button>
+                </div>
               </div>
             ) : activeTab === 'json' ? (
               <div>
@@ -725,6 +1133,11 @@ ${html}
 
                   <div className="bg-yellow-900/20 p-3 rounded-lg border border-yellow-600/30">
                     <p className="text-xs text-yellow-400">💡 Tip: Once fetched, designs are cached locally for 24 hours to avoid rate limits.</p>
+                  </div>
+
+                  <div className="bg-purple-900/20 p-3 rounded-lg border border-purple-600/30">
+                    <h4 className="text-sm font-medium text-purple-400 mb-2">MCP (Model Context Protocol)</h4>
+                    <p className="text-xs">The MCP option runs a Figma MCP server in the WebContainer for advanced API access.</p>
                   </div>
                 </div>
               </div>
