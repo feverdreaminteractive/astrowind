@@ -64,7 +64,10 @@ const AIWebsiteBuilder: React.FC = () => {
   const [figmaToken, setFigmaToken] = useState('');
   const [showFigmaSettings, setShowFigmaSettings] = useState(false);
   const [figmaData, setFigmaData] = useState<any>(null);
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [figmaJson, setFigmaJson] = useState<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Update preview when code changes
   useEffect(() => {
@@ -91,7 +94,111 @@ const AIWebsiteBuilder: React.FC = () => {
     }
   };
 
-  // Extract Figma design data
+  // Handle file upload (images or JSON)
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    if (file.type.startsWith('image/')) {
+      // Handle image upload
+      reader.onload = (e) => {
+        setUploadedImage(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else if (file.type === 'application/json' || file.name.endsWith('.json')) {
+      // Handle JSON upload (Figma export)
+      reader.onload = (e) => {
+        try {
+          const json = JSON.parse(e.target?.result as string);
+          setFigmaJson(json);
+          // Process the Figma JSON to extract detailed design info
+          const processed = processFigmaJson(json);
+          setFigmaData(processed);
+        } catch (error) {
+          console.error('Invalid JSON file:', error);
+          alert('Invalid JSON file. Please upload a valid Figma export.');
+        }
+      };
+      reader.readAsText(file);
+    }
+  };
+
+  // Process Figma JSON export to extract comprehensive design data
+  const processFigmaJson = (json: any) => {
+    const document = json.document || json;
+
+    // Extract all absolute positions and layouts
+    const layouts: any[] = [];
+    const extractLayouts = (node: any, parentX = 0, parentY = 0) => {
+      if (node.absoluteBoundingBox || node.boundingBox) {
+        const bounds = node.absoluteBoundingBox || node.boundingBox;
+        layouts.push({
+          name: node.name,
+          type: node.type,
+          x: bounds.x || parentX,
+          y: bounds.y || parentY,
+          width: bounds.width,
+          height: bounds.height,
+          // Layout properties
+          layoutMode: node.layoutMode,
+          padding: node.paddingLeft ? {
+            top: node.paddingTop,
+            right: node.paddingRight,
+            bottom: node.paddingBottom,
+            left: node.paddingLeft
+          } : null,
+          itemSpacing: node.itemSpacing,
+          // Style properties
+          fills: node.fills,
+          strokes: node.strokes,
+          effects: node.effects,
+          cornerRadius: node.cornerRadius,
+          // Text properties
+          characters: node.characters,
+          style: node.style
+        });
+      }
+
+      if (node.children) {
+        const nodeX = node.absoluteBoundingBox?.x || parentX;
+        const nodeY = node.absoluteBoundingBox?.y || parentY;
+        node.children.forEach((child: any) => extractLayouts(child, nodeX, nodeY));
+      }
+    };
+
+    extractLayouts(document);
+
+    // Group layouts by vertical position to identify sections
+    const sections = layouts.reduce((acc: any[], layout) => {
+      const sectionIndex = acc.findIndex(s =>
+        Math.abs(s.y - layout.y) < 50 // Group elements within 50px vertically
+      );
+
+      if (sectionIndex === -1) {
+        acc.push({ y: layout.y, elements: [layout] });
+      } else {
+        acc[sectionIndex].elements.push(layout);
+      }
+
+      return acc;
+    }, []).sort((a, b) => a.y - b.y);
+
+    return {
+      name: document.name,
+      type: document.type,
+      dimensions: {
+        width: document.absoluteBoundingBox?.width,
+        height: document.absoluteBoundingBox?.height
+      },
+      layouts: layouts,
+      sections: sections,
+      raw: json // Keep raw data for detailed reference
+    };
+  };
+
+  // Extract Figma design data from URL
   const extractFigmaData = async (figmaUrl: string) => {
     // Extract file key and node ID from URL
     const fileMatch = figmaUrl.match(/figma\.com\/(?:file|design)\/([^/?\s]+)/);
@@ -233,10 +340,42 @@ const AIWebsiteBuilder: React.FC = () => {
     }
 
     try {
-      // Prepare message with Figma context if available
+      // Prepare message with design context
       let enhancedPrompt = prompt;
-      if (figmaContext) {
-        enhancedPrompt = `${prompt}\n\nEXTRACTED FIGMA DESIGN DATA:\nColors: ${figmaContext.colors.slice(0, 10).join(', ')}\nTypography: ${JSON.stringify(figmaContext.typography.slice(0, 5))}\nDimensions: ${figmaContext.dimensions.width}x${figmaContext.dimensions.height}\nStructure Preview:\n${figmaContext.structure.substring(0, 500)}`;
+
+      // If we have an uploaded image, describe it
+      if (uploadedImage) {
+        enhancedPrompt = `Create a pixel-perfect HTML implementation of this design screenshot.
+The design shows: ${prompt}
+
+IMPORTANT: Match the exact layout, colors, spacing, and typography from the screenshot.
+Build a complete, working HTML file with inline CSS.`;
+      }
+      // If we have Figma JSON with detailed layouts
+      else if (figmaJson && figmaData?.layouts) {
+        const layouts = figmaData.layouts.slice(0, 20); // First 20 elements
+        const sections = figmaData.sections.map((s: any) =>
+          `Section at Y:${s.y} with ${s.elements.length} elements`
+        ).join('\n');
+
+        enhancedPrompt = `${prompt}
+
+FIGMA DESIGN - EXACT LAYOUT DATA:
+Dimensions: ${figmaData.dimensions?.width}x${figmaData.dimensions?.height}px
+
+SECTIONS (top to bottom):
+${sections}
+
+KEY ELEMENTS WITH POSITIONS:
+${layouts.map((l: any) =>
+  `- ${l.name} (${l.type}): ${l.width}x${l.height}px at (${l.x}, ${l.y})${l.characters ? ' - Text: "' + l.characters.substring(0, 30) + '"' : ''}`
+).join('\n')}
+
+Build an EXACT replica matching these positions and dimensions.`;
+      }
+      // If we have basic Figma API data
+      else if (figmaContext) {
+        enhancedPrompt = `${prompt}\n\nEXTRACTED FIGMA DESIGN DATA:\nColors: ${figmaContext.colors?.slice(0, 10).join(', ')}\nTypography: ${JSON.stringify(figmaContext.typography?.slice(0, 5))}\nDimensions: ${figmaContext.dimensions?.width}x${figmaContext.dimensions?.height}\nStructure Preview:\n${figmaContext.structure?.substring(0, 500)}`;
       }
 
       const response = await fetch('/api/claude', {
@@ -309,6 +448,20 @@ const AIWebsiteBuilder: React.FC = () => {
               className="flex-1 px-4 py-2 bg-gray-900 text-white border border-gray-600 focus:border-blue-500 focus:outline-none"
               disabled={isGenerating}
             />
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,.json"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="px-4 py-2 bg-gray-700 text-white font-medium hover:bg-gray-600 transition-colors"
+              title="Upload Figma JSON or design screenshot"
+            >
+              <i className="fas fa-upload"></i>
+            </button>
             <button
               onClick={generateCode}
               disabled={isGenerating}
