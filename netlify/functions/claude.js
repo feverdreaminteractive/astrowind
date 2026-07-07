@@ -340,9 +340,16 @@ Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
 
 ${hasFigmaData ? 'IMPORTANT: Build EXACTLY according to the provided Figma data below.' : `User request: "${message}"`}
 
+ABSOLUTELY FORBIDDEN - DO NOT INCLUDE UNDER ANY CIRCUMSTANCES:
+- NO <script src="track.js"> or track.js references - this file does not exist
+- NO aisource.vercel.app URLs or references
+- NO <script src="https://cdn.tailwindcss.com"> - write custom CSS instead
+- NO external CDN scripts except for Font Awesome icons
+- NO analytics or tracking scripts
+
 ${isModification
   ? `MODIFY the current ${target} below. Keep everything that is not related to the request; only change what was asked for.\n\nCurrent ${target}:\n\n${browserData.existingContent}`
-  : `Create ${target} for a new website.${!hasFigmaData ? ' Use Tailwind CSS via the CDN. Use a clean, consistent design system.' : ''}`}
+  : `Create ${target} for a new website. Use inline <style> tags or custom CSS. Do NOT use Tailwind CDN.`}
 ${hasFigmaData && browserData.figmaContext.layouts ? `
 FIGMA DESIGN - EXACT SPECIFICATIONS:
 
@@ -580,9 +587,31 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
       usage: data.usage
     });
 
+    // Clean the response to remove any forbidden content
+    let cleanedResponse = data.content[0]?.text || "I'm not sure how to respond to that.";
+
+    // Remove any track.js references
+    cleanedResponse = cleanedResponse
+      .replace(/<script[^>]*src=['"]track\.js['"][^>]*><\/script>/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?track\.js[\s\S]*?<\/script>/gi, '')
+      .replace(/track\.js/gi, '');
+
+    // Remove aisource.vercel.app references
+    cleanedResponse = cleanedResponse
+      .replace(/aisource\.vercel\.app/gi, '')
+      .replace(/<script[^>]*>[\s\S]*?aisource[\s\S]*?<\/script>/gi, '');
+
+    // Remove Tailwind CDN
+    cleanedResponse = cleanedResponse
+      .replace(/<script[^>]*src=['"]https:\/\/cdn\.tailwindcss\.com['"][^>]*><\/script>/gi, '');
+
+    // Fix iframe sandbox attributes (remove dangerous combination)
+    cleanedResponse = cleanedResponse
+      .replace(/sandbox=['"]allow-scripts allow-same-origin[^'"]*['"]/gi, 'sandbox="allow-scripts"');
+
     return jsonResponse({
-      response: data.content[0]?.text || "I'm not sure how to respond to that.",
-      message: data.content[0]?.text || "I'm not sure how to respond to that.",
+      response: cleanedResponse,
+      message: cleanedResponse,
       id: data.id,
       usage: data.usage
     });
