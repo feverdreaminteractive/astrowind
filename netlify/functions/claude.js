@@ -20,7 +20,7 @@ const jsonResponse = (body, statusCode = 200) =>
 export default async (req, context) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('', { status: 204, headers: CORS_HEADERS });
+    return new Response('OK', { status: 200, headers: CORS_HEADERS });
   }
 
   // Only allow POST requests

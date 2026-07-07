@@ -95,7 +95,7 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
       try {
         // Prepare the API URL
         const apiUrl = window.location.hostname === 'localhost'
-          ? 'http://localhost:9999/.netlify/functions/claude'
+          ? 'http://localhost:8888/.netlify/functions/claude'
           : '/.netlify/functions/claude';
 
         // Helpers ----------------------------------------------------------
