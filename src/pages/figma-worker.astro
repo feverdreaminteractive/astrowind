@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Figma Worker Processor">
+  <div id="figma-worker-root"></div>
+
+  <script>
+    import FigmaWorkerProcessor from '../components/FigmaWorkerProcessor.tsx';
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+
+    const container = document.getElementById('figma-worker-root');
+    if (container) {
+      const root = createRoot(container);
+      root.render(React.createElement(FigmaWorkerProcessor));
+    }
+  </script>
+</Layout>

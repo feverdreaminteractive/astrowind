@@ -96,6 +96,7 @@ function extractSimplifiedData(figmaData) {
   const colors = new Set();
   const typography = [];
   const components = [];
+  const styles = {};
 
   function extractNode(node, parentX = 0, parentY = 0, depth = 0) {
     // Skip if too deep to avoid huge payloads
@@ -112,26 +113,104 @@ function extractSimplifiedData(figmaData) {
         y: Math.round(bounds.y),
         width: Math.round(bounds.width),
         height: Math.round(bounds.height),
-        visible: node.visible !== false
+        visible: node.visible !== false,
+        opacity: node.opacity || 1,
+        rotation: node.rotation || 0
       };
 
-      // Add layout properties if present
+      // Add layout properties if present (Auto Layout)
       if (node.layoutMode) {
         layout.layoutMode = node.layoutMode;
         layout.primaryAxisSizingMode = node.primaryAxisSizingMode;
         layout.counterAxisSizingMode = node.counterAxisSizingMode;
         layout.primaryAxisAlignItems = node.primaryAxisAlignItems;
         layout.counterAxisAlignItems = node.counterAxisAlignItems;
-        layout.paddingLeft = node.paddingLeft;
-        layout.paddingRight = node.paddingRight;
-        layout.paddingTop = node.paddingTop;
-        layout.paddingBottom = node.paddingBottom;
-        layout.itemSpacing = node.itemSpacing;
+        layout.paddingLeft = node.paddingLeft || 0;
+        layout.paddingRight = node.paddingRight || 0;
+        layout.paddingTop = node.paddingTop || 0;
+        layout.paddingBottom = node.paddingBottom || 0;
+        layout.itemSpacing = node.itemSpacing || 0;
+        layout.layoutAlign = node.layoutAlign;
+        layout.layoutGrow = node.layoutGrow;
+      }
+
+      // Extract fills with full detail
+      if (node.fills && Array.isArray(node.fills)) {
+        layout.fills = node.fills.map(fill => ({
+          type: fill.type,
+          visible: fill.visible !== false,
+          opacity: fill.opacity || 1,
+          color: fill.color ? {
+            r: fill.color.r,
+            g: fill.color.g,
+            b: fill.color.b,
+            a: fill.color.a || 1
+          } : null,
+          gradientStops: fill.gradientStops,
+          gradientTransform: fill.gradientTransform,
+          scaleMode: fill.scaleMode,
+          imageRef: fill.imageRef
+        }));
+      }
+
+      // Extract strokes with full detail
+      if (node.strokes && Array.isArray(node.strokes)) {
+        layout.strokes = node.strokes.map(stroke => ({
+          type: stroke.type,
+          visible: stroke.visible !== false,
+          opacity: stroke.opacity || 1,
+          color: stroke.color ? {
+            r: stroke.color.r,
+            g: stroke.color.g,
+            b: stroke.color.b,
+            a: stroke.color.a || 1
+          } : null
+        }));
+        layout.strokeWeight = node.strokeWeight;
+        layout.strokeAlign = node.strokeAlign;
+        layout.strokeDashes = node.strokeDashes;
+      }
+
+      // Extract effects (shadows, blurs)
+      if (node.effects && Array.isArray(node.effects)) {
+        layout.effects = node.effects.map(effect => ({
+          type: effect.type,
+          visible: effect.visible !== false,
+          radius: effect.radius,
+          color: effect.color,
+          offset: effect.offset,
+          spread: effect.spread,
+          blendMode: effect.blendMode
+        }));
       }
 
       // Add corner radius if present
       if (node.cornerRadius) {
         layout.cornerRadius = node.cornerRadius;
+      }
+      if (node.rectangleCornerRadii) {
+        layout.rectangleCornerRadii = node.rectangleCornerRadii;
+      }
+
+      // Extract constraints for responsive behavior
+      if (node.constraints) {
+        layout.constraints = node.constraints;
+      }
+
+      // Extract blend mode
+      if (node.blendMode && node.blendMode !== 'PASS_THROUGH') {
+        layout.blendMode = node.blendMode;
+      }
+
+      // Extract text-specific properties
+      if (node.type === 'TEXT') {
+        layout.characters = node.characters;
+        layout.style = node.style;
+        layout.textAutoResize = node.textAutoResize;
+        layout.textAlignHorizontal = node.textAlignHorizontal;
+        layout.textAlignVertical = node.textAlignVertical;
+        layout.paragraphIndent = node.paragraphIndent;
+        layout.paragraphSpacing = node.paragraphSpacing;
       }
 
       layouts.push(layout);
@@ -216,19 +295,33 @@ function extractSimplifiedData(figmaData) {
   // Parse color strings back to objects
   const colorArray = Array.from(colors).map(c => JSON.parse(c));
 
+  // Extract styles from figmaData.styles if available
+  if (figmaData.styles) {
+    Object.entries(figmaData.styles).forEach(([id, style]) => {
+      styles[id] = {
+        name: style.name,
+        type: style.type,
+        description: style.description
+      };
+    });
+  }
+
   return {
     name: figmaData.name,
     lastModified: figmaData.lastModified,
     version: figmaData.version,
-    layouts: layouts.slice(0, 200), // Limit to prevent huge payloads
-    colors: colorArray.slice(0, 50),
-    typography: typography.slice(0, 50),
-    components: components.slice(0, 50),
+    layouts: layouts.slice(0, 500), // Increased limit for more complete designs
+    colors: colorArray.slice(0, 100),
+    typography: typography.slice(0, 100),
+    components: components.slice(0, 100),
+    styles: styles,
     dimensions: {
       width: layouts[0]?.width || 1920,
       height: layouts[0]?.height || 1080
     },
-    structure: generateStructurePreview(layouts)
+    structure: generateStructurePreview(layouts),
+    // Include raw document for complete access if needed
+    document: figmaData.document
   };
 }
 

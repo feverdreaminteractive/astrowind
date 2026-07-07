@@ -197,37 +197,166 @@ ${colorVars}
 
       setStats({ layouts: layouts.length, chunks: chunks.length, bytes: 0 });
 
-      // Generate elements
+      // Generate elements with enhanced styling
       chunks.forEach((chunk, chunkIndex) => {
         setProgress(`Processing chunk ${chunkIndex + 1}/${chunks.length}...`);
 
-        chunk.forEach((layout: FigmaLayout) => {
+        chunk.forEach((layout: any) => {
           const x = Math.round(layout.x);
           const y = Math.round(layout.y);
           const width = Math.round(layout.width);
           const height = Math.round(layout.height);
 
+          // Build comprehensive styles
+          const styles: string[] = [
+            `left: ${x}px`,
+            `top: ${y}px`,
+            `width: ${width}px`,
+            `height: ${height}px`
+          ];
+
+          // Apply opacity if not 1
+          if (layout.opacity !== undefined && layout.opacity !== 1) {
+            styles.push(`opacity: ${layout.opacity}`);
+          }
+
+          // Apply rotation if present
+          if (layout.rotation && layout.rotation !== 0) {
+            styles.push(`transform: rotate(${layout.rotation}deg)`);
+          }
+
+          // Extract background from fills
+          if (layout.fills && Array.isArray(layout.fills)) {
+            const visibleFills = layout.fills.filter((f: any) => f.visible !== false);
+            if (visibleFills.length > 0) {
+              const fill = visibleFills[0];
+              if (fill.type === 'SOLID' && fill.color) {
+                const c = fill.color;
+                const opacity = (fill.opacity || 1) * (c.a || 1);
+                styles.push(`background: rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${opacity})`);
+              } else if (fill.type === 'GRADIENT_LINEAR' && fill.gradientStops) {
+                const stops = fill.gradientStops.map((stop: any) => {
+                  const c = stop.color;
+                  return `rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a || 1}) ${stop.position * 100}%`;
+                }).join(', ');
+                styles.push(`background: linear-gradient(${stops})`);
+              } else if (fill.type === 'IMAGE' && fill.imageRef) {
+                // For now, use a placeholder for images
+                styles.push(`background: #f0f0f0`);
+              }
+            }
+          }
+
+          // Extract border from strokes
+          if (layout.strokes && Array.isArray(layout.strokes)) {
+            const visibleStrokes = layout.strokes.filter((s: any) => s.visible !== false);
+            if (visibleStrokes.length > 0) {
+              const stroke = visibleStrokes[0];
+              if (stroke.color) {
+                const c = stroke.color;
+                const weight = layout.strokeWeight || 1;
+                styles.push(`border: ${weight}px solid rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a || 1})`);
+              }
+            }
+          }
+
+          // Apply corner radius
+          if (layout.cornerRadius) {
+            styles.push(`border-radius: ${layout.cornerRadius}px`);
+          } else if (layout.rectangleCornerRadii) {
+            const [tl, tr, br, bl] = layout.rectangleCornerRadii;
+            styles.push(`border-radius: ${tl}px ${tr}px ${br}px ${bl}px`);
+          }
+
+          // Apply effects (shadows)
+          if (layout.effects && Array.isArray(layout.effects)) {
+            const shadows = layout.effects
+              .filter((e: any) => e.visible !== false && (e.type === 'DROP_SHADOW' || e.type === 'INNER_SHADOW'))
+              .map((e: any) => {
+                const c = e.color || { r: 0, g: 0, b: 0, a: 0.25 };
+                const x = e.offset?.x || 0;
+                const y = e.offset?.y || 0;
+                const blur = e.radius || 0;
+                const spread = e.spread || 0;
+                const inset = e.type === 'INNER_SHADOW' ? 'inset ' : '';
+                return `${inset}${x}px ${y}px ${blur}px ${spread}px rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a || 1})`;
+              });
+            if (shadows.length > 0) {
+              styles.push(`box-shadow: ${shadows.join(', ')}`);
+            }
+          }
+
+          // Apply Auto Layout properties as flexbox
+          if (layout.layoutMode) {
+            styles.push('display: flex');
+            if (layout.layoutMode === 'HORIZONTAL') {
+              styles.push('flex-direction: row');
+            } else if (layout.layoutMode === 'VERTICAL') {
+              styles.push('flex-direction: column');
+            }
+
+            // Alignment
+            const alignMap: any = {
+              'MIN': 'flex-start',
+              'CENTER': 'center',
+              'MAX': 'flex-end',
+              'SPACE_BETWEEN': 'space-between'
+            };
+            if (layout.primaryAxisAlignItems) {
+              styles.push(`justify-content: ${alignMap[layout.primaryAxisAlignItems] || 'flex-start'}`);
+            }
+            if (layout.counterAxisAlignItems) {
+              styles.push(`align-items: ${alignMap[layout.counterAxisAlignItems] || 'flex-start'}`);
+            }
+
+            // Padding
+            if (layout.paddingLeft || layout.paddingRight || layout.paddingTop || layout.paddingBottom) {
+              styles.push(`padding: ${layout.paddingTop || 0}px ${layout.paddingRight || 0}px ${layout.paddingBottom || 0}px ${layout.paddingLeft || 0}px`);
+            }
+
+            // Gap
+            if (layout.itemSpacing) {
+              styles.push(`gap: ${layout.itemSpacing}px`);
+            }
+          }
+
+          // Handle text nodes specially
+          let content = '';
+          if (layout.type === 'TEXT' && layout.characters) {
+            content = layout.characters;
+            if (layout.style) {
+              const s = layout.style;
+              if (s.fontSize) styles.push(`font-size: ${s.fontSize}px`);
+              if (s.fontFamily) styles.push(`font-family: '${s.fontFamily}'`);
+              if (s.fontWeight) styles.push(`font-weight: ${s.fontWeight}`);
+              if (s.lineHeightPx) styles.push(`line-height: ${s.lineHeightPx}px`);
+              if (s.letterSpacing) styles.push(`letter-spacing: ${s.letterSpacing}px`);
+              if (s.textCase === 'UPPER') styles.push('text-transform: uppercase');
+              if (s.textCase === 'LOWER') styles.push('text-transform: lowercase');
+              if (s.textCase === 'TITLE') styles.push('text-transform: capitalize');
+            }
+            if (layout.textAlignHorizontal) {
+              const alignMap: any = { 'LEFT': 'left', 'CENTER': 'center', 'RIGHT': 'right', 'JUSTIFIED': 'justify' };
+              styles.push(`text-align: ${alignMap[layout.textAlignHorizontal] || 'left'}`);
+            }
+            // Remove default element styles for text
+            styles.push('border: none', 'background: transparent', 'display: block');
+          }
+
           // Determine element class based on type
           let elementClass = 'element';
           if (layout.type === 'FRAME') elementClass += ' element-frame';
           else if (layout.type === 'COMPONENT' || layout.type === 'INSTANCE') elementClass += ' element-component';
-          else if (layout.type === 'VECTOR') elementClass += ' element-vector';
-          else if (layout.type === 'TEXT') elementClass += ' element-text-node';
-
-          // Extract background color if available
-          let bgColor = '';
-          if (layout.fills && layout.fills[0]?.color) {
-            const c = layout.fills[0].color;
-            bgColor = `background: rgba(${Math.round(c.r * 255)}, ${Math.round(c.g * 255)}, ${Math.round(c.b * 255)}, ${c.a || 1});`;
-          }
+          else if (layout.type === 'VECTOR' || layout.type === 'RECTANGLE' || layout.type === 'ELLIPSE') elementClass += ' element-vector';
+          else if (layout.type === 'TEXT') elementClass = 'element-text-node'; // Don't include base element class
 
           html += `    <div
       id="${layout.id}"
       class="${elementClass}"
-      style="left: ${x}px; top: ${y}px; width: ${width}px; height: ${height}px; ${bgColor}"
+      style="${styles.join('; ')}"
       title="${layout.name} (${layout.type})"
       data-type="${layout.type}">
-      <span class="element-text">${layout.name || layout.type}</span>
+      ${content || `<span class="element-text">${layout.name || layout.type}</span>`}
     </div>\n`;
         });
       });
