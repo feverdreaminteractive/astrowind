@@ -675,7 +675,7 @@ ${html}
                   {isGenerating ? '🤖 Generating...' : isProcessing ? '⚙️ Processing...' : '🎨 Fetch & Generate Preview'}
                 </button>
               </div>
-            ) : (
+            ) : activeTab === 'json' ? (
               <div>
                 <textarea
                   value={jsonInput}
