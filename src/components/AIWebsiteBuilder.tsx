@@ -311,47 +311,49 @@ const AIWebsiteBuilderInner: React.FC = () => {
     };
   };
 
-  // Extract Figma design data from URL
+  // Extract Figma design data from URL using server proxy
   const extractFigmaData = async (figmaUrl: string) => {
-    // Extract file key and node ID from URL
-    const fileMatch = figmaUrl.match(/figma\.com\/(?:file|design)\/([^/?\s]+)/);
-    const nodeMatch = figmaUrl.match(/node-id=([^&\s]+)/);
+    try {
+      // Use the server-side proxy to fetch Figma data (no token needed)
+      const response = await fetch(`/api/figma-proxy?url=${encodeURIComponent(figmaUrl)}`);
 
-    if (!fileMatch) {
-      throw new Error('Invalid Figma URL');
-    }
-
-    const fileKey = fileMatch[1];
-    const nodeId = nodeMatch ? nodeMatch[1].replace('-', ':') : null;
-
-    // Check if we have a token saved
-    const token = figmaToken || localStorage.getItem('figmaToken');
-
-    if (!token) {
-      setShowFigmaSettings(true);
-      throw new Error('Figma access token required. Get one from: https://www.figma.com/developers/api#access-tokens');
-    }
-
-    // Fetch from Figma API
-    const figmaApiUrl = `https://api.figma.com/v1/files/${fileKey}${nodeId ? `?node_ids=${nodeId}` : ''}`;
-
-    const response = await fetch(figmaApiUrl, {
-      headers: {
-        'X-Figma-Token': token
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to fetch Figma file');
       }
-    });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch Figma file');
+      const data = await response.json();
+      console.log('Fetched Figma data via proxy:', data);
+      return data;
+    } catch (error) {
+      console.error('Figma fetch error:', error);
+      // Fallback to direct API if proxy fails
+      const fileMatch = figmaUrl.match(/figma\.com\/(?:file|design)\/([^/?\s]+)/);
+      if (!fileMatch) {
+        throw new Error('Invalid Figma URL');
+      }
+
+      const fileKey = fileMatch[1];
+      const token = figmaToken || localStorage.getItem('figmaToken');
+
+      if (!token) {
+        setShowFigmaSettings(true);
+        throw new Error('Server proxy unavailable. Please enter your Figma token.');
+      }
+
+      // Direct API call fallback
+      const figmaApiUrl = `https://api.figma.com/v1/files/${fileKey}`;
+      const directResponse = await fetch(figmaApiUrl, {
+        headers: { 'X-Figma-Token': token }
+      });
+
+      if (!directResponse.ok) {
+        throw new Error('Failed to fetch Figma file');
+      }
+
+      const directData = await directResponse.json();
+      return directData;
     }
-
-    const data = await response.json();
-
-    // Extract design context
-    const context = extractDesignContext(data, nodeId);
-    setFigmaData(context);
-
-    return context;
   };
 
   // Extract meaningful design context from Figma data

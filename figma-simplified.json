@@ -1,0 +1,1212 @@
+{
+  "name": "Positivus Landing Page Design (Community)",
+  "layouts": [
+    {
+      "id": "423:1034",
+      "name": "Cover",
+      "type": "FRAME",
+      "x": -2.842170943040401e-14,
+      "y": -7.105427357601002e-15,
+      "width": 1920,
+      "height": 1080,
+      "visible": true
+    },
+    {
+      "id": "423:1035",
+      "name": "Cover",
+      "type": "RECTANGLE",
+      "x": -2.842170943040401e-14,
+      "y": -7.105427357601002e-15,
+      "width": 1920,
+      "height": 1080,
+      "visible": true
+    },
+    {
+      "id": "795:156",
+      "name": "Tools",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1214,
+      "height": 1028,
+      "visible": true
+    },
+    {
+      "id": "795:157",
+      "name": "div",
+      "type": "FRAME",
+      "x": 45,
+      "y": 70,
+      "width": 1045,
+      "height": 228,
+      "visible": true
+    },
+    {
+      "id": "795:158",
+      "name": "div",
+      "type": "FRAME",
+      "x": 45,
+      "y": 70,
+      "width": 48,
+      "height": 48,
+      "visible": true
+    },
+    {
+      "id": "795:160",
+      "name": "i",
+      "type": "FRAME",
+      "x": 58.5,
+      "y": 82,
+      "width": 21,
+      "height": 24,
+      "visible": true
+    },
+    {
+      "id": "795:169",
+      "name": "svg",
+      "type": "FRAME",
+      "x": 58.5,
+      "y": 82,
+      "width": 21,
+      "height": 24,
+      "visible": true
+    },
+    {
+      "id": "795:170",
+      "name": "Frame",
+      "type": "FRAME",
+      "x": 58.5,
+      "y": 82,
+      "width": 21,
+      "height": 24,
+      "visible": true
+    },
+    {
+      "id": "795:171",
+      "name": "Vector",
+      "type": "VECTOR",
+      "x": 59.9980583190918,
+      "y": 81.99957275390625,
+      "width": 18.003887176513672,
+      "height": 24.00084686279297,
+      "visible": true
+    },
+    {
+      "id": "795:159",
+      "name": "div",
+      "type": "FRAME",
+      "x": 117,
+      "y": 70,
+      "width": 726,
+      "height": 198,
+      "visible": true
+    },
+    {
+      "id": "795:162",
+      "name": "Speed Up Your Workflow",
+      "type": "TEXT",
+      "x": 117,
+      "y": 70,
+      "width": 398,
+      "height": 32,
+      "visible": true
+    },
+    {
+      "id": "795:163",
+      "name": "div",
+      "type": "FRAME",
+      "x": 117,
+      "y": 114,
+      "width": 726,
+      "height": 28,
+      "visible": true
+    },
+    {
+      "id": "797:219",
+      "name": "Frame 1",
+      "type": "FRAME",
+      "x": 117,
+      "y": 114,
+      "width": 758,
+      "height": 27,
+      "visible": true
+    },
+    {
+      "id": "795:173",
+      "name": "span",
+      "type": "FRAME",
+      "x": 117,
+      "y": 114,
+      "width": 115,
+      "height": 27,
+      "visible": true
+    },
+    {
+      "id": "795:183",
+      "name": "User Research",
+      "type": "TEXT",
+      "x": 129,
+      "y": 118,
+      "width": 91,
+      "height": 19,
+      "visible": true
+    },
+    {
+      "id": "797:213",
+      "name": "span",
+      "type": "FRAME",
+      "x": 242,
+      "y": 114,
+      "width": 131,
+      "height": 27,
+      "visible": true
+    },
+    {
+      "id": "797:214",
+      "name": "Journey mapping",
+      "type": "TEXT",
+      "x": 254,
+      "y": 118,
+      "width": 107,
+      "height": 19,
+      "visible": true
+    },
+    {
+      "id": "797:216",
+      "name": "span",
+      "type": "FRAME",
+      "x": 383,
+      "y": 114,
+      "width": 104,
+      "height": 27,
+      "visible": true
+    },
+    {
+      "id": "797:217",
+      "name": "Wireframing",
+      "type": "TEXT",
+      "x": 395,
+      "y": 118,
+      "width": 80,
+      "height": 19,
+      "visible": true
+    },
+    {
+      "id": "797:220",
+      "name": "span",
+      "type": "FRAME",
+      "x": 497,
+      "y": 114,
+      "width": 86,
+      "height": 27,
+      "visible": true
+    },
+    {
+      "id": "797:221",
+      "name": "UI Design",
+      "type": "TEXT",
+      "x": 509,
+      "y": 118,
+      "width": 62,
+      "height": 19,
+      "visible": true
+    },
+    {
+      "id": "797:225",
+      "name": "span",
+      "type": "FRAME",
+      "x": 593,
+      "y": 114,
+      "width": 115,
+      "height": 27,
+      "visible": true
+    },
+    {
+      "id": "797:226",
+      "name": "User Personas",
+      "type": "TEXT",
+      "x": 605,
+      "y": 118,
+      "width": 91,
+      "height": 19,
+      "visible": true
+    },
+    {
+      "id": "797:228",
+      "name": "span",
+      "type": "FRAME",
+      "x": 718,
+      "y": 114,
+      "width": 157,
+      "height": 27,
+      "visible": true
+    },
+    {
+      "id": "797:229",
+      "name": "Generate Workshops",
+      "type": "TEXT",
+      "x": 730,
+      "y": 118,
+      "width": 133,
+      "height": 19,
+      "visible": true
+    },
+    {
+      "id": "795:167",
+      "name": "💡 Supercharge your UX process with UX Pilot — an AI-powered tool that helps streamline your workflow from discovery to final design. From user research and journey mapping to wireframing and handoff, it’s built to save you time and reduce repetitive tasks. One of my favorite features: it can even generate designs using your own Figma components, making it easier to maintain consistency and speed up production. I personally use it in my own design process and find it especially helpful when working on complex projects or tight deadlines.",
+      "type": "TEXT",
+      "x": 117,
+      "y": 168,
+      "width": 977,
+      "height": 130,
+      "visible": true
+    },
+    {
+      "id": "795:168",
+      "name": "div",
+      "type": "FRAME",
+      "x": 117,
+      "y": 328,
+      "width": 961,
+      "height": 48,
+      "visible": true
+    },
+    {
+      "id": "795:174",
+      "name": "span",
+      "type": "FRAME",
+      "x": 117,
+      "y": 328,
+      "width": 158.796875,
+      "height": 48,
+      "visible": true
+    },
+    {
+      "id": "795:185",
+      "name": "Try UX Pilot",
+      "type": "TEXT",
+      "x": 165,
+      "y": 341,
+      "width": 86,
+      "height": 22,
+      "visible": true
+    },
+    {
+      "id": "795:186",
+      "name": "i",
+      "type": "FRAME",
+      "x": 141,
+      "y": 344,
+      "width": 16,
+      "height": 16,
+      "visible": true
+    },
+    {
+      "id": "795:187",
+      "name": "svg",
+      "type": "FRAME",
+      "x": 141,
+      "y": 344,
+      "width": 16,
+      "height": 16,
+      "visible": true
+    },
+    {
+      "id": "795:188",
+      "name": "Frame",
+      "type": "FRAME",
+      "x": 141,
+      "y": 344,
+      "width": 16,
+      "height": 16,
+      "visible": true
+    },
+    {
+      "id": "795:189",
+      "name": "Vector",
+      "type": "VECTOR",
+      "x": 140.99801635742188,
+      "y": 344.0007629394531,
+      "width": 16.00083351135254,
+      "height": 16.001220703125,
+      "visible": true
+    },
+    {
+      "id": "795:177",
+      "name": "Frame",
+      "type": "FRAME",
+      "x": 315.796875,
+      "y": 344,
+      "width": 16,
+      "height": 16,
+      "visible": true
+    },
+    {
+      "id": "795:178",
+      "name": "Frame",
+      "type": "FRAME",
+      "x": 315.796875,
+      "y": 344,
+      "width": 16,
+      "height": 16,
+      "visible": true
+    },
+    {
+      "id": "795:207",
+      "name": "image 1",
+      "type": "RECTANGLE",
+      "x": 117,
+      "y": 406,
+      "width": 980.2548217773438,
+      "height": 513,
+      "visible": true
+    },
+    {
+      "id": "330:762",
+      "name": "Home",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 4423,
+      "width": 1440,
+      "height": 8356,
+      "visible": true
+    },
+    {
+      "id": "333:1374",
+      "name": "Heading & Subheading",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 5394,
+      "width": 1440,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "333:1385",
+      "name": "Heading",
+      "type": "INSTANCE",
+      "x": 18504,
+      "y": 5394,
+      "width": 178,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I333:1385;330:291",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 5394,
+      "width": 178,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I333:1385;330:292",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 5394,
+      "width": 164,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I333:1385;334:1522",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 5445,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I333:1385;334:1523",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 5445,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I333:1385;334:1541",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 5496,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I333:1385;334:1542",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 5496,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "333:1373",
+      "name": "At our digital marketing agency, we offer a range of services to help businesses grow and succeed online. These services include:",
+      "type": "TEXT",
+      "x": 18722,
+      "y": 5394,
+      "width": 580,
+      "height": 46,
+      "visible": true
+    },
+    {
+      "id": "337:1756",
+      "name": "Heading & Subheading",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 7169,
+      "width": 1440,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "337:1757",
+      "name": "Heading",
+      "type": "INSTANCE",
+      "x": 18504,
+      "y": 7169,
+      "width": 265,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I337:1757;330:291",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 7169,
+      "width": 265,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I337:1757;330:292",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 7169,
+      "width": 251,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I337:1757;334:1522",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 7220,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I337:1757;334:1523",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 7220,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I337:1757;334:1541",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 7271,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I337:1757;334:1542",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 7271,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "337:1758",
+      "name": "Explore Real-Life Examples of Our Proven Digital Marketing Success through Our Case Studies",
+      "type": "TEXT",
+      "x": 18809,
+      "y": 7169,
+      "width": 580,
+      "height": 46,
+      "visible": true
+    },
+    {
+      "id": "338:147",
+      "name": "Heading & Subheading",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 7766,
+      "width": 1440,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "338:148",
+      "name": "Heading",
+      "type": "INSTANCE",
+      "x": 18504,
+      "y": 7766,
+      "width": 412,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I338:148;330:291",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 7766,
+      "width": 412,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I338:148;330:292",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 7766,
+      "width": 398,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I338:148;334:1522",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 7817,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I338:148;334:1523",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 7817,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I338:148;334:1541",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 7868,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I338:148;334:1542",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 7868,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "338:149",
+      "name": "Step-by-Step Guide to Achieving Your Business Goals",
+      "type": "TEXT",
+      "x": 18956,
+      "y": 7766,
+      "width": 292,
+      "height": 46,
+      "visible": true
+    },
+    {
+      "id": "339:249",
+      "name": "Heading & Subheading",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 9261,
+      "width": 1440,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "339:250",
+      "name": "Heading",
+      "type": "INSTANCE",
+      "x": 18504,
+      "y": 9261,
+      "width": 115,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I339:250;330:291",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 9261,
+      "width": 115,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I339:250;330:292",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 9261,
+      "width": 101,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I339:250;334:1522",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 9312,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I339:250;334:1523",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 9312,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I339:250;334:1541",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 9363,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I339:250;334:1542",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 9363,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "339:251",
+      "name": "Meet the skilled and experienced team behind our successful digital marketing strategies",
+      "type": "TEXT",
+      "x": 18659,
+      "y": 9261,
+      "width": 473,
+      "height": 46,
+      "visible": true
+    },
+    {
+      "id": "341:497",
+      "name": "Heading & Subheading",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 10325,
+      "width": 1440,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "341:498",
+      "name": "Heading",
+      "type": "INSTANCE",
+      "x": 18504,
+      "y": 10325,
+      "width": 255,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:498;330:291",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 10325,
+      "width": 255,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:498;330:292",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 10325,
+      "width": 241,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:498;334:1522",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 10376,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I341:498;334:1523",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 10376,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:498;334:1541",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 10427,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I341:498;334:1542",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 10427,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "341:499",
+      "name": "Hear from Our Satisfied Clients: Read Our Testimonials to Learn More about Our Digital Marketing Services",
+      "type": "TEXT",
+      "x": 18799,
+      "y": 10325,
+      "width": 473,
+      "height": 46,
+      "visible": true
+    },
+    {
+      "id": "341:568",
+      "name": "Heading & Subheading",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 11221,
+      "width": 1440,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "341:569",
+      "name": "Heading",
+      "type": "INSTANCE",
+      "x": 18504,
+      "y": 11221,
+      "width": 229,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:569;330:291",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 11221,
+      "width": 229,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:569;330:292",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 11221,
+      "width": 215,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:569;334:1522",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 11272,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I341:569;334:1523",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 11272,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "I341:569;334:1541",
+      "name": "Label",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 11323,
+      "width": 119,
+      "height": 51,
+      "visible": false
+    },
+    {
+      "id": "I341:569;334:1542",
+      "name": "Label",
+      "type": "TEXT",
+      "x": 18511,
+      "y": 11323,
+      "width": 105,
+      "height": 51,
+      "visible": true
+    },
+    {
+      "id": "341:570",
+      "name": "Connect with Us: Let's Discuss Your Digital Marketing Needs",
+      "type": "TEXT",
+      "x": 18773,
+      "y": 11221,
+      "width": 323,
+      "height": 46,
+      "visible": true
+    },
+    {
+      "id": "333:1290",
+      "name": "Landing page",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 4483,
+      "width": 1440,
+      "height": 771,
+      "visible": true
+    },
+    {
+      "id": "331:1207",
+      "name": "Navigation bar",
+      "type": "FRAME",
+      "x": 18404,
+      "y": 4483,
+      "width": 1440,
+      "height": 68,
+      "visible": true
+    },
+    {
+      "id": "330:1193",
+      "name": "Frame 9",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 4489,
+      "width": 219.53680419921875,
+      "height": 56,
+      "visible": true
+    },
+    {
+      "id": "330:1194",
+      "name": "Logo",
+      "type": "INSTANCE",
+      "x": 18504,
+      "y": 4499,
+      "width": 219.53680419921875,
+      "height": 36,
+      "visible": true
+    },
+    {
+      "id": "I330:1194;330:315",
+      "name": "Icon",
+      "type": "FRAME",
+      "x": 18504,
+      "y": 4499,
+      "width": 36,
+      "height": 36,
+      "visible": true
+    },
+    {
+      "id": "I330:1194;330:316",
+      "name": "Vector",
+      "type": "VECTOR",
+      "x": 18504.34765625,
+      "y": 4499.34912109375,
+      "width": 35.25208282470703,
+      "height": 35.25208282470703,
+      "visible": true
+    },
+    {
+      "id": "I330:1194;330:318",
+      "name": "Positivus",
+      "type": "VECTOR",
+      "x": 18552.919921875,
+      "y": 4502,
+      "width": 170.61688232421875,
+      "height": 28.56000328063965,
+      "visible": true
+    },
+    {
+      "id": "330:1203",
+      "name": "Frame 10",
+      "type": "FRAME",
+      "x": 18933,
+      "y": 4483,
+      "width": 811,
+      "height": 68,
+      "visible": true
+    },
+    {
+      "id": "330:1198",
+      "name": "About us",
+      "type": "TEXT",
+      "x": 18933,
+      "y": 4503,
+      "width": 88,
+      "height": 28,
+      "visible": true
+    }
+  ],
+  "colors": [
+    "rgba(255,255,255,1)",
+    "rgba(0,0,0,1)",
+    "rgba(79,70,229,1)",
+    "rgba(17,24,39,1)",
+    "rgba(237,233,254,1)",
+    "rgba(109,40,217,1)",
+    "rgba(55,65,81,1)",
+    "rgba(185,255,102,1)",
+    "rgba(25,26,35,1)",
+    "rgba(255,153,0,1)",
+    "rgba(13,12,34,1)",
+    "rgba(51,71,91,1)",
+    "rgba(255,122,89,1)",
+    "rgba(216,31,38,1)",
+    "rgba(45,140,255,1)",
+    "rgba(243,243,243,1)",
+    "rgba(217,217,217,1)",
+    "rgba(35,31,32,1)",
+    "rgba(33,36,29,1)",
+    "rgba(137,137,137,1)",
+    "rgba(41,42,50,1)",
+    "rgba(248,248,248,1)"
+  ],
+  "typography": [
+    {
+      "name": "Speed Up Your Workflow",
+      "fontFamily": "Inter",
+      "fontSize": 24,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 24,
+      "text": "Speed Up Your Workflow"
+    },
+    {
+      "name": "User Research",
+      "fontFamily": "Nunito",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 19.095998764038086,
+      "text": "User Research"
+    },
+    {
+      "name": "Journey mapping",
+      "fontFamily": "Nunito",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 19.095998764038086,
+      "text": "Journey mapping"
+    },
+    {
+      "name": "Wireframing",
+      "fontFamily": "Nunito",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 19.095998764038086,
+      "text": "Wireframing"
+    },
+    {
+      "name": "UI Design",
+      "fontFamily": "Nunito",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 19.095998764038086,
+      "text": "UI Design"
+    },
+    {
+      "name": "User Personas",
+      "fontFamily": "Nunito",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 19.095998764038086,
+      "text": "User Personas"
+    },
+    {
+      "name": "Generate Workshops",
+      "fontFamily": "Nunito",
+      "fontSize": 14,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 19.095998764038086,
+      "text": "Generate Workshops"
+    },
+    {
+      "name": "💡 Supercharge your UX process with UX Pilot — an AI-powered tool that helps streamline your workflow from discovery to final design. From user research and journey mapping to wireframing and handoff, it’s built to save you time and reduce repetitive tasks. One of my favorite features: it can even generate designs using your own Figma components, making it easier to maintain consistency and speed up production. I personally use it in my own design process and find it especially helpful when working on complex projects or tight deadlines.",
+      "fontFamily": "Inter",
+      "fontSize": 18,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 26,
+      "text": "💡 Supercharge your UX process with UX Pilot — an AI-powered tool that helps streamline your workflo"
+    },
+    {
+      "name": "Try UX Pilot",
+      "fontFamily": "Nunito",
+      "fontSize": 16,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 21.823999404907227,
+      "text": "Try UX Pilot"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Services"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Label"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Label"
+    },
+    {
+      "name": "At our digital marketing agency, we offer a range of services to help businesses grow and succeed online. These services include:",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 18,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 22.968000411987305,
+      "text": "At our digital marketing agency, we offer a range of services to help businesses grow and succeed on"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Case Studies"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Label"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Label"
+    },
+    {
+      "name": "Explore Real-Life Examples of Our Proven Digital Marketing Success through Our Case Studies",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 18,
+      "fontWeight": 400,
+      "letterSpacing": 0,
+      "lineHeight": 22.968000411987305,
+      "text": "Explore Real-Life Examples of Our Proven Digital Marketing Success through Our Case Studies"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Our Working Process "
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Label"
+    },
+    {
+      "name": "Label",
+      "fontFamily": "Space Grotesk",
+      "fontSize": 40,
+      "fontWeight": 500,
+      "letterSpacing": 0,
+      "lineHeight": 51.040000915527344,
+      "text": "Label"
+    }
+  ],
+  "dimensions": {}
+}

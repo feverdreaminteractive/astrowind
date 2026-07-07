@@ -22,6 +22,11 @@
   to = "/.netlify/functions/claude"
   status = 200
 
+[[redirects]]
+  from = "/api/figma-proxy"
+  to = "/.netlify/functions/figma-proxy"
+  status = 200
+
 [[headers]]
   for = "/api/*"
   [headers.values]
