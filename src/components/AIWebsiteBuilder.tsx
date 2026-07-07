@@ -444,8 +444,32 @@ const AIWebsiteBuilderInner: React.FC = () => {
 
     setIsGenerating(true);
 
-    // Check if we need chunked generation (for Figma data)
-    const needsChunking = figmaData?.layouts?.length > 20 || figmaJson?.layouts?.length > 20;
+    // Check if prompt contains JSON (Figma data)
+    let parsedJSON = null;
+    let isJSONInput = false;
+
+    // Try to detect and parse JSON in the prompt
+    const trimmedPrompt = prompt.trim();
+    if (trimmedPrompt.startsWith('{') && trimmedPrompt.includes('"layouts"')) {
+      try {
+        parsedJSON = JSON.parse(trimmedPrompt);
+        isJSONInput = true;
+        console.log('Detected Figma JSON with', parsedJSON.layouts?.length || 0, 'layouts');
+
+        // Store it for processing
+        setFigmaJson(parsedJSON);
+        setFigmaData(parsedJSON);
+      } catch (e) {
+        console.error('Failed to parse JSON:', e);
+        alert('Invalid JSON format. Please check your JSON and try again.');
+        setIsGenerating(false);
+        return;
+      }
+    }
+
+    // Use parsed JSON or existing Figma data
+    const dataToProcess = parsedJSON || figmaData || figmaJson;
+    const needsChunking = dataToProcess?.layouts?.length > 5; // Chunk if more than 5 layouts
 
     // Check if this is a Figma URL and extract data
     let figmaContext = null;
@@ -516,28 +540,23 @@ Build an EXACT replica matching these positions and dimensions.`;
         enhancedPrompt = `${prompt}\n\nEXTRACTED FIGMA DESIGN DATA:\nColors: ${figmaContext.colors?.slice(0, 10).join(', ')}\nTypography: ${JSON.stringify(figmaContext.typography?.slice(0, 5))}\nDimensions: ${figmaContext.dimensions?.width}x${figmaContext.dimensions?.height}\nStructure Preview:\n${figmaContext.structure?.substring(0, 500)}`;
       }
 
-      // For large Figma designs, break into chunks
-      if (needsChunking && (figmaData || figmaJson)) {
-        const layouts = (figmaData?.layouts || figmaJson?.layouts || []);
-        const chunksOf = 15; // Process 15 elements at a time
+      // For JSON input with layouts, ALWAYS chunk to avoid truncation
+      if (isJSONInput && dataToProcess?.layouts) {
+        const layouts = dataToProcess.layouts;
+        const chunksOf = 3; // Process only 3 layouts at a time for reliability
+
+        console.log(`Processing ${layouts.length} layouts in chunks of ${chunksOf}`);
         let fullHTML = '';
         let fullCSS = '';
 
-        // Group layouts by Y position (sections)
+        // Simple chunking - just divide layouts into groups
         const sections: any[] = [];
-        layouts.forEach((layout: any) => {
-          const sectionIndex = sections.findIndex(s =>
-            Math.abs(s.startY - layout.y) < 100
-          );
-          if (sectionIndex === -1) {
-            sections.push({ startY: layout.y, layouts: [layout] });
-          } else {
-            sections[sectionIndex].layouts.push(layout);
-          }
-        });
-
-        // Sort sections by Y position
-        sections.sort((a, b) => a.startY - b.startY);
+        for (let i = 0; i < layouts.length; i += chunksOf) {
+          sections.push({
+            startY: layouts[i]?.y || 0,
+            layouts: layouts.slice(i, Math.min(i + chunksOf, layouts.length))
+          });
+        }
 
         console.log(`Processing ${sections.length} sections...`);
 
@@ -547,16 +566,30 @@ Build an EXACT replica matching these positions and dimensions.`;
           const isFirst = i === 0;
           const isLast = i === sections.length - 1;
 
-          const sectionPrompt = `Generate HTML for section ${i + 1} of ${sections.length}.
-          ${isFirst ? 'This is the HEADER/TOP section. Include <!DOCTYPE html> and opening tags.' : ''}
-          ${isLast ? 'This is the FOOTER/BOTTOM section. Include closing </body></html> tags.' : ''}
+          // Simplified prompts focused on layout data
+          let sectionPrompt = '';
 
-          Section elements (use exact positions):
-          ${section.layouts.map((l: any) =>
-            `${l.name}: ${l.width}x${l.height}px at (${l.x}, ${l.y})`
-          ).join('\n')}
-
-          ${!isFirst && !isLast ? 'Output ONLY the HTML for this section, no DOCTYPE or body tags.' : ''}`;
+          if (isFirst) {
+            sectionPrompt = `Create an HTML page START. Section 1/${sections.length}.
+Generate: <!DOCTYPE html><html><head><style>body{margin:0;position:relative;}</style></head><body>
+Then add these ${section.layouts.length} elements as positioned divs:
+${section.layouts.map((l: any, idx: number) =>
+  `<div id="${l.id || 'elem' + idx}" style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;border:1px solid #ccc;">${l.name || ''}</div>`
+).join('\n')}`;
+          } else if (isLast) {
+            sectionPrompt = `Add FINAL elements. Section ${i + 1}/${sections.length}.
+Add these ${section.layouts.length} divs then close with </body></html>:
+${section.layouts.map((l: any, idx: number) =>
+  `<div style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;">${l.name || ''}</div>`
+).join('\n')}
+End with: </body></html>`;
+          } else {
+            sectionPrompt = `Continue HTML. Section ${i + 1}/${sections.length}.
+Add ONLY these ${section.layouts.length} divs (no other tags):
+${section.layouts.map((l: any, idx: number) =>
+  `<div style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;">${l.name || ''}</div>`
+).join('\n')}`;
+          };
 
           const sectionPayload = {
             message: sectionPrompt,
@@ -567,15 +600,15 @@ Build an EXACT replica matching these positions and dimensions.`;
               chunkIndex: i,
               totalChunks: sections.length,
               figmaContext: {
-                layouts: section.layouts,
-                colors: figmaData?.colors || figmaJson?.colors,
-                dimensions: figmaData?.dimensions || { width: 1920, height: 1080 }
+                layouts: section.layouts.slice(0, 5), // Limit layouts sent
+                colors: dataToProcess?.colors?.slice(0, 5) || [],
+                dimensions: dataToProcess?.dimensions || { width: 1920, height: 1080 }
               }
             }
           };
 
-          console.log(`Generating section ${i + 1}/${sections.length}...`);
-          setGenerationProgress(`Generating section ${i + 1} of ${sections.length}...`);
+          console.log(`Generating section ${i + 1}/${sections.length} with ${section.layouts.length} elements`);
+          setGenerationProgress(`Section ${i + 1}/${sections.length} (${section.layouts.length} elements)`);
 
           const response = await fetch('/api/claude', {
             method: 'POST',
@@ -611,9 +644,9 @@ Build an EXACT replica matching these positions and dimensions.`;
           // Update preview after each section
           handleCodeChange(cleanGeneratedCode(fullHTML));
 
-          // Small delay between requests
+          // Longer delay between requests to avoid rate limits
           if (i < sections.length - 1) {
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
           }
         }
 
@@ -625,7 +658,7 @@ Build an EXACT replica matching these positions and dimensions.`;
 
       // Regular single request for simple prompts
       const requestPayload = {
-        message: prompt,
+        message: isJSONInput ? 'Build a website from this Figma data' : prompt,
         browserData: {
           isWebBuilder: true,
           targetFile: selectedFile?.name || 'index.html',
