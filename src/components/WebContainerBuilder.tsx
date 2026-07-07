@@ -14,7 +14,7 @@ const WebContainerBuilder: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
   const [figmaToken, setFigmaToken] = useState('');  // Fallback option
-  const [showTokenInput] = useState(false);  // Proxy handles auth
+  const [showTokenInput] = useState(true);  // Need token for MCP
   const [activeTab, setActiveTab] = useState<'url' | 'json' | 'help'>('url');
   const [previewMode, setPreviewMode] = useState<'preview' | 'code' | 'split'>('split');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -939,6 +939,12 @@ console.log('Output written to output.html');
 
   // Initialize on mount with delay for browser readiness
   useEffect(() => {
+    // Load saved token
+    const savedToken = localStorage.getItem('figmaToken');
+    if (savedToken) {
+      setFigmaToken(savedToken);
+    }
+
     // Small delay to ensure browser environment is ready
     const timer = setTimeout(() => {
       bootWebContainer();
@@ -1043,7 +1049,7 @@ console.log('Output written to output.html');
                 {showTokenInput && (
                   <div className="mb-4">
                     <p className="text-xs text-gray-400 mb-2">
-                      The server token is handling authentication, but if needed you can provide your own:
+                      For MCP access, provide your Figma API token:
                     </p>
                     <input
                       type="password"
@@ -1054,7 +1060,7 @@ console.log('Output written to output.html');
                           localStorage.setItem('figmaToken', e.target.value);
                         }
                       }}
-                      placeholder="Optional: Your Figma API token"
+                      placeholder="Your Figma API token (required for MCP)"
                       className="w-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white placeholder-gray-500"
                     />
                   </div>
