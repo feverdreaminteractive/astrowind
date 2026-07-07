@@ -1,17 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { WebContainer } from '@webcontainer/api';
 
-interface FigmaLayout {
-  id: string;
-  name: string;
-  type: string;
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-  fills?: any[];
-  children?: any[];
-}
+// Figma layout interface for parsing
 
 const WebContainerBuilder: React.FC = () => {
   const [webcontainerInstance, setWebcontainerInstance] = useState<WebContainer | null>(null);
@@ -19,12 +9,15 @@ const WebContainerBuilder: React.FC = () => {
   const [figmaUrl, setFigmaUrl] = useState('');
   const [jsonInput, setJsonInput] = useState('');
   const [processedHTML, setProcessedHTML] = useState('');
+  const [processedCSS, setProcessedCSS] = useState('');
   const [progress, setProgress] = useState('');
   const [logs, setLogs] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [figmaToken, setFigmaToken] = useState('');
-  const [showTokenInput, setShowTokenInput] = useState(false);
+  const [figmaToken, setFigmaToken] = useState('');  // Fallback option
+  const [showTokenInput] = useState(false);  // Proxy handles auth
   const [activeTab, setActiveTab] = useState<'url' | 'json'>('url');
+  const [previewMode, setPreviewMode] = useState<'preview' | 'code' | 'split'>('split');
+  const [isGenerating, setIsGenerating] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Enhanced file system with Figma parser
@@ -164,8 +157,8 @@ class FigmaParser {
     .flex-vertical {
       flex-direction: column;
     }
-  </style>
-</head>
+  <${'/' + 'style'}>
+<${'/' + 'head'}>
 <body>\n\`;
 
     // Process each layout element
@@ -176,11 +169,11 @@ class FigmaParser {
 
       html += \`  <div id="\${layout.id}" class="element \${className}" style="\${styles}" title="\${layout.name}">
     \${content}
-  </div>\n\`;
+  <${'/' + 'div'}>\n\`;
     });
 
-    html += \`</body>
-</html>\`;
+    html += \`<${'/' + 'body'}>
+<${'/' + 'html'}>\`;
 
     return html;
   }
@@ -352,45 +345,27 @@ console.log('Output written to output.html');
         throw new Error('Invalid Figma URL format');
       }
 
-      const fileKey = fileMatch[1];
+      // Extract file key from URL
 
-      // Try server proxy first
+      // Use server proxy with Netlify FIGMA_TOKEN
       try {
-        const response = await fetch(`/api/figma-proxy?url=${encodeURIComponent(figmaUrl)}`);
+        const response = await fetch(`/.netlify/functions/figma-proxy?url=${encodeURIComponent(figmaUrl)}`);
         if (response.ok) {
           const data = await response.json();
           setJsonInput(JSON.stringify(data, null, 2));
-          setLogs(prev => [...prev, '✅ Fetched Figma data via proxy']);
-          await processFigmaJSON(data);
+          setLogs(prev => [...prev, '✅ Fetched Figma data using server token']);
+          await generatePreview(data);
           return;
+        } else if (response.status === 429) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Rate limit reached. Please try again later.');
         }
-      } catch (e) {
-        console.log('Proxy failed, trying direct API...');
+      } catch (e: any) {
+        // If proxy fails, show error and stop
+        throw new Error(e.message || 'Failed to fetch Figma design. Please check the URL.');
       }
 
-      // Use token if available
-      const token = figmaToken || localStorage.getItem('figmaToken') || '';
-
-      const apiUrl = `https://api.figma.com/v1/files/${fileKey}`;
-      const response = await fetch(apiUrl, {
-        headers: {
-          'X-Figma-Token': token
-        }
-      });
-
-      if (!response.ok) {
-        if (response.status === 403) {
-          setShowTokenInput(true);
-          throw new Error('Invalid Figma token. Please enter your token.');
-        }
-        throw new Error(`Figma API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      setJsonInput(JSON.stringify(data, null, 2));
-      setLogs(prev => [...prev, '✅ Fetched Figma data']);
-
-      await processFigmaJSON(data);
+      // No fallback to direct API - only use proxy with server token
 
     } catch (error) {
       console.error('Error fetching Figma:', error);
@@ -401,7 +376,72 @@ console.log('Output written to output.html');
     }
   };
 
-  // Process Figma JSON
+  // Generate preview using AI
+  const generatePreview = async (figmaData: any) => {
+    setIsGenerating(true);
+    setLogs(prev => [...prev, '🤖 Generating HTML/CSS from Figma design...']);
+
+    try {
+      const response = await fetch('/.netlify/functions/claude', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'code',
+          prompt: 'Generate complete HTML and CSS from this Figma design',
+          figmaData: figmaData,
+          isWebContainer: true
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate HTML/CSS');
+      }
+
+      const result = await response.json();
+
+      // Extract HTML and CSS
+      const htmlMatch = result.response.match(/```html\n([\s\S]*?)```/);
+      const cssMatch = result.response.match(/```css\n([\s\S]*?)```/);
+
+      const html = htmlMatch ? htmlMatch[1] : '<h1>Generated HTML</h1>';
+      const css = cssMatch ? cssMatch[1] : 'body { font-family: system-ui; }';
+
+      const fullHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${figmaData.name || 'Figma Design'}</title>
+  <style>${css}<${'/' + 'style'}>
+<${'/' + 'head'}>
+<body>
+${html}
+<${'/' + 'body'}>
+<${'/' + 'html'}>`;
+
+      setProcessedHTML(fullHTML);
+      setProcessedCSS(css);
+
+      // Update preview
+      if (iframeRef.current) {
+        iframeRef.current.srcdoc = fullHTML;
+      }
+
+      setLogs(prev => [...prev, '✅ HTML/CSS generated successfully']);
+
+      // Now process in WebContainer if ready
+      if (webcontainerInstance) {
+        await processFigmaJSON(figmaData);
+      }
+
+    } catch (error: any) {
+      setLogs(prev => [...prev, `❌ Generation error: ${error.message}`]);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Process Figma JSON in WebContainer
   const processFigmaJSON = async (data?: any) => {
     if (!webcontainerInstance) {
       setLogs(prev => [...prev, '❌ WebContainer not ready']);
@@ -467,8 +507,9 @@ console.log('Output written to output.html');
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-gray-300">
-      <div className="max-w-7xl mx-auto p-6">
+    <>
+      <div className="min-h-screen bg-[#0a0a0a] text-gray-300">
+        <div className="max-w-7xl mx-auto p-6">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2 text-white">WebContainer Figma Builder</h1>
           <p className="text-gray-400">Transform Figma designs into HTML using browser-based Node.js</p>
@@ -506,27 +547,30 @@ console.log('Output written to output.html');
           </div>
         </div>
 
-        {/* Input Section */}
-        <div className="grid grid-cols-2 gap-6 mb-6">
-          <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">Figma Input</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setActiveTab('url')}
-                  className={`px-3 py-1 rounded text-sm ${
-                    activeTab === 'url'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-800 text-gray-400 hover:text-white'
-                  }`}
-                >
-                  URL
-                </button>
-                <button
-                  onClick={() => setActiveTab('json')}
-                  className={`px-3 py-1 rounded text-sm ${
-                    activeTab === 'json'
-                      ? 'bg-blue-600 text-white'
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-2 gap-6">
+          {/* Left Panel - Input */}
+          <div className="space-y-6">
+            {/* Input Section */}
+            <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-white">Figma Input</h2>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setActiveTab('url')}
+                    className={`px-3 py-1 rounded text-sm ${
+                      activeTab === 'url'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    URL
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('json')}
+                    className={`px-3 py-1 rounded text-sm ${
+                      activeTab === 'json'
+                        ? 'bg-blue-600 text-white'
                       : 'bg-gray-800 text-gray-400 hover:text-white'
                   }`}
                 >
@@ -543,23 +587,33 @@ console.log('Output written to output.html');
                   onChange={(e) => setFigmaUrl(e.target.value)}
                   placeholder="https://www.figma.com/file/..."
                   className="w-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white placeholder-gray-500 mb-4"
-                  disabled={!webcontainerInstance || isProcessing}
+                  disabled={!webcontainerInstance || isProcessing || isGenerating}
                 />
                 {showTokenInput && (
-                  <input
-                    type="password"
-                    value={figmaToken}
-                    onChange={(e) => setFigmaToken(e.target.value)}
-                    placeholder="Enter your Figma API token"
-                    className="w-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white placeholder-gray-500 mb-4"
-                  />
+                  <div className="mb-4">
+                    <p className="text-xs text-gray-400 mb-2">
+                      The server token is handling authentication, but if needed you can provide your own:
+                    </p>
+                    <input
+                      type="password"
+                      value={figmaToken}
+                      onChange={(e) => {
+                        setFigmaToken(e.target.value);
+                        if (e.target.value) {
+                          localStorage.setItem('figmaToken', e.target.value);
+                        }
+                      }}
+                      placeholder="Optional: Your Figma API token"
+                      className="w-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-white placeholder-gray-500"
+                    />
+                  </div>
                 )}
                 <button
                   onClick={fetchFigmaData}
-                  disabled={!webcontainerInstance || !figmaUrl || isProcessing}
+                  disabled={!webcontainerInstance || !figmaUrl || isProcessing || isGenerating}
                   className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-700 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
                 >
-                  {isProcessing ? '⚙️ Processing...' : '🎨 Fetch & Process Figma'}
+                  {isGenerating ? '🤖 Generating...' : isProcessing ? '⚙️ Processing...' : '🎨 Fetch & Generate Preview'}
                 </button>
               </div>
             ) : (
@@ -582,52 +636,128 @@ console.log('Output written to output.html');
             )}
           </div>
 
-          {/* Logs */}
-          <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold text-white">Processing Logs</h2>
-              <button
-                onClick={() => setLogs([])}
-                className="text-sm text-gray-500 hover:text-white"
-              >
-                Clear
-              </button>
+              {/* Logs */}
+              <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-white">Processing Logs</h2>
+                  <button
+                    onClick={() => setLogs([])}
+                    className="text-sm text-gray-500 hover:text-white"
+                  >
+                    Clear
+                  </button>
+                </div>
+                <div className="h-64 overflow-y-auto bg-[#0a0a0a] rounded-lg p-3 font-mono text-xs">
+                  {logs.map((log, i) => (
+                    <div key={i} className="text-green-400 mb-1">{log}</div>
+                  ))}
+                </div>
+              </div>
             </div>
-            <div className="h-80 overflow-y-auto bg-[#0a0a0a] rounded-lg p-3 font-mono text-xs">
-              {logs.map((log, i) => (
-                <div key={i} className="text-green-400 mb-1">{log}</div>
-              ))}
+          </div>
+
+          {/* Right Panel - Preview */}
+          <div className="bg-[#1a1a1a] rounded-lg border border-gray-800 h-[calc(100vh-12rem)] sticky top-6">
+            <div className="flex items-center justify-between p-4 border-b border-gray-800">
+              <h2 className="text-xl font-semibold text-white">Preview</h2>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPreviewMode('preview')}
+                  className={`px-3 py-1 rounded text-sm ${
+                    previewMode === 'preview'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Preview
+                </button>
+                <button
+                  onClick={() => setPreviewMode('code')}
+                  className={`px-3 py-1 rounded text-sm ${
+                    previewMode === 'code'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Code
+                </button>
+                <button
+                  onClick={() => setPreviewMode('split')}
+                  className={`px-3 py-1 rounded text-sm ${
+                    previewMode === 'split'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Split
+                </button>
+              </div>
+            </div>
+
+            <div className="p-4 h-[calc(100%-4rem)]">
+              {processedHTML ? (
+                previewMode === 'preview' ? (
+                  <iframe
+                    ref={iframeRef}
+                    className="w-full h-full border border-gray-700 rounded-lg bg-white"
+                    title="Preview"
+                    sandbox="allow-scripts"
+                  />
+                ) : previewMode === 'code' ? (
+                  <div className="h-full flex flex-col gap-4">
+                    <div className="flex-1">
+                      <h3 className="text-sm font-medium text-gray-400 mb-2">HTML</h3>
+                      <textarea
+                        value={processedHTML}
+                        readOnly
+                        className="w-full h-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-gray-300 font-mono text-xs"
+                      />
+                    </div>
+                    {processedCSS && (
+                      <div className="flex-1">
+                        <h3 className="text-sm font-medium text-gray-400 mb-2">CSS</h3>
+                        <textarea
+                          value={processedCSS}
+                          readOnly
+                          className="w-full h-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-gray-300 font-mono text-xs"
+                        />
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="h-full grid grid-cols-2 gap-4">
+                    <div className="h-full">
+                      <h3 className="text-sm font-medium text-gray-400 mb-2">Code</h3>
+                      <textarea
+                        value={processedHTML}
+                        readOnly
+                        className="w-full h-full px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-gray-300 font-mono text-xs"
+                      />
+                    </div>
+                    <div className="h-full">
+                      <h3 className="text-sm font-medium text-gray-400 mb-2">Preview</h3>
+                      <iframe
+                        ref={iframeRef}
+                        className="w-full h-full border border-gray-700 rounded-lg bg-white"
+                        title="Preview"
+                        sandbox="allow-scripts"
+                      />
+                    </div>
+                  </div>
+                )
+              ) : (
+                <div className="flex items-center justify-center h-full text-gray-500">
+                  <div className="text-center">
+                    <p className="text-lg mb-2">No preview available</p>
+                    <p className="text-sm">Enter a Figma URL or paste JSON to generate HTML</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Output Section */}
-        {processedHTML && (
-          <div className="bg-[#1a1a1a] rounded-lg p-6 border border-gray-800">
-            <h2 className="text-xl font-semibold text-white mb-4">Generated HTML</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Code</h3>
-                <textarea
-                  value={processedHTML}
-                  readOnly
-                  className="w-full h-96 px-3 py-2 bg-[#0a0a0a] border border-gray-700 rounded-lg text-gray-300 font-mono text-xs"
-                />
-              </div>
-              <div>
-                <h3 className="text-sm font-medium text-gray-400 mb-2">Preview</h3>
-                <iframe
-                  ref={iframeRef}
-                  className="w-full h-96 border border-gray-700 rounded-lg bg-white"
-                  title="Preview"
-                  sandbox="allow-scripts"
-                />
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </div>
+    </>
   );
 };
 
