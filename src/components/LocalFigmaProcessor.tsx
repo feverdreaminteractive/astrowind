@@ -13,10 +13,37 @@ interface FigmaLayout {
 
 export const LocalFigmaProcessor: React.FC = () => {
   const [jsonInput, setJsonInput] = useState('');
+  const [figmaUrl, setFigmaUrl] = useState('');
   const [processedHTML, setProcessedHTML] = useState('');
   const [progress, setProgress] = useState('');
   const [stats, setStats] = useState({ layouts: 0, chunks: 0, bytes: 0 });
+  const [isLoading, setIsLoading] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  // Fetch Figma data from URL
+  const fetchFigmaData = async () => {
+    if (!figmaUrl) return;
+
+    setIsLoading(true);
+    setProgress('Fetching Figma data...');
+
+    try {
+      const response = await fetch(`/api/figma-proxy?url=${encodeURIComponent(figmaUrl)}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch Figma data');
+      }
+
+      const data = await response.json();
+      setJsonInput(JSON.stringify(data, null, 2));
+      setProgress('✅ Figma data loaded! Click Process to generate HTML.');
+    } catch (error: any) {
+      console.error('Error fetching Figma:', error);
+      setProgress(`❌ Error: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Process Figma JSON locally
   const processFigmaJSON = () => {
@@ -26,9 +53,39 @@ export const LocalFigmaProcessor: React.FC = () => {
       setProgress('Parsing JSON...');
       const data = JSON.parse(jsonInput);
 
-      const layouts = data.layouts || [];
-      const colors = data.colors || [];
-      const dimensions = data.dimensions || { width: 1920, height: 1080 };
+      // Handle both simplified and full Figma format
+      let layouts = data.layouts || [];
+      let colors = data.colors || [];
+      let dimensions = data.dimensions || { width: 1920, height: 1080 };
+
+      // If this is full Figma format, extract layouts from document
+      if (data.document && !data.layouts) {
+        layouts = [];
+        const extractLayouts = (node: any) => {
+          if (node.absoluteBoundingBox) {
+            layouts.push({
+              id: node.id,
+              name: node.name,
+              type: node.type,
+              x: node.absoluteBoundingBox.x,
+              y: node.absoluteBoundingBox.y,
+              width: node.absoluteBoundingBox.width,
+              height: node.absoluteBoundingBox.height,
+              fills: node.fills
+            });
+          }
+          if (node.children) {
+            node.children.forEach(extractLayouts);
+          }
+        };
+        extractLayouts(data.document);
+
+        // Extract dimensions from first canvas
+        if (data.document.children?.[0]?.absoluteBoundingBox) {
+          const canvas = data.document.children[0].absoluteBoundingBox;
+          dimensions = { width: canvas.width, height: canvas.height };
+        }
+      }
 
       setProgress(`Processing ${layouts.length} layouts...`);
 
@@ -81,7 +138,7 @@ ${colorVars}
       align-items: center;
       justify-content: center;
       font-size: 11px;
-      color: #666;
+      color: #333;
       border: 1px solid #e0e0e0;
       background: #fafafa;
       overflow: hidden;
@@ -98,7 +155,11 @@ ${colorVars}
 
     .element-text {
       font-weight: 500;
-      color: #333;
+      color: #1a1a1a;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      overflow: hidden;
+      padding: 2px 4px;
     }
 
     .element-frame {
@@ -166,7 +227,7 @@ ${colorVars}
       style="left: ${x}px; top: ${y}px; width: ${width}px; height: ${height}px; ${bgColor}"
       title="${layout.name} (${layout.type})"
       data-type="${layout.type}">
-      <span class="element-text">${layout.name}</span>
+      <span class="element-text">${layout.name || layout.type}</span>
     </div>\n`;
         });
       });
@@ -240,13 +301,36 @@ ${colorVars}
           {/* Input */}
           <div className="bg-white rounded-xl shadow-lg p-6">
             <h2 className="text-xl font-semibold mb-4 flex items-center">
-              <span className="mr-2">📋</span> Figma JSON Input
+              <span className="mr-2">📋</span> Input
             </h2>
+
+            {/* Figma URL Input */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">Figma URL</label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={figmaUrl}
+                  onChange={(e) => setFigmaUrl(e.target.value)}
+                  placeholder="https://www.figma.com/design/..."
+                  className="flex-1 p-2 border-2 border-gray-200 rounded-lg focus:border-blue-500 focus:outline-none"
+                />
+                <button
+                  onClick={fetchFigmaData}
+                  disabled={!figmaUrl || isLoading}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:bg-gray-300"
+                >
+                  {isLoading ? '⏳' : '🔗'} Fetch
+                </button>
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-500 mb-2">Or paste JSON directly:</div>
             <textarea
               value={jsonInput}
               onChange={(e) => setJsonInput(e.target.value)}
               placeholder="Paste your figma-simplified.json here..."
-              className="w-full h-64 p-4 border-2 border-gray-200 rounded-lg font-mono text-xs focus:border-blue-500 focus:outline-none"
+              className="w-full h-48 p-4 border-2 border-gray-200 rounded-lg font-mono text-xs focus:border-blue-500 focus:outline-none"
             />
             <div className="mt-4 flex gap-3">
               <button
