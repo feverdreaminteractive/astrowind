@@ -543,7 +543,7 @@ Build an EXACT replica matching these positions and dimensions.`;
       // For JSON input with layouts, ALWAYS chunk to avoid truncation
       if (isJSONInput && dataToProcess?.layouts) {
         const layouts = dataToProcess.layouts;
-        const chunksOf = 3; // Process only 3 layouts at a time for reliability
+        const chunksOf = 2; // Process only 2 layouts at a time to prevent timeouts
 
         console.log(`Processing ${layouts.length} layouts in chunks of ${chunksOf}`);
         let fullHTML = '';
@@ -566,28 +566,26 @@ Build an EXACT replica matching these positions and dimensions.`;
           const isFirst = i === 0;
           const isLast = i === sections.length - 1;
 
-          // Simplified prompts focused on layout data
+          // Ultra-simple prompts to avoid timeouts
           let sectionPrompt = '';
 
           if (isFirst) {
-            sectionPrompt = `Create an HTML page START. Section 1/${sections.length}.
-Generate: <!DOCTYPE html><html><head><style>body{margin:0;position:relative;}</style></head><body>
-Then add these ${section.layouts.length} elements as positioned divs:
-${section.layouts.map((l: any, idx: number) =>
-  `<div id="${l.id || 'elem' + idx}" style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;border:1px solid #ccc;">${l.name || ''}</div>`
+            sectionPrompt = `Output this HTML exactly:
+<!DOCTYPE html>
+<html><head><style>body{margin:0;}</style></head><body>
+${section.layouts.map((l: any) =>
+  `<div style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;background:#f0f0f0;border:1px solid #ccc;">${l.name}</div>`
 ).join('\n')}`;
           } else if (isLast) {
-            sectionPrompt = `Add FINAL elements. Section ${i + 1}/${sections.length}.
-Add these ${section.layouts.length} divs then close with </body></html>:
-${section.layouts.map((l: any, idx: number) =>
-  `<div style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;">${l.name || ''}</div>`
+            sectionPrompt = `Add these divs and close HTML:
+${section.layouts.map((l: any) =>
+  `<div style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;background:#f0f0f0;border:1px solid #ccc;">${l.name}</div>`
 ).join('\n')}
-End with: </body></html>`;
+</body></html>`;
           } else {
-            sectionPrompt = `Continue HTML. Section ${i + 1}/${sections.length}.
-Add ONLY these ${section.layouts.length} divs (no other tags):
-${section.layouts.map((l: any, idx: number) =>
-  `<div style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;">${l.name || ''}</div>`
+            sectionPrompt = `Add only these divs:
+${section.layouts.map((l: any) =>
+  `<div style="position:absolute;left:${Math.round(l.x)}px;top:${Math.round(l.y)}px;width:${Math.round(l.width)}px;height:${Math.round(l.height)}px;background:#f0f0f0;border:1px solid #ccc;">${l.name}</div>`
 ).join('\n')}`;
           };
 
@@ -595,15 +593,7 @@ ${section.layouts.map((l: any, idx: number) =>
             message: sectionPrompt,
             browserData: {
               isWebBuilder: true,
-              targetFile: 'section.html',
-              existingContent: '',
-              chunkIndex: i,
-              totalChunks: sections.length,
-              figmaContext: {
-                layouts: section.layouts.slice(0, 5), // Limit layouts sent
-                colors: dataToProcess?.colors?.slice(0, 5) || [],
-                dimensions: dataToProcess?.dimensions || { width: 1920, height: 1080 }
-              }
+              targetFile: 'chunk.html'
             }
           };
 
