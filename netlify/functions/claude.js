@@ -555,12 +555,11 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
     } // Close the else block for career assistant prompt
 
     // Call Claude API with latest Haiku 4.5 model
-    // Chunked builder requests generate one file at a time, but we need to keep
-    // tokens low to avoid timeouts (Netlify functions have a 10-second limit)
+    // Increased token limits for complete HTML/CSS generation
     const maxTokens = browserData && browserData.targetFile
-      ? 2500  // Reduced from 8000 to avoid timeouts
+      ? 8192  // Full file generation
       : browserData && (browserData.isWebBuilder || browserData.isWebContainer)
-        ? 1500  // Reduced from 4000 to avoid timeouts
+        ? 8192  // Complete website generation with Figma data
         : 1000;
 
     const claudeRequest = {
