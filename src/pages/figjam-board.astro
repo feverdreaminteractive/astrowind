@@ -1,0 +1,696 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="FigJam Board - Real-time Collaborative Whiteboard">
+  <div style="height: 100vh; width: 100vw; overflow: hidden; background: #111827; display: flex; flex-direction: column;">
+    <!-- Toolbar -->
+    <div style="background: #1f2937; border-bottom: 1px solid #374151; padding: 8px; display: flex; align-items: center; gap: 16px;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span style="color: white; font-weight: bold; font-size: 1.125rem; padding: 0 8px;">🎨 FigJam Board</span>
+        <div style="display: flex; align-items: center;">
+          <div id="statusDot" style="width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-right: 8px;"></div>
+          <span id="statusText" style="color: #9ca3af; font-size: 0.875rem;">Disconnected</span>
+        </div>
+      </div>
+
+      <!-- Tools -->
+      <div style="display: flex; align-items: center; gap: 8px; border-left: 1px solid #4b5563; padding-left: 16px;">
+        <button data-tool="select" class="tool-btn active">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 15l-2 5L9 9l11 4-5 2z"/>
+          </svg>
+        </button>
+        <button data-tool="sticky" class="tool-btn">
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <rect x="5" y="5" width="14" height="14" rx="2"/>
+          </svg>
+        </button>
+        <button data-tool="pen" class="tool-btn">
+          ✏️
+        </button>
+        <button data-tool="text" class="tool-btn">
+          T
+        </button>
+        <button data-tool="emoji" class="tool-btn">
+          😀
+        </button>
+        <button data-tool="arrow" class="tool-btn">
+          →
+        </button>
+      </div>
+
+      <!-- Colors -->
+      <div style="display: flex; align-items: center; gap: 4px; border-left: 1px solid #4b5563; padding-left: 16px;">
+        <button data-color="#fbbf24" class="color-btn bg-yellow-400"></button>
+        <button data-color="#34d399" class="color-btn bg-green-400"></button>
+        <button data-color="#60a5fa" class="color-btn bg-blue-400"></button>
+        <button data-color="#a78bfa" class="color-btn bg-purple-400"></button>
+        <button data-color="#f87171" class="color-btn bg-red-400"></button>
+        <button data-color="#fb923c" class="color-btn bg-orange-400"></button>
+        <button data-color="#e879f9" class="color-btn bg-pink-400"></button>
+      </div>
+
+      <!-- Users -->
+      <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+        <div id="usersList" style="display: flex; margin-left: -8px;"></div>
+        <span id="userCount" style="color: #9ca3af; font-size: 0.875rem; padding: 0 8px;">0 users</span>
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div id="boardContainer" style="flex: 1; position: relative; overflow: hidden; background: #111827;">
+      <div id="board" class="absolute" style="width: 5000px; height: 5000px; transform-origin: 0 0;">
+        <!-- Grid background -->
+        <svg class="absolute inset-0 w-full h-full" style="opacity: 0.1">
+          <defs>
+            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="white" stroke-width="0.5"/>
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#grid)" />
+        </svg>
+
+        <!-- Board content will be added here -->
+        <div id="boardContent" class="absolute inset-0"></div>
+
+        <!-- Drawing canvas -->
+        <canvas id="drawingCanvas" class="absolute inset-0 pointer-events-none" width="5000" height="5000"></canvas>
+
+        <!-- Cursors layer -->
+        <div id="cursorsLayer" class="absolute inset-0 pointer-events-none"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .tool-btn {
+      padding: 0.5rem;
+      border-radius: 0.25rem;
+      color: #9ca3af;
+      transition: all 0.2s;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+    }
+    .tool-btn:hover {
+      color: white;
+      background-color: #374151;
+    }
+    .tool-btn.active {
+      background-color: #374151;
+      color: white;
+    }
+    .color-btn {
+      width: 1.5rem;
+      height: 1.5rem;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    .color-btn:hover {
+      border-color: white;
+    }
+    .color-btn.active {
+      border-color: white;
+    }
+    .sticky-note {
+      position: absolute;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+      cursor: move;
+      user-select: none;
+      min-width: 150px;
+      min-height: 150px;
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+    .sticky-note:hover {
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+      z-index: 1000;
+    }
+    .sticky-note.selected {
+      box-shadow: 0 0 0 2px #3b82f6;
+    }
+    .cursor-pointer {
+      position: absolute;
+      display: flex;
+      align-items: center;
+      pointer-events: none;
+      transition: all 0.1s ease-out;
+    }
+    .cursor-dot {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 50%;
+    }
+    .cursor-name {
+      margin-left: 0.5rem;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-size: 0.75rem;
+      color: white;
+      font-weight: 500;
+    }
+    .emoji-reaction {
+      position: absolute;
+      font-size: 1.5rem;
+      pointer-events: none;
+      animation: float-up 2s ease-out forwards;
+    }
+    @keyframes float-up {
+      0% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-100px); }
+    }
+  </style>
+
+  <script>
+    let ws = null;
+    let clientId = null;
+    let currentTool = 'select';
+    let currentColor = '#fbbf24';
+    let isDrawing = false;
+    let isPanning = false;
+    let panStart = { x: 0, y: 0 };
+    let boardOffset = { x: 0, y: 0 };
+    let boardScale = 1;
+    let selectedElement = null;
+    let boardElements = new Map();
+    let cursors = new Map();
+    let drawingCtx = null;
+    let lastDrawPoint = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      const board = document.getElementById('board');
+      const boardContainer = document.getElementById('boardContainer');
+      const boardContent = document.getElementById('boardContent');
+      const drawingCanvas = document.getElementById('drawingCanvas');
+      drawingCtx = drawingCanvas.getContext('2d');
+
+      // Center the board
+      boardOffset.x = (boardContainer.clientWidth - 5000) / 2;
+      boardOffset.y = (boardContainer.clientHeight - 5000) / 2;
+      updateBoardTransform();
+
+      // Connect WebSocket
+      connectWebSocket();
+
+      // Tool selection
+      document.querySelectorAll('[data-tool]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentTool = btn.dataset.tool;
+          document.querySelectorAll('[data-tool]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          board.style.cursor = getCursorForTool(currentTool);
+        });
+      });
+
+      // Color selection
+      document.querySelectorAll('[data-color]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentColor = btn.dataset.color;
+          document.querySelectorAll('[data-color]').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+        });
+      });
+
+      // Board interactions
+      board.addEventListener('mousedown', handleMouseDown);
+      board.addEventListener('mousemove', handleMouseMove);
+      board.addEventListener('mouseup', handleMouseUp);
+      board.addEventListener('dblclick', handleDoubleClick);
+
+      // Wheel zoom
+      boardContainer.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const delta = e.deltaY > 0 ? 0.9 : 1.1;
+          const newScale = Math.min(Math.max(0.1, boardScale * delta), 3);
+
+          // Zoom to mouse position
+          const rect = boardContainer.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          boardOffset.x = x - (x - boardOffset.x) * (newScale / boardScale);
+          boardOffset.y = y - (y - boardOffset.y) * (newScale / boardScale);
+          boardScale = newScale;
+
+          updateBoardTransform();
+        }
+      });
+
+      // Keyboard shortcuts
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Delete' && selectedElement) {
+          removeElement(selectedElement.id);
+        }
+        if (e.key === ' ') {
+          e.preventDefault();
+          isPanning = true;
+          board.style.cursor = 'grab';
+        }
+      });
+
+      document.addEventListener('keyup', (e) => {
+        if (e.key === ' ') {
+          isPanning = false;
+          board.style.cursor = getCursorForTool(currentTool);
+        }
+      });
+    });
+
+    // WebSocket connection
+    function connectWebSocket() {
+      ws = new WebSocket('ws://localhost:8889');
+
+      ws.onopen = () => {
+        console.log('Connected to FigJam board');
+        updateStatus('Connected', 'green');
+
+        // Join board
+        ws.send(JSON.stringify({
+          type: 'join-board',
+          boardId: 'main',
+          user: {
+            id: generateId(),
+            name: `User ${Math.floor(Math.random() * 100)}`,
+            color: getRandomColor()
+          }
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        handleWebSocketMessage(data);
+      };
+
+      ws.onerror = () => {
+        updateStatus('Error', 'red');
+      };
+
+      ws.onclose = () => {
+        updateStatus('Disconnected', 'red');
+        setTimeout(connectWebSocket, 3000);
+      };
+    }
+
+    function handleWebSocketMessage(data) {
+      switch(data.type) {
+        case 'board-state':
+          loadBoardState(data.elements);
+          break;
+        case 'element-add':
+          addElementFromRemote(data.element);
+          break;
+        case 'element-update':
+          updateElementFromRemote(data.element);
+          break;
+        case 'element-remove':
+          removeElementFromRemote(data.elementId);
+          break;
+        case 'cursor-move':
+          updateCursor(data.user, data.position);
+          break;
+        case 'user-join':
+          addUser(data.user);
+          break;
+        case 'user-leave':
+          removeUser(data.userId);
+          break;
+        case 'drawing':
+          drawFromRemote(data.drawing);
+          break;
+        case 'emoji-reaction':
+          showEmojiReaction(data.emoji, data.position);
+          break;
+      }
+    }
+
+    function handleMouseDown(e) {
+      if (isPanning) {
+        panStart = { x: e.clientX - boardOffset.x, y: e.clientY - boardOffset.y };
+        document.getElementById('board').style.cursor = 'grabbing';
+        return;
+      }
+
+      const pos = getBoardPosition(e);
+
+      switch(currentTool) {
+        case 'sticky':
+          createStickyNote(pos);
+          break;
+        case 'pen':
+          startDrawing(pos);
+          break;
+        case 'text':
+          createTextElement(pos);
+          break;
+        case 'emoji':
+          createEmoji(pos);
+          break;
+        case 'select':
+          selectElement(e.target);
+          break;
+      }
+    }
+
+    function handleMouseMove(e) {
+      const pos = getBoardPosition(e);
+
+      // Send cursor position
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'cursor-move',
+          position: pos
+        }));
+      }
+
+      if (isPanning && e.buttons === 1) {
+        boardOffset.x = e.clientX - panStart.x;
+        boardOffset.y = e.clientY - panStart.y;
+        updateBoardTransform();
+      } else if (isDrawing && currentTool === 'pen') {
+        draw(pos);
+      } else if (selectedElement && e.buttons === 1) {
+        moveElement(selectedElement, pos);
+      }
+    }
+
+    function handleMouseUp() {
+      isDrawing = false;
+      lastDrawPoint = null;
+      if (isPanning) {
+        document.getElementById('board').style.cursor = 'grab';
+      }
+    }
+
+    function handleDoubleClick(e) {
+      const pos = getBoardPosition(e);
+      if (currentTool === 'emoji') {
+        const emoji = prompt('Enter emoji:') || '❤️';
+        sendEmojiReaction(emoji, pos);
+      }
+    }
+
+    // Element creation
+    function createStickyNote(pos) {
+      const sticky = {
+        id: generateId(),
+        type: 'sticky',
+        x: pos.x,
+        y: pos.y,
+        width: 200,
+        height: 200,
+        color: currentColor,
+        text: 'New sticky note',
+        author: clientId
+      };
+
+      addElement(sticky);
+      broadcastElement('element-add', sticky);
+    }
+
+    function createTextElement(pos) {
+      const text = {
+        id: generateId(),
+        type: 'text',
+        x: pos.x,
+        y: pos.y,
+        text: 'Type here...',
+        color: currentColor,
+        author: clientId
+      };
+
+      addElement(text);
+      broadcastElement('element-add', text);
+    }
+
+    function createEmoji(pos) {
+      const emoji = {
+        id: generateId(),
+        type: 'emoji',
+        x: pos.x,
+        y: pos.y,
+        emoji: '👍',
+        author: clientId
+      };
+
+      addElement(emoji);
+      broadcastElement('element-add', emoji);
+    }
+
+    function addElement(element) {
+      boardElements.set(element.id, element);
+
+      const el = document.createElement('div');
+      el.id = element.id;
+      el.className = element.type === 'sticky' ? 'sticky-note' : 'absolute';
+      el.style.left = `${element.x}px`;
+      el.style.top = `${element.y}px`;
+
+      if (element.type === 'sticky') {
+        el.style.backgroundColor = element.color;
+        el.style.width = `${element.width}px`;
+        el.style.height = `${element.height}px`;
+        el.innerHTML = `<div contenteditable="true" class="w-full h-full outline-none">${element.text}</div>`;
+
+        el.addEventListener('input', (e) => {
+          element.text = e.target.innerText;
+          broadcastElement('element-update', element);
+        });
+      } else if (element.type === 'text') {
+        el.innerHTML = `<div contenteditable="true" class="text-white text-lg">${element.text}</div>`;
+        el.style.color = element.color;
+      } else if (element.type === 'emoji') {
+        el.innerHTML = `<span class="text-4xl">${element.emoji}</span>`;
+      }
+
+      document.getElementById('boardContent').appendChild(el);
+    }
+
+    // Drawing
+    function startDrawing(pos) {
+      isDrawing = true;
+      lastDrawPoint = pos;
+      drawingCtx.strokeStyle = currentColor;
+      drawingCtx.lineWidth = 3;
+      drawingCtx.lineCap = 'round';
+      drawingCtx.beginPath();
+      drawingCtx.moveTo(pos.x, pos.y);
+    }
+
+    function draw(pos) {
+      if (!lastDrawPoint) return;
+
+      drawingCtx.lineTo(pos.x, pos.y);
+      drawingCtx.stroke();
+
+      // Broadcast drawing
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'drawing',
+          drawing: {
+            from: lastDrawPoint,
+            to: pos,
+            color: currentColor,
+            width: 3
+          }
+        }));
+      }
+
+      lastDrawPoint = pos;
+    }
+
+    function drawFromRemote(drawing) {
+      drawingCtx.strokeStyle = drawing.color;
+      drawingCtx.lineWidth = drawing.width;
+      drawingCtx.beginPath();
+      drawingCtx.moveTo(drawing.from.x, drawing.from.y);
+      drawingCtx.lineTo(drawing.to.x, drawing.to.y);
+      drawingCtx.stroke();
+    }
+
+    // Cursors
+    function updateCursor(user, position) {
+      if (!cursors.has(user.id)) {
+        const cursor = document.createElement('div');
+        cursor.className = 'cursor-pointer';
+        cursor.innerHTML = `
+          <div class="cursor-dot" style="background-color: ${user.color}"></div>
+          <div class="cursor-name" style="background-color: ${user.color}">${user.name}</div>
+        `;
+        document.getElementById('cursorsLayer').appendChild(cursor);
+        cursors.set(user.id, { element: cursor, user });
+      }
+
+      const cursor = cursors.get(user.id);
+      cursor.element.style.left = `${position.x}px`;
+      cursor.element.style.top = `${position.y}px`;
+    }
+
+    // Emoji reactions
+    function sendEmojiReaction(emoji, pos) {
+      showEmojiReaction(emoji, pos);
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'emoji-reaction',
+          emoji: emoji,
+          position: pos
+        }));
+      }
+    }
+
+    function showEmojiReaction(emoji, position) {
+      const reaction = document.createElement('div');
+      reaction.className = 'emoji-reaction';
+      reaction.style.left = `${position.x}px`;
+      reaction.style.top = `${position.y}px`;
+      reaction.textContent = emoji;
+
+      document.getElementById('boardContent').appendChild(reaction);
+
+      setTimeout(() => reaction.remove(), 2000);
+    }
+
+    // Utility functions
+    function getBoardPosition(e) {
+      const rect = document.getElementById('board').getBoundingClientRect();
+      return {
+        x: (e.clientX - rect.left) / boardScale,
+        y: (e.clientY - rect.top) / boardScale
+      };
+    }
+
+    function updateBoardTransform() {
+      const board = document.getElementById('board');
+      board.style.transform = `translate(${boardOffset.x}px, ${boardOffset.y}px) scale(${boardScale})`;
+    }
+
+    function getCursorForTool(tool) {
+      const cursors = {
+        select: 'default',
+        sticky: 'crosshair',
+        pen: 'crosshair',
+        text: 'text',
+        emoji: 'pointer',
+        arrow: 'crosshair'
+      };
+      return cursors[tool] || 'default';
+    }
+
+    function updateStatus(text, color) {
+      document.getElementById('statusText').textContent = text;
+      document.getElementById('statusDot').className = `w-2 h-2 rounded-full bg-${color}-500 mr-2`;
+    }
+
+    function generateId() {
+      return Math.random().toString(36).substr(2, 9);
+    }
+
+    function getRandomColor() {
+      const colors = ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899'];
+      return colors[Math.floor(Math.random() * colors.length)];
+    }
+
+    function broadcastElement(type, element) {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: type,
+          element: element
+        }));
+      }
+    }
+
+    function addUser(user) {
+      const avatar = document.createElement('div');
+      avatar.id = `user-${user.id}`;
+      avatar.className = 'w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs';
+      avatar.style.backgroundColor = user.color;
+      avatar.title = user.name;
+      avatar.textContent = user.name[0].toUpperCase();
+
+      document.getElementById('usersList').appendChild(avatar);
+      updateUserCount();
+    }
+
+    function removeUser(userId) {
+      document.getElementById(`user-${userId}`)?.remove();
+      const cursor = cursors.get(userId);
+      if (cursor) {
+        cursor.element.remove();
+        cursors.delete(userId);
+      }
+      updateUserCount();
+    }
+
+    function updateUserCount() {
+      const count = document.getElementById('usersList').children.length;
+      document.getElementById('userCount').textContent = `${count} user${count !== 1 ? 's' : ''}`;
+    }
+
+    // Load board state
+    function loadBoardState(elements) {
+      elements.forEach(element => addElement(element));
+    }
+
+    // Element management
+    function selectElement(target) {
+      document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+      if (target.classList.contains('sticky-note')) {
+        target.classList.add('selected');
+        selectedElement = target;
+      }
+    }
+
+    function moveElement(element, pos) {
+      element.style.left = `${pos.x - 100}px`;
+      element.style.top = `${pos.y - 100}px`;
+
+      const elementData = boardElements.get(element.id);
+      if (elementData) {
+        elementData.x = pos.x - 100;
+        elementData.y = pos.y - 100;
+        broadcastElement('element-update', elementData);
+      }
+    }
+
+    function removeElement(elementId) {
+      document.getElementById(elementId)?.remove();
+      boardElements.delete(elementId);
+
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+          type: 'element-remove',
+          elementId: elementId
+        }));
+      }
+    }
+
+    function addElementFromRemote(element) {
+      if (!boardElements.has(element.id)) {
+        addElement(element);
+      }
+    }
+
+    function updateElementFromRemote(element) {
+      const el = document.getElementById(element.id);
+      if (el) {
+        el.style.left = `${element.x}px`;
+        el.style.top = `${element.y}px`;
+        if (element.text) {
+          el.querySelector('[contenteditable]').innerText = element.text;
+        }
+        boardElements.set(element.id, element);
+      }
+    }
+
+    function removeElementFromRemote(elementId) {
+      document.getElementById(elementId)?.remove();
+      boardElements.delete(elementId);
+    }
+  </script>
+</Layout>
