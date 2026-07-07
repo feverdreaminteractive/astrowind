@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="WebContainer Figma Builder">
+  <div id="webcontainer-root"></div>
+
+  <script>
+    import { WebContainerBuilder } from '../components/WebContainerBuilder.tsx';
+    import React from 'react';
+    import { createRoot } from 'react-dom/client';
+
+    const container = document.getElementById('webcontainer-root');
+    if (container) {
+      const root = createRoot(container);
+      root.render(React.createElement(WebContainerBuilder));
+    }
+  </script>
+</Layout>
