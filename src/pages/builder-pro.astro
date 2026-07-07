@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AIBuilderWithContainer from '../components/AIWebsiteBuilder/AIBuilderWithContainer';
+---
+
+<Layout showNavigation={true}>
+  <main class="min-h-screen bg-black pt-16 relative overflow-hidden">
+    <!-- Container for the builder interface -->
+    <div class="h-[calc(100vh-4rem)]">
+      <AIBuilderWithContainer client:only="react" />
+    </div>
+  </main>
+</Layout>
+
+<!-- Font Awesome for icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<style>
+  /* Ensure the builder takes full height */
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+</style>
