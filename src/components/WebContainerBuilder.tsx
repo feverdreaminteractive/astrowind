@@ -507,7 +507,7 @@ class FigmaParser {
     }
   <${'/' + 'style'}>
 <${'/' + 'head'}>
-<body>\n\`;
+<body>\`;
 
     // Process each layout element
     layouts.forEach(layout => {
@@ -515,7 +515,7 @@ class FigmaParser {
       const className = this.getClassName(layout);
       const content = this.getContent(layout);
 
-      html += '  <div id="' + layout.id + '" class="element ' + className + '" style="' + styles + '" title="' + layout.name + '">\n    ' + content + '\n  </div>\n';
+      html += '  <div id="' + layout.id + '" class="element ' + className + '" style="' + styles + '" title="' + layout.name + '">' + content + '</div>';
     });
 
     html += \`<${'/' + 'body'}>
