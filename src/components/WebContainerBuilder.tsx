@@ -149,7 +149,7 @@ class FigmaMCPServer {
             return {
               content: [{
                 type: 'text',
-                text: \`File key: \${match[1]}\`
+                text: 'File key: ' + match[1]
               }]
             };
           }
@@ -161,12 +161,12 @@ class FigmaMCPServer {
             throw new Error('No Figma token provided. Set FIGMA_TOKEN environment variable or pass token parameter.');
           }
 
-          const url = \`https://api.figma.com/v1/files/\${args.fileKey}\`;
+          const url = 'https://api.figma.com/v1/files/' + args.fileKey;
           const params = new URLSearchParams();
           if (args.geometry) params.append('geometry', args.geometry);
           if (args.version) params.append('version', args.version);
 
-          const fullUrl = params.toString() ? \`\${url}?\${params}\` : url;
+          const fullUrl = params.toString() ? url + '?' + params.toString() : url;
 
           const response = await fetch(fullUrl, {
             headers: { 'X-Figma-Token': token }
@@ -174,7 +174,7 @@ class FigmaMCPServer {
 
           if (!response.ok) {
             const error = await response.text();
-            throw new Error(\`Figma API error (\${response.status}): \${error}\`);
+            throw new Error('Figma API error (' + response.status + '): ' + error);
           }
 
           const data = await response.json();
@@ -204,14 +204,14 @@ class FigmaMCPServer {
             throw new Error('No Figma token provided');
           }
 
-          const url = \`https://api.figma.com/v1/files/\${args.fileKey}/nodes?ids=\${args.ids}\`;
+          const url = 'https://api.figma.com/v1/files/' + args.fileKey + '/nodes?ids=' + args.ids;
 
           const response = await fetch(url, {
             headers: { 'X-Figma-Token': token }
           });
 
           if (!response.ok) {
-            throw new Error(\`Figma API error: \${response.status}\`);
+            throw new Error('Figma API error: ' + response.status);
           }
 
           const data = await response.json();
@@ -228,19 +228,19 @@ class FigmaMCPServer {
             throw new Error('No Figma token provided');
           }
 
-          const url = \`https://api.figma.com/v1/images/\${args.fileKey}\`;
+          const url = 'https://api.figma.com/v1/images/' + args.fileKey;
           const params = new URLSearchParams({
             ids: args.ids,
             scale: args.scale || 1,
             format: args.format || 'png'
           });
 
-          const response = await fetch(\`\${url}?\${params}\`, {
+          const response = await fetch(url + '?' + params.toString(), {
             headers: { 'X-Figma-Token': token }
           });
 
           if (!response.ok) {
-            throw new Error(\`Figma API error: \${response.status}\`);
+            throw new Error('Figma API error: ' + response.status);
           }
 
           const data = await response.json();
@@ -253,7 +253,7 @@ class FigmaMCPServer {
         }
 
         default:
-          throw new Error(\`Unknown tool: \${name}\`);
+          throw new Error('Unknown tool: ' + name);
       }
     });
   }
@@ -315,7 +315,7 @@ class FigmaMCPClient {
         }
       }
 
-      console.log(\`Fetching Figma file: \${fileKey}\`);
+      console.log('Fetching Figma file: ' + fileKey);
 
       // Fetch the file
       const result = await this.client.callTool('get_file', {
@@ -331,8 +331,8 @@ class FigmaMCPClient {
         fs.writeFileSync('input.json', JSON.stringify(data, null, 2));
 
         console.log('✅ Figma file fetched successfully!');
-        console.log(\`File: \${data.name}\`);
-        console.log(\`Pages: \${data.document?.children?.length || 0}\`);
+        console.log('File: ' + data.name);
+        console.log('Pages: ' + (data.document?.children?.length || 0));
 
         return data;
       }
@@ -474,7 +474,7 @@ class FigmaParser {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>\${parsedData.name || 'Figma Design'}</title>
+  <title>' + (parsedData.name || 'Figma Design') + '</title>
   <style>
     * {
       margin: 0;
@@ -514,9 +514,7 @@ class FigmaParser {
       const className = this.getClassName(layout);
       const content = this.getContent(layout);
 
-      html += \`  <div id="\${layout.id}" class="element \${className}" style="\${styles}" title="\${layout.name}">
-    \${content}
-  <${'/' + 'div'}>\n\`;
+      html += '  <div id="' + layout.id + '" class="element ' + className + '" style="' + styles + '" title="' + layout.name + '">\n    ' + content + '\n  </div>\n';
     });
 
     html += \`<${'/' + 'body'}>
@@ -529,29 +527,29 @@ class FigmaParser {
     const styles = [];
 
     // Position and size
-    styles.push(\`left: \${Math.round(layout.x)}px\`);
-    styles.push(\`top: \${Math.round(layout.y)}px\`);
-    styles.push(\`width: \${Math.round(layout.width)}px\`);
-    styles.push(\`height: \${Math.round(layout.height)}px\`);
+    styles.push('left: ' + Math.round(layout.x) + 'px');
+    styles.push('top: ' + Math.round(layout.y) + 'px');
+    styles.push('width: ' + Math.round(layout.width) + 'px');
+    styles.push('height: ' + Math.round(layout.height) + 'px');
 
     // Background
     if (layout.fills && layout.fills.length > 0) {
       const fill = layout.fills[0];
       if (fill.type === 'SOLID' && fill.color) {
         const c = fill.color;
-        const rgb = \`rgba(\${Math.round(c.r*255)}, \${Math.round(c.g*255)}, \${Math.round(c.b*255)}, \${fill.opacity || 1})\`;
-        styles.push(\`background-color: \${rgb}\`);
+        const rgb = 'rgba(' + Math.round(c.r*255) + ', ' + Math.round(c.g*255) + ', ' + Math.round(c.b*255) + ', ' + (fill.opacity || 1) + ')';
+        styles.push('background-color: ' + rgb);
       }
     }
 
     // Border radius
     if (layout.cornerRadius) {
-      styles.push(\`border-radius: \${layout.cornerRadius}px\`);
+      styles.push('border-radius: ' + layout.cornerRadius + 'px');
     }
 
     // Opacity
     if (layout.opacity !== undefined && layout.opacity < 1) {
-      styles.push(\`opacity: \${layout.opacity}\`);
+      styles.push('opacity: ' + layout.opacity);
     }
 
     // Flexbox
@@ -564,21 +562,21 @@ class FigmaParser {
     }
 
     if (layout.itemSpacing) {
-      styles.push(\`gap: \${layout.itemSpacing}px\`);
+      styles.push('gap: ' + layout.itemSpacing + 'px');
     }
 
     // Padding
     if (layout.padding) {
-      styles.push(\`padding: \${layout.padding.top}px \${layout.padding.right}px \${layout.padding.bottom}px \${layout.padding.left}px\`);
+      styles.push('padding: ' + layout.padding.top + 'px ' + layout.padding.right + 'px ' + layout.padding.bottom + 'px ' + layout.padding.left + 'px');
     }
 
     // Text styles
     if (layout.style) {
-      if (layout.style.fontSize) styles.push(\`font-size: \${layout.style.fontSize}px\`);
-      if (layout.style.fontWeight) styles.push(\`font-weight: \${layout.style.fontWeight}\`);
+      if (layout.style.fontSize) styles.push('font-size: ' + layout.style.fontSize + 'px');
+      if (layout.style.fontWeight) styles.push('font-weight: ' + layout.style.fontWeight);
       if (layout.style.textAlignHorizontal) {
         const align = layout.style.textAlignHorizontal.toLowerCase();
-        styles.push(\`text-align: \${align}\`);
+        styles.push('text-align: ' + align);
       }
     }
 
@@ -599,7 +597,7 @@ class FigmaParser {
     if (layout.type === 'TEXT') {
       return layout.name;
     }
-    return \`<span style="font-size: 11px; color: #666;">\${layout.name}</span>\`;
+    return '<span style="font-size: 11px; color: #666;">' + layout.name + '</span>';
   }
 }
 
@@ -807,13 +805,13 @@ console.log('Output written to output.html');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${figmaData.name || 'Figma Design'}</title>
-  <style>${css}<${'/' + 'style'}>
-<${'/' + 'head'}>
+  <title>' + (figmaData.name || 'Figma Design') + '</title>
+  <style>' + css + '</style>
+</head>
 <body>
-${html}
-<${'/' + 'body'}>
-<${'/' + 'html'}>`;
+' + html + '
+</body>
+</html>`;
 
       setProcessedHTML(fullHTML);
       setProcessedCSS(css);
@@ -855,7 +853,7 @@ ${html}
     try {
       // Write token to env if available
       if (figmaToken) {
-        await webcontainerInstance.fs.writeFile('.env', `FIGMA_TOKEN=${figmaToken}`);
+        await webcontainerInstance.fs.writeFile('.env', 'FIGMA_TOKEN=' + figmaToken);
       }
 
       // Run MCP client to fetch
