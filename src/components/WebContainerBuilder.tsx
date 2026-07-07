@@ -291,27 +291,16 @@ class FigmaMCPClient {
   }
 
   async connect() {
-    // Start the MCP server as a subprocess
-    const serverProcess = spawn('node', ['mcp-server.js'], {
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    const transport = new StdioClientTransport({
-      stdioProcess: serverProcess
-    });
-
-    await this.client.connect(transport);
-    console.log('Connected to Figma MCP Server');
+    // In WebContainer, we need to handle this differently
+    // For now, skip the MCP server connection and use direct API
+    console.log('MCP Client initialized (WebContainer mode)');
   }
 
   async fetchFigmaFile(fileKey, token) {
     try {
       // Extract file key from URL if needed
       if (fileKey.includes('figma.com')) {
-        const extractResult = await this.client.callTool('extract_from_url', {
-          url: fileKey
-        });
-        const match = extractResult.content[0].text.match(/File key: (.+)/);
+        const match = fileKey.match(/figma\\.com\\/(?:file|design)\\/([^/\\?]+)/);
         if (match) {
           fileKey = match[1];
         }
@@ -319,27 +308,29 @@ class FigmaMCPClient {
 
       console.log('Fetching Figma file: ' + fileKey);
 
-      // Fetch the file
-      const result = await this.client.callTool('get_file', {
-        fileKey: fileKey,
-        token: token || process.env.FIGMA_TOKEN
+      // Since we can't spawn processes in WebContainer the same way,
+      // we'll directly call the MCP server functions
+      const fetch = (await import('node-fetch')).default;
+      const response = await fetch('https://api.figma.com/v1/files/' + fileKey, {
+        headers: {
+          'X-Figma-Token': token || process.env.FIGMA_TOKEN
+        }
       });
 
-      // The server already saved to figma-cache.json
-      if (fs.existsSync('figma-cache.json')) {
-        const data = JSON.parse(fs.readFileSync('figma-cache.json', 'utf8'));
-
-        // Copy to input.json for processor
-        fs.writeFileSync('input.json', JSON.stringify(data, null, 2));
-
-        console.log('Figma file fetched successfully!');
-        console.log('File: ' + data.name);
-        console.log('Pages: ' + (data.document?.children?.length || 0));
-
-        return data;
+      if (!response.ok) {
+        throw new Error('Figma API error: ' + response.status);
       }
 
-      return JSON.parse(result.content[0].text);
+      const data = await response.json();
+
+      // Save to input.json for processor
+      fs.writeFileSync('input.json', JSON.stringify(data, null, 2));
+
+      console.log('Figma file fetched successfully!');
+      console.log('File: ' + data.name);
+      console.log('Pages: ' + (data.document?.children?.length || 0));
+
+      return data;
     } catch (error) {
       console.error('Error fetching Figma file:', error.message);
       throw error;
@@ -347,7 +338,8 @@ class FigmaMCPClient {
   }
 
   async disconnect() {
-    await this.client.close();
+    // No need to disconnect in WebContainer mode
+    console.log('MCP Client disconnected');
   }
 }
 
