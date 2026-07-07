@@ -163,6 +163,7 @@ const AIWebsiteBuilderInner: React.FC = () => {
   const [figmaData, setFigmaData] = useState<any>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [figmaJson, setFigmaJson] = useState<any>(null);
+  const [generationProgress, setGenerationProgress] = useState<string>('');
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -437,11 +438,14 @@ const AIWebsiteBuilderInner: React.FC = () => {
     return null;
   };
 
-  // Generate code using AI
+  // Generate code using AI with chunking support
   const generateCode = async () => {
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
+
+    // Check if we need chunked generation (for Figma data)
+    const needsChunking = figmaData?.layouts?.length > 20 || figmaJson?.layouts?.length > 20;
 
     // Check if this is a Figma URL and extract data
     let figmaContext = null;
@@ -512,14 +516,121 @@ Build an EXACT replica matching these positions and dimensions.`;
         enhancedPrompt = `${prompt}\n\nEXTRACTED FIGMA DESIGN DATA:\nColors: ${figmaContext.colors?.slice(0, 10).join(', ')}\nTypography: ${JSON.stringify(figmaContext.typography?.slice(0, 5))}\nDimensions: ${figmaContext.dimensions?.width}x${figmaContext.dimensions?.height}\nStructure Preview:\n${figmaContext.structure?.substring(0, 500)}`;
       }
 
-      // Build request payload
+      // For large Figma designs, break into chunks
+      if (needsChunking && (figmaData || figmaJson)) {
+        const layouts = (figmaData?.layouts || figmaJson?.layouts || []);
+        const chunksOf = 15; // Process 15 elements at a time
+        let fullHTML = '';
+        let fullCSS = '';
+
+        // Group layouts by Y position (sections)
+        const sections: any[] = [];
+        layouts.forEach((layout: any) => {
+          const sectionIndex = sections.findIndex(s =>
+            Math.abs(s.startY - layout.y) < 100
+          );
+          if (sectionIndex === -1) {
+            sections.push({ startY: layout.y, layouts: [layout] });
+          } else {
+            sections[sectionIndex].layouts.push(layout);
+          }
+        });
+
+        // Sort sections by Y position
+        sections.sort((a, b) => a.startY - b.startY);
+
+        console.log(`Processing ${sections.length} sections...`);
+
+        // Generate each section
+        for (let i = 0; i < sections.length; i++) {
+          const section = sections[i];
+          const isFirst = i === 0;
+          const isLast = i === sections.length - 1;
+
+          const sectionPrompt = `Generate HTML for section ${i + 1} of ${sections.length}.
+          ${isFirst ? 'This is the HEADER/TOP section. Include <!DOCTYPE html> and opening tags.' : ''}
+          ${isLast ? 'This is the FOOTER/BOTTOM section. Include closing </body></html> tags.' : ''}
+
+          Section elements (use exact positions):
+          ${section.layouts.map((l: any) =>
+            `${l.name}: ${l.width}x${l.height}px at (${l.x}, ${l.y})`
+          ).join('\n')}
+
+          ${!isFirst && !isLast ? 'Output ONLY the HTML for this section, no DOCTYPE or body tags.' : ''}`;
+
+          const sectionPayload = {
+            message: sectionPrompt,
+            browserData: {
+              isWebBuilder: true,
+              targetFile: 'section.html',
+              existingContent: '',
+              chunkIndex: i,
+              totalChunks: sections.length,
+              figmaContext: {
+                layouts: section.layouts,
+                colors: figmaData?.colors || figmaJson?.colors,
+                dimensions: figmaData?.dimensions || { width: 1920, height: 1080 }
+              }
+            }
+          };
+
+          console.log(`Generating section ${i + 1}/${sections.length}...`);
+          setGenerationProgress(`Generating section ${i + 1} of ${sections.length}...`);
+
+          const response = await fetch('/api/claude', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sectionPayload),
+          });
+
+          if (!response.ok) throw new Error(`Section ${i + 1} failed`);
+
+          const data = await response.json();
+          const sectionHTML = data.response || data.message;
+
+          if (isFirst) {
+            fullHTML = sectionHTML;
+          } else if (isLast) {
+            // Extract body content and append
+            const bodyMatch = fullHTML.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+            if (bodyMatch) {
+              fullHTML = fullHTML.replace('</body>', sectionHTML + '</body>');
+            } else {
+              fullHTML += sectionHTML;
+            }
+          } else {
+            // Insert section before closing body
+            const insertPoint = fullHTML.lastIndexOf('</body>');
+            if (insertPoint > -1) {
+              fullHTML = fullHTML.slice(0, insertPoint) + sectionHTML + fullHTML.slice(insertPoint);
+            } else {
+              fullHTML += sectionHTML;
+            }
+          }
+
+          // Update preview after each section
+          handleCodeChange(cleanGeneratedCode(fullHTML));
+
+          // Small delay between requests
+          if (i < sections.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+          }
+        }
+
+        setPrompt('');
+        setGenerationProgress('');
+        setIsGenerating(false);
+        return;
+      }
+
+      // Regular single request for simple prompts
       const requestPayload = {
-        message: prompt, // Send original prompt, not enhanced
+        message: prompt,
         browserData: {
           isWebBuilder: true,
           targetFile: selectedFile?.name || 'index.html',
           existingContent: code,
-          figmaContext: figmaData || figmaContext, // Use processed JSON data if available
+          figmaContext: figmaData || figmaContext,
           hasUploadedImage: !!uploadedImage,
           imageDescription: uploadedImage ? enhancedPrompt : null
         }
@@ -633,7 +744,7 @@ Build an EXACT replica matching these positions and dimensions.`;
               {isGenerating ? (
                 <span className="flex items-center gap-2">
                   <i className="fas fa-spinner fa-spin"></i>
-                  Generating...
+                  {generationProgress || 'Generating...'}
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
