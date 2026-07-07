@@ -490,12 +490,12 @@ ${visitorContext.isLikelyRecruiter && visitorContext.hasCompanyInfo ? `**RECRUIT
     } // Close the else block for career assistant prompt
 
     // Call Claude API with latest Haiku 4.5 model
-    // Chunked builder requests generate one file at a time, so they can use a
-    // larger per-request budget while each response still returns quickly.
+    // Chunked builder requests generate one file at a time, but we need to keep
+    // tokens low to avoid timeouts (Netlify functions have a 10-second limit)
     const maxTokens = browserData && browserData.targetFile
-      ? 8000
+      ? 2500  // Reduced from 8000 to avoid timeouts
       : browserData && (browserData.isWebBuilder || browserData.isWebContainer)
-        ? 4000
+        ? 1500  // Reduced from 4000 to avoid timeouts
         : 1000;
 
     const claudeRequest = {
