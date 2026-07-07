@@ -61,6 +61,9 @@ const AIWebsiteBuilder: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
+  const [figmaToken, setFigmaToken] = useState('');
+  const [showFigmaSettings, setShowFigmaSettings] = useState(false);
+  const [figmaData, setFigmaData] = useState<any>(null);
   const iframeRef = useRef<HTMLIFrameElement>(null);
 
   // Update preview when code changes
@@ -88,36 +91,174 @@ const AIWebsiteBuilder: React.FC = () => {
     }
   };
 
+  // Extract Figma design data
+  const extractFigmaData = async (figmaUrl: string) => {
+    // Extract file key and node ID from URL
+    const fileMatch = figmaUrl.match(/figma\.com\/(?:file|design)\/([^/?\s]+)/);
+    const nodeMatch = figmaUrl.match(/node-id=([^&\s]+)/);
+
+    if (!fileMatch) {
+      throw new Error('Invalid Figma URL');
+    }
+
+    const fileKey = fileMatch[1];
+    const nodeId = nodeMatch ? nodeMatch[1].replace('-', ':') : null;
+
+    // Check if we have a token saved
+    const token = figmaToken || localStorage.getItem('figmaToken');
+
+    if (!token) {
+      setShowFigmaSettings(true);
+      throw new Error('Figma access token required. Get one from: https://www.figma.com/developers/api#access-tokens');
+    }
+
+    // Fetch from Figma API
+    const figmaApiUrl = `https://api.figma.com/v1/files/${fileKey}${nodeId ? `?node_ids=${nodeId}` : ''}`;
+
+    const response = await fetch(figmaApiUrl, {
+      headers: {
+        'X-Figma-Token': token
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch Figma file');
+    }
+
+    const data = await response.json();
+
+    // Extract design context
+    const context = extractDesignContext(data, nodeId);
+    setFigmaData(context);
+
+    return context;
+  };
+
+  // Extract meaningful design context from Figma data
+  const extractDesignContext = (figmaData: any, nodeId: string | null) => {
+    const document = nodeId ?
+      findNodeById(figmaData.document, nodeId) :
+      figmaData.document;
+
+    if (!document) return null;
+
+    // Extract colors
+    const colors = new Set<string>();
+    const extractColors = (node: any) => {
+      if (node.fills) {
+        node.fills.forEach((fill: any) => {
+          if (fill.type === 'SOLID' && fill.color) {
+            const rgb = `rgb(${Math.round(fill.color.r * 255)}, ${Math.round(fill.color.g * 255)}, ${Math.round(fill.color.b * 255)})`;
+            colors.add(rgb);
+          }
+        });
+      }
+      if (node.children) {
+        node.children.forEach((child: any) => extractColors(child));
+      }
+    };
+    extractColors(document);
+
+    // Extract typography
+    const typography: any[] = [];
+    const extractTypography = (node: any) => {
+      if (node.type === 'TEXT' && node.style) {
+        typography.push({
+          fontSize: node.style.fontSize,
+          fontWeight: node.style.fontWeight,
+          fontFamily: node.style.fontFamily
+        });
+      }
+      if (node.children) {
+        node.children.forEach((child: any) => extractTypography(child));
+      }
+    };
+    extractTypography(document);
+
+    // Build structure description
+    const buildStructure = (node: any, level = 0): string => {
+      const indent = '  '.repeat(level);
+      let desc = `${indent}${node.name} (${node.type})`;
+      if (node.type === 'TEXT' && node.characters) {
+        desc += `: "${node.characters.substring(0, 30)}..."`;
+      }
+      if (node.children) {
+        desc += '\n' + node.children.map((child: any) =>
+          buildStructure(child, level + 1)
+        ).join('\n');
+      }
+      return desc;
+    };
+
+    return {
+      name: document.name,
+      type: document.type,
+      colors: Array.from(colors),
+      typography: typography,
+      structure: buildStructure(document),
+      dimensions: {
+        width: document.absoluteBoundingBox?.width,
+        height: document.absoluteBoundingBox?.height
+      }
+    };
+  };
+
+  // Helper: Find node by ID
+  const findNodeById = (node: any, nodeId: string): any => {
+    if (node.id === nodeId) return node;
+    if (node.children) {
+      for (const child of node.children) {
+        const found = findNodeById(child, nodeId);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
   // Generate code using AI
   const generateCode = async () => {
     if (!prompt.trim()) return;
 
     setIsGenerating(true);
+
+    // Check if this is a Figma URL and extract data
+    let figmaContext = null;
+    if (prompt.includes('figma.com')) {
+      try {
+        figmaContext = await extractFigmaData(prompt);
+      } catch (error) {
+        console.error('Figma extraction failed:', error);
+        // Continue without Figma data
+      }
+    }
+
     try {
+      // Prepare message with Figma context if available
+      let enhancedPrompt = prompt;
+      if (figmaContext) {
+        enhancedPrompt = `${prompt}\n\nEXTRACTED FIGMA DESIGN DATA:\nColors: ${figmaContext.colors.slice(0, 10).join(', ')}\nTypography: ${JSON.stringify(figmaContext.typography.slice(0, 5))}\nDimensions: ${figmaContext.dimensions.width}x${figmaContext.dimensions.height}\nStructure Preview:\n${figmaContext.structure.substring(0, 500)}`;
+      }
+
       const response = await fetch('/api/claude', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          messages: [
-            {
-              role: 'system',
-              content: 'You are an expert web developer. Generate clean, modern HTML/CSS/JS code based on the user request. Return only the code without explanations.'
-            },
-            {
-              role: 'user',
-              content: `Current code:\n${code}\n\nRequest: ${prompt}\n\nGenerate the updated HTML code.`
-            }
-          ],
-          max_tokens: 4000
+          message: enhancedPrompt,
+          browserData: {
+            isWebBuilder: true,
+            targetFile: selectedFile?.name || 'index.html',
+            existingContent: code,
+            figmaContext: figmaContext // Pass extracted Figma data
+          }
         }),
       });
 
       if (!response.ok) throw new Error('Failed to generate code');
 
       const data = await response.json();
-      const generatedCode = data.content[0].text;
+      const generatedCode = data.response || data.message; // Use the correct response field
       handleCodeChange(generatedCode);
       setPrompt('');
     } catch (error) {
