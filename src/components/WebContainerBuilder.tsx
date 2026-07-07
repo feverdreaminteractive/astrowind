@@ -358,7 +358,10 @@ console.log('Output written to output.html');
           return;
         } else if (response.status === 429) {
           const errorData = await response.json();
-          throw new Error(errorData.error || 'Rate limit reached. Please try again later.');
+          setLogs(prev => [...prev, '⚠️ Rate limit reached. Designs are cached for 30 minutes.']);
+          setLogs(prev => [...prev, '💡 Tip: You can paste Figma JSON directly in the JSON tab']);
+          setActiveTab('json');
+          throw new Error('Figma API rate limit reached. Please wait a moment or paste JSON directly.');
         }
       } catch (e: any) {
         // If proxy fails, show error and stop

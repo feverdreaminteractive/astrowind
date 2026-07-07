@@ -1,7 +1,7 @@
 // Figma proxy endpoint - allows users to fetch Figma designs without authentication
 // Simple in-memory cache to avoid rate limits
 const cache = new Map();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL = 30 * 60 * 1000; // 30 minutes - longer cache to avoid rate limits
 
 export default async (req, context) => {
   const CORS_HEADERS = {
