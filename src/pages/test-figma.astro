@@ -1,0 +1,199 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Test Figma Processor">
+  <div class="min-h-screen bg-gray-100 p-6">
+    <div class="max-w-7xl mx-auto">
+      <h1 class="text-3xl font-bold mb-6">Test Figma JSON Processor</h1>
+
+      <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+        <button id="loadLocal" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 mr-4">
+          📁 Load figma-design.json
+        </button>
+        <button id="processWorker" class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 mr-4" disabled>
+          ⚡ Process with Worker
+        </button>
+        <button id="processLocal" class="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700" disabled>
+          🖥️ Process Locally
+        </button>
+      </div>
+
+      <div id="stats" class="bg-white rounded-lg shadow-lg p-6 mb-6 hidden">
+        <h2 class="text-xl font-semibold mb-4">Stats</h2>
+        <div id="statsContent"></div>
+      </div>
+
+      <div id="output" class="bg-white rounded-lg shadow-lg p-6 hidden">
+        <h2 class="text-xl font-semibold mb-4">Output</h2>
+        <textarea id="htmlOutput" class="w-full h-64 p-4 border-2 border-gray-200 rounded-lg font-mono text-xs" readonly></textarea>
+        <button id="copyHtml" class="mt-4 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700">
+          📋 Copy HTML
+        </button>
+        <button id="downloadHtml" class="ml-4 px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700">
+          💾 Download HTML
+        </button>
+      </div>
+
+      <div id="preview" class="bg-white rounded-lg shadow-lg p-6 mt-6 hidden">
+        <h2 class="text-xl font-semibold mb-4">Preview</h2>
+        <iframe id="previewFrame" class="w-full h-[600px] border-2 border-gray-200 rounded-lg bg-white"></iframe>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let figmaData = null;
+    let worker = null;
+
+    // Initialize worker
+    worker = new Worker('/figma-processor-worker.js');
+    worker.onmessage = (event) => {
+      const { type, result, error } = event.data;
+
+      if (type === 'SUCCESS') {
+        displayResult(result);
+      } else if (type === 'ERROR') {
+        alert('Worker error: ' + error);
+      }
+    };
+
+    document.getElementById('loadLocal').addEventListener('click', async () => {
+      try {
+        const response = await fetch('/figma-design.json');
+        if (!response.ok) throw new Error('Failed to load figma-design.json');
+
+        figmaData = await response.json();
+
+        const stats = `
+          <p>✅ Loaded successfully!</p>
+          <p>Document: ${figmaData.name || 'Untitled'}</p>
+          <p>Version: ${figmaData.version || 'Unknown'}</p>
+          <p>Size: ${JSON.stringify(figmaData).length} bytes</p>
+        `;
+
+        document.getElementById('statsContent').innerHTML = stats;
+        document.getElementById('stats').classList.remove('hidden');
+        document.getElementById('processWorker').disabled = false;
+        document.getElementById('processLocal').disabled = false;
+
+      } catch (error) {
+        alert('Error loading JSON: ' + error.message);
+      }
+    });
+
+    document.getElementById('processWorker').addEventListener('click', () => {
+      if (!figmaData || !worker) return;
+
+      const startTime = Date.now();
+      worker.postMessage({ type: 'PROCESS_FIGMA', data: figmaData });
+
+      document.getElementById('statsContent').innerHTML += '<p>⏳ Processing with Web Worker...</p>';
+    });
+
+    document.getElementById('processLocal').addEventListener('click', () => {
+      if (!figmaData) return;
+
+      const startTime = Date.now();
+      const result = processLocally(figmaData);
+      displayResult(result);
+    });
+
+    function processLocally(data) {
+      const layouts = [];
+
+      function extractNode(node, depth = 0) {
+        if (depth > 10) return;
+
+        if (node.absoluteBoundingBox) {
+          layouts.push({
+            id: node.id,
+            name: node.name,
+            type: node.type,
+            x: Math.round(node.absoluteBoundingBox.x),
+            y: Math.round(node.absoluteBoundingBox.y),
+            width: Math.round(node.absoluteBoundingBox.width),
+            height: Math.round(node.absoluteBoundingBox.height),
+            fills: node.fills,
+            strokes: node.strokes,
+            effects: node.effects
+          });
+        }
+
+        if (node.children) {
+          node.children.forEach(child => extractNode(child, depth + 1));
+        }
+      }
+
+      if (data.document) {
+        extractNode(data.document);
+      }
+
+      // Generate simple HTML
+      let html = `<!DOCTYPE html>
+<html>
+<head>
+  <title>${data.name || 'Figma Design'}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: system-ui; background: #f5f5f5; }
+    .element { position: absolute; border: 1px solid #ddd; }
+  </style>
+</head>
+<body>
+  <div style="position: relative; width: 100%; min-height: 100vh;">`;
+
+      layouts.forEach(layout => {
+        let bg = '#fff';
+        if (layout.fills && layout.fills[0]?.color) {
+          const c = layout.fills[0].color;
+          bg = `rgba(${Math.round(c.r*255)},${Math.round(c.g*255)},${Math.round(c.b*255)},${c.a||1})`;
+        }
+
+        html += `
+    <div class="element"
+         style="left:${layout.x}px; top:${layout.y}px; width:${layout.width}px; height:${layout.height}px; background:${bg};"
+         title="${layout.name}">
+    </div>`;
+      });
+
+      html += `
+  </div>
+</body>
+</html>`;
+
+      return { html, layoutCount: layouts.length };
+    }
+
+    function displayResult(result) {
+      document.getElementById('htmlOutput').value = result.html;
+      document.getElementById('output').classList.remove('hidden');
+      document.getElementById('preview').classList.remove('hidden');
+      document.getElementById('previewFrame').srcdoc = result.html;
+
+      document.getElementById('statsContent').innerHTML += `
+        <p>✅ Processing complete!</p>
+        <p>Layouts processed: ${result.layoutCount}</p>
+        <p>HTML size: ${(result.html.length / 1024).toFixed(1)} KB</p>
+      `;
+    }
+
+    document.getElementById('copyHtml').addEventListener('click', () => {
+      const output = document.getElementById('htmlOutput');
+      output.select();
+      navigator.clipboard.writeText(output.value);
+      alert('HTML copied to clipboard!');
+    });
+
+    document.getElementById('downloadHtml').addEventListener('click', () => {
+      const html = document.getElementById('htmlOutput').value;
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'figma-design.html';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+  </script>
+</Layout>
