@@ -1,0 +1,17 @@
+{
+  "name": "figma-websocket-server",
+  "version": "1.0.0",
+  "description": "WebSocket server for real-time Figma design synchronization",
+  "main": "figma-sync-server.js",
+  "scripts": {
+    "start": "node figma-sync-server.js",
+    "dev": "nodemon figma-sync-server.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0",
+    "node-fetch": "^2.7.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

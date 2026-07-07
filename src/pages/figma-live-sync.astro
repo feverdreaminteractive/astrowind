@@ -1,0 +1,464 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Figma Live Sync - WebSocket Demo">
+  <div class="min-h-screen bg-gray-900 text-white p-6">
+    <div class="max-w-7xl mx-auto">
+      <div class="bg-gray-800 rounded-2xl shadow-2xl p-8 mb-6">
+        <h1 class="text-4xl font-bold mb-2">🔄 Figma Live Sync</h1>
+        <p class="text-gray-400">Real-time Figma synchronization using WebSockets</p>
+      </div>
+
+      <!-- Connection Setup -->
+      <div class="bg-gray-800 rounded-xl p-6 mb-6">
+        <h2 class="text-xl font-semibold mb-4">WebSocket Connection</h2>
+        <div class="flex gap-4 mb-4">
+          <input
+            id="fileId"
+            type="text"
+            placeholder="Enter Figma File ID (e.g., SPSDJkJHZHjqOk0LnFSqkF)"
+            class="flex-1 px-4 py-2 bg-gray-700 rounded-lg text-white"
+          />
+          <select id="interval" class="px-4 py-2 bg-gray-700 rounded-lg text-white">
+            <option value="1000">1 second</option>
+            <option value="5000" selected>5 seconds</option>
+            <option value="10000">10 seconds</option>
+            <option value="30000">30 seconds</option>
+          </select>
+          <button id="connectBtn" class="px-6 py-2 bg-blue-600 rounded-lg hover:bg-blue-700">
+            Connect
+          </button>
+          <button id="disconnectBtn" class="px-6 py-2 bg-red-600 rounded-lg hover:bg-red-700" disabled>
+            Disconnect
+          </button>
+        </div>
+
+        <div class="flex items-center gap-4">
+          <div class="flex items-center">
+            <div id="statusDot" class="w-3 h-3 rounded-full bg-red-500 mr-2"></div>
+            <span id="statusText">Disconnected</span>
+          </div>
+          <span id="lastSync" class="text-gray-400"></span>
+        </div>
+      </div>
+
+      <!-- Stats Dashboard -->
+      <div class="grid grid-cols-4 gap-4 mb-6">
+        <div class="bg-gray-800 rounded-xl p-6">
+          <div class="text-3xl font-bold text-blue-400" id="nodeCount">0</div>
+          <div class="text-gray-400">Total Nodes</div>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-6">
+          <div class="text-3xl font-bold text-green-400" id="changeCount">0</div>
+          <div class="text-gray-400">Changes Detected</div>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-6">
+          <div class="text-3xl font-bold text-purple-400" id="syncCount">0</div>
+          <div class="text-gray-400">Sync Count</div>
+        </div>
+        <div class="bg-gray-800 rounded-xl p-6">
+          <div class="text-3xl font-bold text-orange-400" id="userCount">0</div>
+          <div class="text-gray-400">Active Users</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-6">
+        <!-- Live Change Feed -->
+        <div class="bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4">📝 Live WebSocket Messages</h2>
+          <div id="changesFeed" class="h-96 overflow-y-auto space-y-2 font-mono text-sm">
+            <div class="text-gray-500">Waiting for WebSocket connection...</div>
+          </div>
+        </div>
+
+        <!-- Cursor Tracking -->
+        <div class="bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4">🖱️ Live Cursor Positions</h2>
+          <div id="cursorArea" class="relative h-96 bg-gray-900 rounded overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-gray-600">
+              Move your cursor here to broadcast position
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Users -->
+        <div class="bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4">👥 Active Collaborators</h2>
+          <div id="usersList" class="space-y-3">
+            <div class="text-gray-500">No active users yet...</div>
+          </div>
+        </div>
+
+        <!-- Raw WebSocket Data -->
+        <div class="bg-gray-800 rounded-xl p-6">
+          <h2 class="text-xl font-semibold mb-4">📡 Raw WebSocket Stream</h2>
+          <div id="rawData" class="h-96 bg-gray-900 rounded p-4 overflow-y-auto font-mono text-xs text-green-400">
+            <div>WebSocket not connected</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Test Controls -->
+      <div class="bg-gray-800 rounded-xl p-6 mt-6">
+        <h2 class="text-xl font-semibold mb-4">🧪 Test WebSocket Features</h2>
+        <div class="grid grid-cols-3 gap-4">
+          <button id="sendComment" class="px-4 py-2 bg-purple-600 rounded hover:bg-purple-700">
+            Send Test Comment
+          </button>
+          <button id="forceSync" class="px-4 py-2 bg-green-600 rounded hover:bg-green-700">
+            Force Sync Now
+          </button>
+          <button id="broadcastPresence" class="px-4 py-2 bg-yellow-600 rounded hover:bg-yellow-700">
+            Broadcast Presence
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let ws = null;
+    let clientId = null;
+    let stats = { nodes: 0, changes: 0, syncs: 0, users: 0 };
+    let cursors = new Map();
+
+    // DOM elements
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const changesFeed = document.getElementById('changesFeed');
+    const rawData = document.getElementById('rawData');
+    const usersList = document.getElementById('usersList');
+    const cursorArea = document.getElementById('cursorArea');
+
+    // Connect to WebSocket server
+    document.getElementById('connectBtn').addEventListener('click', () => {
+      const fileId = document.getElementById('fileId').value;
+      const interval = document.getElementById('interval').value;
+
+      if (!fileId) {
+        alert('Please enter a Figma File ID');
+        return;
+      }
+
+      connectWebSocket(fileId, interval);
+    });
+
+    // Disconnect from WebSocket
+    document.getElementById('disconnectBtn').addEventListener('click', () => {
+      if (ws) {
+        ws.close();
+      }
+    });
+
+    function connectWebSocket(fileId, interval) {
+      // Connect to our WebSocket server
+      const wsUrl = 'ws://localhost:8889';
+
+      console.log('Connecting to WebSocket:', wsUrl);
+      addToFeed('system', `Connecting to ${wsUrl}...`);
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        console.log('WebSocket connected!');
+        updateStatus('Connected', 'green');
+        addToFeed('system', '✅ WebSocket connected!');
+
+        document.getElementById('connectBtn').disabled = true;
+        document.getElementById('disconnectBtn').disabled = false;
+
+        // Subscribe to Figma file
+        ws.send(JSON.stringify({
+          type: 'subscribe',
+          fileId: fileId,
+          interval: parseInt(interval)
+        }));
+
+        addToFeed('subscribe', `Subscribing to Figma file: ${fileId}`);
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          handleWebSocketMessage(data);
+        } catch (e) {
+          console.error('Error parsing message:', e);
+          addRawData(`ERROR: ${event.data}`);
+        }
+      };
+
+      ws.onerror = (error) => {
+        console.error('WebSocket error:', error);
+        updateStatus('Error', 'red');
+        addToFeed('error', '❌ WebSocket error occurred');
+      };
+
+      ws.onclose = () => {
+        console.log('WebSocket disconnected');
+        updateStatus('Disconnected', 'red');
+        addToFeed('system', '🔌 WebSocket disconnected');
+
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('disconnectBtn').disabled = true;
+
+        // Clear cursors
+        cursors.forEach(cursor => cursor.element?.remove());
+        cursors.clear();
+      };
+    }
+
+    function handleWebSocketMessage(data) {
+      // Add to raw data stream
+      addRawData(JSON.stringify(data, null, 2));
+
+      switch(data.type) {
+        case 'connected':
+          clientId = data.clientId;
+          addToFeed('connected', `Connected with ID: ${clientId}`);
+          break;
+
+        case 'figma-update':
+          handleFigmaUpdate(data);
+          break;
+
+        case 'cursor-move':
+          handleCursorMove(data.payload);
+          break;
+
+        case 'presence':
+          handlePresence(data);
+          break;
+
+        case 'comment':
+          handleComment(data.payload);
+          break;
+
+        case 'error':
+          addToFeed('error', `Error: ${data.message}`);
+          break;
+
+        default:
+          addToFeed('unknown', `Unknown message type: ${data.type}`);
+      }
+    }
+
+    function handleFigmaUpdate(data) {
+      stats.syncs++;
+      document.getElementById('syncCount').textContent = stats.syncs;
+      document.getElementById('lastSync').textContent = `Last sync: ${new Date().toLocaleTimeString()}`;
+
+      if (data.fromCache) {
+        addToFeed('cache', '📦 Received cached Figma data');
+      } else {
+        addToFeed('update', '🔄 Received fresh Figma update');
+      }
+
+      if (data.payload) {
+        // Count nodes
+        const nodeCount = countNodes(data.payload);
+        stats.nodes = nodeCount;
+        document.getElementById('nodeCount').textContent = nodeCount;
+
+        // Detect changes (simplified)
+        if (data.payload.lastModified) {
+          stats.changes++;
+          document.getElementById('changeCount').textContent = stats.changes;
+          addToFeed('change', `Changes detected at ${new Date(data.payload.lastModified).toLocaleTimeString()}`);
+        }
+      }
+    }
+
+    function handleCursorMove(cursor) {
+      if (!cursors.has(cursor.id)) {
+        // Create cursor element
+        const cursorEl = document.createElement('div');
+        cursorEl.className = 'absolute w-4 h-4 rounded-full transition-all duration-100';
+        cursorEl.style.backgroundColor = cursor.color;
+        cursorEl.title = cursor.name;
+        cursorArea.appendChild(cursorEl);
+
+        cursors.set(cursor.id, {
+          element: cursorEl,
+          ...cursor
+        });
+      }
+
+      // Update cursor position
+      const cursorData = cursors.get(cursor.id);
+      if (cursorData && cursorData.element) {
+        cursorData.element.style.left = `${cursor.x * 100}%`;
+        cursorData.element.style.top = `${cursor.y * 100}%`;
+      }
+    }
+
+    function handlePresence(data) {
+      if (data.action === 'join') {
+        addToFeed('presence', `👋 ${data.user} joined`);
+        stats.users++;
+      } else if (data.action === 'leave') {
+        addToFeed('presence', `👋 ${data.user} left`);
+        stats.users = Math.max(0, stats.users - 1);
+
+        // Remove cursor
+        const cursor = cursors.get(data.userId);
+        if (cursor && cursor.element) {
+          cursor.element.remove();
+          cursors.delete(data.userId);
+        }
+      }
+
+      document.getElementById('userCount').textContent = stats.users;
+      updateUsersList();
+    }
+
+    function handleComment(comment) {
+      addToFeed('comment', `💬 ${comment.user}: ${comment.text || 'New comment'}`);
+    }
+
+    function countNodes(data) {
+      let count = 0;
+      function countRecursive(node) {
+        if (!node) return;
+        count++;
+        if (node.children) node.children.forEach(countRecursive);
+      }
+      if (data.document) countRecursive(data.document);
+      else if (data.layouts) data.layouts.forEach(countRecursive);
+      return count;
+    }
+
+    function updateStatus(text, color) {
+      statusText.textContent = text;
+      statusDot.className = `w-3 h-3 rounded-full bg-${color}-500 mr-2`;
+    }
+
+    function addToFeed(type, message) {
+      const entry = document.createElement('div');
+      const timestamp = new Date().toLocaleTimeString();
+
+      const typeColors = {
+        system: 'text-blue-400',
+        update: 'text-green-400',
+        change: 'text-yellow-400',
+        error: 'text-red-400',
+        presence: 'text-purple-400',
+        comment: 'text-pink-400',
+        subscribe: 'text-cyan-400',
+        cache: 'text-gray-400'
+      };
+
+      entry.className = 'flex gap-2';
+      entry.innerHTML = `
+        <span class="text-gray-500">${timestamp}</span>
+        <span class="${typeColors[type] || 'text-gray-400'}">[${type}]</span>
+        <span>${message}</span>
+      `;
+
+      changesFeed.insertBefore(entry, changesFeed.firstChild);
+
+      // Keep only last 100 messages
+      while (changesFeed.children.length > 100) {
+        changesFeed.removeChild(changesFeed.lastChild);
+      }
+    }
+
+    function addRawData(text) {
+      const entry = document.createElement('div');
+      entry.textContent = text;
+      rawData.insertBefore(entry, rawData.firstChild);
+
+      // Add separator
+      const separator = document.createElement('div');
+      separator.textContent = '---';
+      separator.className = 'text-gray-600';
+      rawData.insertBefore(separator, rawData.children[1]);
+
+      // Keep only last 50 entries
+      while (rawData.children.length > 100) {
+        rawData.removeChild(rawData.lastChild);
+      }
+    }
+
+    function updateUsersList() {
+      usersList.innerHTML = '';
+
+      if (cursors.size === 0) {
+        usersList.innerHTML = '<div class="text-gray-500">No active users yet...</div>';
+        return;
+      }
+
+      cursors.forEach(cursor => {
+        const userEl = document.createElement('div');
+        userEl.className = 'flex items-center gap-3';
+        userEl.innerHTML = `
+          <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-white"
+               style="background-color: ${cursor.color}">
+            ${cursor.name[0]}
+          </div>
+          <div>
+            <div class="font-semibold">${cursor.name}</div>
+            <div class="text-xs text-gray-400">Active</div>
+          </div>
+        `;
+        usersList.appendChild(userEl);
+      });
+    }
+
+    // Cursor tracking
+    cursorArea.addEventListener('mousemove', (e) => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+      const rect = cursorArea.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width;
+      const y = (e.clientY - rect.top) / rect.height;
+
+      ws.send(JSON.stringify({
+        type: 'cursor',
+        x: x,
+        y: y
+      }));
+    });
+
+    // Test buttons
+    document.getElementById('sendComment').addEventListener('click', () => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('WebSocket not connected');
+        return;
+      }
+
+      ws.send(JSON.stringify({
+        type: 'comment',
+        text: `Test comment at ${new Date().toLocaleTimeString()}`
+      }));
+    });
+
+    document.getElementById('forceSync').addEventListener('click', () => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('WebSocket not connected');
+        return;
+      }
+
+      const fileId = document.getElementById('fileId').value;
+      ws.send(JSON.stringify({
+        type: 'request-sync',
+        fileId: fileId
+      }));
+      addToFeed('system', 'Requested force sync');
+    });
+
+    document.getElementById('broadcastPresence').addEventListener('click', () => {
+      if (!ws || ws.readyState !== WebSocket.OPEN) {
+        alert('WebSocket not connected');
+        return;
+      }
+
+      ws.send(JSON.stringify({
+        type: 'presence',
+        user: `User-${Math.random().toString(36).substr(2, 4)}`,
+        status: 'active'
+      }));
+      addToFeed('system', 'Broadcasted presence update');
+    });
+  </script>
+</Layout>
