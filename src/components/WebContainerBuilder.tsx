@@ -330,7 +330,7 @@ class FigmaMCPClient {
         // Copy to input.json for processor
         fs.writeFileSync('input.json', JSON.stringify(data, null, 2));
 
-        console.log('✅ Figma file fetched successfully!');
+        console.log('Figma file fetched successfully!');
         console.log('File: ' + data.name);
         console.log('Pages: ' + (data.document?.children?.length || 0));
 
@@ -367,7 +367,8 @@ async function main() {
     await client.fetchFigmaFile(fileKeyOrUrl, token);
     await client.disconnect();
 
-    console.log('\nReady to process! Run: node processor.js');
+    console.log('');
+    console.log('Ready to process! Run: node processor.js');
   } catch (error) {
     console.error('Failed:', error.message);
     process.exit(1);
@@ -616,7 +617,7 @@ const html = parser.generateHTML(parsed);
 // Write output
 fs.writeFileSync('output.html', html);
 
-console.log('✅ HTML generation complete!');
+console.log('HTML generation complete!');
 console.log('Output written to output.html');
 `
       }
