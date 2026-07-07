@@ -15,7 +15,7 @@ const WebContainerBuilder: React.FC = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [figmaToken, setFigmaToken] = useState('');  // Fallback option
   const [showTokenInput] = useState(false);  // Proxy handles auth
-  const [activeTab, setActiveTab] = useState<'url' | 'json'>('url');
+  const [activeTab, setActiveTab] = useState<'url' | 'json' | 'help'>('url');
   const [previewMode, setPreviewMode] = useState<'preview' | 'code' | 'split'>('split');
   const [isGenerating, setIsGenerating] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -328,6 +328,43 @@ console.log('Output written to output.html');
     }
   };
 
+  // Save to local storage
+  const saveToLocalStorage = (fileId: string, data: any) => {
+    try {
+      const cache = JSON.parse(localStorage.getItem('figmaCache') || '{}');
+      cache[fileId] = {
+        data,
+        timestamp: Date.now(),
+        name: data.name
+      };
+      // Keep only last 10 cached designs
+      const keys = Object.keys(cache);
+      if (keys.length > 10) {
+        const oldest = keys.sort((a, b) => cache[a].timestamp - cache[b].timestamp)[0];
+        delete cache[oldest];
+      }
+      localStorage.setItem('figmaCache', JSON.stringify(cache));
+      setLogs(prev => [...prev, '💾 Saved to local cache']);
+    } catch (e) {
+      console.error('Failed to save to local storage:', e);
+    }
+  };
+
+  // Load from local storage
+  const loadFromLocalStorage = (fileId: string) => {
+    try {
+      const cache = JSON.parse(localStorage.getItem('figmaCache') || '{}');
+      const cached = cache[fileId];
+      if (cached && cached.timestamp > Date.now() - 24 * 60 * 60 * 1000) {
+        setLogs(prev => [...prev, '📦 Loaded from local cache']);
+        return cached.data;
+      }
+    } catch (e) {
+      console.error('Failed to load from local storage:', e);
+    }
+    return null;
+  };
+
   // Fetch Figma data from URL
   const fetchFigmaData = async () => {
     if (!figmaUrl) {
@@ -340,12 +377,20 @@ console.log('Output written to output.html');
 
     try {
       // Extract file ID from URL
-      const fileMatch = figmaUrl.match(/figma\.com\/(?:file|design)\/([^/?\s]+)/);
-      if (!fileMatch) {
+      // Extract file key from URL
+      const urlMatch = figmaUrl.match(/figma\.com\/(?:file|design)\/([^/\?\s]+)/);
+      if (!urlMatch) {
         throw new Error('Invalid Figma URL format');
       }
+      const fileKey = urlMatch[1];
 
-      // Extract file key from URL
+      // Check local cache first
+      const localCached = loadFromLocalStorage(fileKey);
+      if (localCached) {
+        setJsonInput(JSON.stringify(localCached, null, 2));
+        await generatePreview(localCached);
+        return;
+      }
 
       // Use server proxy with Netlify FIGMA_TOKEN
       try {
@@ -354,6 +399,7 @@ console.log('Output written to output.html');
           const data = await response.json();
           setJsonInput(JSON.stringify(data, null, 2));
           setLogs(prev => [...prev, '✅ Fetched Figma data using server token']);
+          saveToLocalStorage(fileKey, data);
           await generatePreview(data);
           return;
         } else if (response.status === 429) {
@@ -579,6 +625,16 @@ ${html}
                 >
                   JSON
                 </button>
+                <button
+                  onClick={() => setActiveTab('help')}
+                  className={`px-3 py-1 rounded text-sm ${
+                    activeTab === 'help'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-800 text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Help
+                </button>
               </div>
             </div>
 
@@ -635,6 +691,42 @@ ${html}
                 >
                   {isProcessing ? '⚙️ Processing...' : '🚀 Process JSON'}
                 </button>
+              </div>
+            ) : (
+              <div className="text-gray-300 space-y-4">
+                <h3 className="text-lg font-semibold text-white">How to Get Figma JSON</h3>
+
+                <div className="space-y-3">
+                  <div className="bg-[#0a0a0a] p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-400 mb-2">Option 1: Browser Console</h4>
+                    <ol className="text-xs space-y-1 ml-4">
+                      <li>1. Open your Figma file</li>
+                      <li>2. Press Cmd+Option+I (Mac) or Ctrl+Alt+I (Win)</li>
+                      <li>3. In console, type: <code className="bg-gray-800 px-1">copy(figma.root)</code></li>
+                      <li>4. Paste the JSON in the JSON tab</li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-[#0a0a0a] p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-400 mb-2">Option 2: Figma API</h4>
+                    <ol className="text-xs space-y-1 ml-4">
+                      <li>1. Get token from Figma Settings</li>
+                      <li>2. Extract file ID from URL</li>
+                      <li>3. Run: <code className="bg-gray-800 px-1 text-xs break-all">curl -H "X-Figma-Token: TOKEN" "https://api.figma.com/v1/files/FILE_ID"</code></li>
+                    </ol>
+                  </div>
+
+                  <div className="bg-[#0a0a0a] p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-blue-400 mb-2">Rate Limits</h4>
+                    <p className="text-xs">Figma API: 150 requests/minute</p>
+                    <p className="text-xs">Cache duration: 24 hours</p>
+                    <p className="text-xs">Local storage: Last 10 designs</p>
+                  </div>
+
+                  <div className="bg-yellow-900/20 p-3 rounded-lg border border-yellow-600/30">
+                    <p className="text-xs text-yellow-400">💡 Tip: Once fetched, designs are cached locally for 24 hours to avoid rate limits.</p>
+                  </div>
+                </div>
               </div>
             )}
           </div>
