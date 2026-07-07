@@ -1,4 +1,8 @@
 // Figma proxy endpoint - allows users to fetch Figma designs without authentication
+// Simple in-memory cache to avoid rate limits
+const cache = new Map();
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
 export default async (req, context) => {
   const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -37,6 +41,21 @@ export default async (req, context) => {
       });
     }
 
+    // Check cache
+    const cacheKey = `figma-${figmaFileId}`;
+    const cached = cache.get(cacheKey);
+    if (cached && cached.timestamp > Date.now() - CACHE_TTL) {
+      console.log('Returning cached Figma data for:', figmaFileId);
+      return new Response(JSON.stringify(cached.data), {
+        status: 200,
+        headers: {
+          ...CORS_HEADERS,
+          'Content-Type': 'application/json',
+          'X-Cache': 'HIT'
+        }
+      });
+    }
+
     // Get Figma token from environment variable
     const FIGMA_TOKEN = process.env.FIGMA_TOKEN;
 
@@ -61,8 +80,26 @@ export default async (req, context) => {
 
     if (!figmaResponse.ok) {
       console.error('Figma API error:', figmaResponse.status);
+
+      // If rate limited, return a helpful message
+      if (figmaResponse.status === 429) {
+        return new Response(JSON.stringify({
+          error: 'Figma API rate limit reached. Please try again in a few minutes or paste your JSON directly.',
+          status: 429,
+          suggestion: 'You can export your Figma design as JSON and paste it directly into the processor.'
+        }), {
+          status: 429,
+          headers: {
+            ...CORS_HEADERS,
+            'Content-Type': 'application/json',
+            'Retry-After': '60'
+          }
+        });
+      }
+
       return new Response(JSON.stringify({
-        error: `Figma API error: ${figmaResponse.status}`
+        error: `Figma API error: ${figmaResponse.status}`,
+        status: figmaResponse.status
       }), {
         status: figmaResponse.status,
         headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
@@ -74,9 +111,26 @@ export default async (req, context) => {
     // Extract simplified data for the AI builder
     const simplified = extractSimplifiedData(figmaData);
 
+    // Cache the result
+    cache.set(cacheKey, {
+      data: simplified,
+      timestamp: Date.now()
+    });
+
+    // Clean old cache entries
+    for (const [key, value] of cache.entries()) {
+      if (value.timestamp < Date.now() - CACHE_TTL) {
+        cache.delete(key);
+      }
+    }
+
     return new Response(JSON.stringify(simplified), {
       status: 200,
-      headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' }
+      headers: {
+        ...CORS_HEADERS,
+        'Content-Type': 'application/json',
+        'X-Cache': 'MISS'
+      }
     });
 
   } catch (error) {

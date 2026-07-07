@@ -62,8 +62,17 @@ export const FigmaWorkerProcessor: React.FC = () => {
       }
 
       const data = await response.json();
-      setJsonInput(JSON.stringify(data, null, 2));
-      setProgress('✅ Figma data loaded! Click Process to generate HTML.');
+
+      // Check for rate limit error
+      if (data.error && data.status === 429) {
+        setProgress(`⚠️ ${data.error}`);
+        alert(data.suggestion || 'Please try again later or paste your Figma JSON directly.');
+      } else if (data.error) {
+        setProgress(`❌ Error: ${data.error}`);
+      } else {
+        setJsonInput(JSON.stringify(data, null, 2));
+        setProgress('✅ Figma data loaded! Click Process to generate HTML.');
+      }
     } catch (error: any) {
       console.error('Error fetching Figma:', error);
       setProgress(`❌ Error: ${error.message}`);
