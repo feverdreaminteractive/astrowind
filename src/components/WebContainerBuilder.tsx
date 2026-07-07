@@ -285,6 +285,8 @@ class FigmaMCPClient {
     this.client = new Client({
       name: 'figma-mcp-client',
       version: '1.0.0'
+    }, {
+      capabilities: {}
     });
   }
 
