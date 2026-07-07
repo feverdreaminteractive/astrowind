@@ -384,12 +384,14 @@ Build an EXACT replica matching these positions and dimensions.`;
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          message: enhancedPrompt,
+          message: prompt, // Send original prompt, not enhanced
           browserData: {
             isWebBuilder: true,
             targetFile: selectedFile?.name || 'index.html',
             existingContent: code,
-            figmaContext: figmaContext // Pass extracted Figma data
+            figmaContext: figmaData || figmaContext, // Use processed JSON data if available
+            hasUploadedImage: !!uploadedImage,
+            imageDescription: uploadedImage ? enhancedPrompt : null
           }
         }),
       });

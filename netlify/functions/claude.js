@@ -333,24 +333,50 @@ Build a COMPLETE, PRODUCTION-READY application with proper architecture.`;
       const figmaUrlMatch = message.match(/figma\.com\/(?:file|design)\/([^/?\s]+)/);
       const isFigmaRequest = !!figmaUrlMatch;
 
+      // Check if we have actual Figma data from the client
+      const hasFigmaData = browserData.figmaContext && (browserData.figmaContext.layouts || browserData.figmaContext.colors);
+
       systemPrompt = `You are an AI website builder. Generate the COMPLETE contents of a SINGLE file: ${target}.
 
-User request: "${message}"
+${hasFigmaData ? 'IMPORTANT: Build EXACTLY according to the provided Figma data below.' : `User request: "${message}"`}
 
 ${isModification
   ? `MODIFY the current ${target} below. Keep everything that is not related to the request; only change what was asked for.\n\nCurrent ${target}:\n\n${browserData.existingContent}`
-  : `Create ${target} for a new website. Use Tailwind CSS via the CDN. Use a clean, consistent design system.`}
-${isFigmaRequest ? `
+  : `Create ${target} for a new website.${!hasFigmaData ? ' Use Tailwind CSS via the CDN. Use a clean, consistent design system.' : ''}`}
+${hasFigmaData && browserData.figmaContext.layouts ? `
+FIGMA DESIGN - EXACT SPECIFICATIONS:
+
+CANVAS SIZE: ${browserData.figmaContext.dimensions?.width || 1440}x${browserData.figmaContext.dimensions?.height || 900}px
+
+ELEMENT POSITIONS AND SIZES:
+${browserData.figmaContext.layouts.slice(0, 30).map(layout => {
+  const text = layout.characters ? ` - Text: "${layout.characters.substring(0, 50)}"` : '';
+  const color = layout.fills && layout.fills[0]?.color ?
+    ` - Color: rgb(${Math.round(layout.fills[0].color.r * 255)}, ${Math.round(layout.fills[0].color.g * 255)}, ${Math.round(layout.fills[0].color.b * 255)})` : '';
+  return `${layout.name} (${layout.type}):
+  Position: absolute; left: ${layout.x}px; top: ${layout.y}px;
+  Size: ${layout.width}px x ${layout.height}px${text}${color}
+  ${layout.padding ? `Padding: ${layout.padding.top}px ${layout.padding.right}px ${layout.padding.bottom}px ${layout.padding.left}px` : ''}
+  ${layout.cornerRadius ? `Border-radius: ${layout.cornerRadius}px` : ''}`;
+}).join('\n\n')}
+
+BUILD REQUIREMENTS:
+1. Use absolute positioning matching the exact coordinates above
+2. Set exact widths and heights as specified
+3. Use the exact colors extracted from fills
+4. Include all text content exactly as shown
+5. Apply padding, border-radius, and effects as specified
+` : hasFigmaData && browserData.figmaContext.colors ? `
+FIGMA DESIGN COLORS AND STRUCTURE:
+Colors: ${browserData.figmaContext.colors.join(', ')}
+Typography: ${JSON.stringify(browserData.figmaContext.typography)}
+Structure: ${browserData.figmaContext.structure}
+
+Use these exact colors and typography in your implementation.
+` : isFigmaRequest ? `
 FIGMA DESIGN IMPLEMENTATION:
-The user has provided a Figma design URL. Create a pixel-perfect, professional implementation:
-- Use modern, semantic HTML5 structure
-- Implement with Tailwind CSS classes for responsive design
-- Add smooth animations and transitions
-- Ensure accessibility with proper ARIA labels
-- Include hover states and interactive elements
-- Use proper spacing, typography, and color schemes
-- Make it fully responsive (mobile, tablet, desktop)
-- Add subtle animations like fade-ins and hover effects
+The user has provided a Figma design URL but no data was extracted.
+Create a modern, professional website based on common design patterns.
 ` : ''}
 ${referenceBlock}
 
