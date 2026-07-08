@@ -299,7 +299,26 @@ For each framework, ensure:
 - SvelteKit: Include /src/routes/+page.svelte
 - Nuxt: Include /pages/index.vue
 
-Return a COMPLETE, WORKING project structure that will run immediately with npm/yarn.`;
+Return a COMPLETE, WORKING project structure that will run immediately with npm/yarn.
+
+AFTER generating files, you MUST provide instructions for:
+1. Installing dependencies: "Run: npm install"
+2. Starting dev server: "Run: npm run dev" (or appropriate command)
+3. What port/URL to expect (e.g., "Server will start at http://localhost:3000")
+
+Return JSON with this structure:
+{
+  "projectType": "astro|react|vue|next|nuxt|svelte|etc",
+  "projectName": "project-name",
+  "description": "Brief description",
+  "files": [/* file structure */],
+  "setupCommands": [
+    "npm install",
+    "npm run dev"
+  ],
+  "devServerPort": 3000,
+  "devServerUrl": "http://localhost:3000"
+}`;
       } else if (browserData.requestType === 'generate_file') {
         // Generate specific file content
         const targetFile = browserData.targetFile || '';
@@ -393,7 +412,13 @@ File path: [exact path like /src/pages/index.astro]
 [complete file content]
 \`\`\`
 
-Be a SENIOR ARCHITECT - provide production-ready, best-practice solutions.`;
+Be a SENIOR ARCHITECT - provide production-ready, best-practice solutions.
+
+ALWAYS end your response with:
+**Commands to run:**
+1. npm install (if dependencies changed)
+2. npm run dev (or the appropriate dev command)
+3. Expected URL: http://localhost:[PORT]`;
       } else {
         // Full-stack Node.js project with architecture recommendations
         systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.

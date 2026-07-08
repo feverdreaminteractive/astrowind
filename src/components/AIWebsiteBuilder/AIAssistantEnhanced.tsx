@@ -455,12 +455,15 @@ Make sure the code is complete and functional.`
 
       const fileTree = buildFileTree(generatedFiles);
 
-      // Update project with generated files
+      // Update project with generated files and setup commands
       setProject({
         name: projectStructure.projectName,
         files: fileTree,
         activeFile: fileTree[0] || null,
-        projectType: projectStructure.projectType
+        projectType: projectStructure.projectType,
+        setupCommands: projectStructure.setupCommands || ['npm install', 'npm run dev'],
+        devServerPort: projectStructure.devServerPort || 3000,
+        devServerUrl: projectStructure.devServerUrl || 'http://localhost:3000'
       });
 
       // If WebContainer is available, write files to it

@@ -19,6 +19,9 @@ export interface Project {
   files: FileNode[];
   activeFile: FileNode | null;
   projectType?: string;
+  setupCommands?: string[];
+  devServerPort?: number;
+  devServerUrl?: string;
 }
 
 const AIBuilderPro: React.FC = () => {
@@ -183,19 +186,36 @@ const AIBuilderPro: React.FC = () => {
       addTerminalLine('📂 Syncing project files to WebContainer...');
       await syncFilesToWebContainer(webcontainerInstance, newProject.files);
 
-      // Check if package.json exists and run npm install
-      const hasPackageJson = newProject.files.some(f =>
-        f.name === 'package.json' ||
-        (f.type === 'folder' && f.children?.some(c => c.name === 'package.json'))
-      );
+      // Check if package.json exists (check all files recursively)
+      const findPackageJson = (files: FileNode[]): boolean => {
+        for (const file of files) {
+          if (file.name === 'package.json' || file.path === '/package.json') {
+            return true;
+          }
+          if (file.children) {
+            if (findPackageJson(file.children)) return true;
+          }
+        }
+        return false;
+      };
+
+      const hasPackageJson = findPackageJson(newProject.files);
 
       if (hasPackageJson) {
-        addTerminalLine('📦 Installing dependencies...');
-        await runCommand('npm install');
+        // Use AI-provided setup commands or defaults
+        const setupCommands = newProject.setupCommands || ['npm install', 'npm run dev'];
 
-        // Try to start dev server
-        addTerminalLine('🚀 Starting development server...');
-        await runCommand('npm run dev');
+        addTerminalLine('📦 Running AI-provided setup commands...');
+
+        for (const command of setupCommands) {
+          addTerminalLine(`🔧 Executing: ${command}`);
+          await runCommand(command);
+        }
+
+        // If AI provided dev server info, show it
+        if (newProject.devServerUrl) {
+          addTerminalLine(`✨ Dev server should be available at: ${newProject.devServerUrl}`);
+        }
       }
     }
   };
@@ -363,13 +383,39 @@ const AIBuilderPro: React.FC = () => {
 
             {/* Preview Panel */}
             {activePanel === 'preview' && (
-              <div className="w-full h-full">
+              <div className="w-full h-full flex flex-col">
                 {webcontainerInstance && previewUrl ? (
-                  <iframe
-                    src={previewUrl}
-                    className="w-full h-full border-0"
-                    title="Preview"
-                  />
+                  <>
+                    {/* URL Bar */}
+                    <div className="bg-[#1a1a1a] border-b border-gray-800 px-4 py-2 flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          const iframe = document.querySelector('iframe');
+                          if (iframe) iframe.contentWindow?.location.reload();
+                        }}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <i className="fas fa-sync-alt"></i>
+                      </button>
+                      <div className="flex-1 bg-gray-900 rounded-md px-3 py-1.5 text-sm font-mono text-gray-300 flex items-center gap-2">
+                        <i className="fas fa-globe text-gray-500 text-xs"></i>
+                        <span className="truncate">{previewUrl}</span>
+                      </div>
+                      <button
+                        onClick={() => window.open(previewUrl, '_blank')}
+                        className="text-gray-400 hover:text-white transition-colors"
+                        title="Open in new tab"
+                      >
+                        <i className="fas fa-external-link-alt"></i>
+                      </button>
+                    </div>
+                    {/* Iframe */}
+                    <iframe
+                      src={previewUrl}
+                      className="flex-1 border-0"
+                      title="Preview"
+                    />
+                  </>
                 ) : project.files.length > 0 ? (
                   <PreviewPane
                     project={project}
