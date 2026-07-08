@@ -11,7 +11,22 @@ export default defineConfig({
   site: SITE_URL,
   integrations: [react(), icon(), sitemap()],
   vite: {
-    plugins: [tailwindcss()],
+    plugins: [
+      tailwindcss(),
+      {
+        name: 'webcontainer-headers',
+        configureServer(server) {
+          server.middlewares.use((req, res, next) => {
+            // Add headers for WebContainer pages
+            if (req.url === '/builder-pro' || req.url === '/test-figma') {
+              res.setHeader('Cross-Origin-Embedder-Policy', 'credentialless');
+              res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+            }
+            next();
+          });
+        }
+      }
+    ],
     server: {
       proxy: {
         // Proxy Netlify functions to your deployed site for local development

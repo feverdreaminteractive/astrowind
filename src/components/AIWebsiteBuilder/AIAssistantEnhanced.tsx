@@ -98,7 +98,89 @@ const AIAssistantEnhanced: React.FC<Props> = ({
         ? 'http://localhost:8888/.netlify/functions/claude'
         : '/.netlify/functions/claude';
 
-      // First, ask AI to understand what the user wants and generate a project structure
+      // Check if this is a follow-up request (project already exists) or initial creation
+      const isFollowUp = project.files.length > 0;
+
+      if (isFollowUp) {
+        // Handle follow-up requests - fix errors, add features, etc.
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: 'Working on your request...'
+        }]);
+
+        // For follow-ups, send the error/request directly without JSON structure
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: userMessage,
+            browserData: {
+              isWebContainer: true,
+              requestType: 'fix_error',
+              currentProject: {
+                name: project.name,
+                files: project.files.map(f => f.path),
+                error: userMessage
+              }
+            }
+          })
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to get response from AI');
+        }
+
+        const data = await response.json();
+        const suggestion = data.response || data.message || '';
+
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: suggestion
+        }]);
+
+        // If the AI suggests a specific file to create or modify, handle it
+        if (suggestion.includes('create') || suggestion.includes('add') || suggestion.includes('fix')) {
+          // Parse the suggestion for file paths and content
+          // This is a simplified approach - you might need more sophisticated parsing
+          const fileMatch = suggestion.match(/`([^`]+\.[a-z]+)`/);
+          if (fileMatch) {
+            const filePath = fileMatch[1];
+            const contentMatch = suggestion.match(/```[a-z]*\n([\s\S]*?)```/);
+            if (contentMatch) {
+              const content = contentMatch[1];
+
+              // Add the file to the project
+              const newFile = {
+                name: filePath.split('/').pop() || 'unknown',
+                type: 'file' as const,
+                path: filePath.startsWith('/') ? filePath : `/${filePath}`,
+                content: content,
+                language: 'plaintext'
+              };
+
+              // Update project files
+              setProject(prev => ({
+                ...prev,
+                files: [...prev.files, newFile]
+              }));
+
+              // Write to WebContainer if available
+              if (webcontainerInstance) {
+                await webcontainerInstance.fs.writeFile(newFile.path, content);
+                setMessages(prev => [...prev, {
+                  role: 'assistant',
+                  content: `✅ Created ${newFile.path}`
+                }]);
+              }
+            }
+          }
+        }
+
+        setIsLoading(false);
+        return;
+      }
+
+      // Original code for initial project creation
       setMessages(prev => [...prev, {
         role: 'assistant',
         content: 'Analyzing your request and planning the project structure...'

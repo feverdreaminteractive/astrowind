@@ -280,6 +280,20 @@ export default async (req, context) => {
       } else if (browserData.requestType === 'generate_file') {
         // Generate specific file content
         systemPrompt = browserData.systemPrompt || `Generate the file content for ${browserData.targetFile}.`;
+      } else if (browserData.requestType === 'fix_error') {
+        // Fix errors in existing project
+        const currentProject = browserData.currentProject || {};
+        systemPrompt = `You are a web development assistant helping fix an error in an existing project.
+
+Project: ${currentProject.name}
+Current files: ${(currentProject.files || []).join(', ')}
+Error/Request: ${currentProject.error}
+
+Provide a clear solution. If a file needs to be created or modified, specify:
+1. The exact file path (e.g., /src/content/blog/first-post.mdx)
+2. The complete file content in a code block
+
+Be specific and provide working code that will fix the issue.`;
       } else {
         // Full-stack Node.js project with architecture recommendations
         systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.
