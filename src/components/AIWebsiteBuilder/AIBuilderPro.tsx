@@ -65,6 +65,55 @@ const AIBuilderPro: React.FC = () => {
       // Sync files from project to WebContainer
       if (project.files.length > 0) {
         await syncFilesToWebContainer(instance, project.files);
+
+        // Check for package.json and run setup commands
+        const findPackageJson = (files: FileNode[]): boolean => {
+          for (const file of files) {
+            if (file.name === 'package.json' || file.path === '/package.json') {
+              return true;
+            }
+            if (file.children) {
+              if (findPackageJson(file.children)) return true;
+            }
+          }
+          return false;
+        };
+
+        if (findPackageJson(project.files)) {
+          // Use project's setup commands or defaults
+          const setupCommands = project.setupCommands || ['npm install', 'npm run dev'];
+
+          addTerminalLine('📦 Running setup commands...');
+
+          for (const command of setupCommands) {
+            addTerminalLine(`🔧 Executing: ${command}`);
+            const [cmd, ...args] = command.split(' ');
+
+            try {
+              const process = await instance.spawn(cmd, args);
+
+              process.output.pipeTo(new WritableStream({
+                write(data) {
+                  addTerminalLine(data);
+                }
+              }));
+
+              // Don't wait for dev server to exit (it runs indefinitely)
+              if (!command.includes('dev') && !command.includes('start')) {
+                const exitCode = await process.exit;
+                if (exitCode !== 0) {
+                  addTerminalLine(`Process exited with code ${exitCode}`);
+                }
+              }
+            } catch (error) {
+              addTerminalLine(`❌ Error: ${error}`);
+            }
+          }
+
+          if (project.devServerUrl) {
+            addTerminalLine(`✨ Dev server should be available at: ${project.devServerUrl}`);
+          }
+        }
       }
 
       setBootStatus('WebContainer ready!');

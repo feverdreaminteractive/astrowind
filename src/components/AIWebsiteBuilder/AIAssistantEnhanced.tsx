@@ -279,15 +279,37 @@ Example for an Astro blog:
 
       try {
         // Try to parse the AI response as JSON
-        const cleanedResponse = analysisData.response || analysisData.message || '';
-        // Remove markdown code blocks if present
-        const jsonString = cleanedResponse
+        const rawResponse = analysisData.content || analysisData.response || analysisData.message || '';
+
+        // Extract JSON from the response (it might be wrapped in text)
+        let jsonString = rawResponse;
+
+        // Try to find JSON between markers or code blocks
+        const jsonMatch = rawResponse.match(/```json\s*([\s\S]*?)```/) ||
+                         rawResponse.match(/```\s*([\s\S]*?)```/) ||
+                         rawResponse.match(/\{[\s\S]*\}/);
+
+        if (jsonMatch) {
+          jsonString = jsonMatch[1] || jsonMatch[0];
+        }
+
+        // Clean up the JSON string
+        jsonString = jsonString
           .replace(/```json\n?/g, '')
           .replace(/```\n?/g, '')
           .trim();
+
         projectStructure = JSON.parse(jsonString);
+
+        console.log('Parsed project structure:', {
+          name: projectStructure.projectName,
+          type: projectStructure.projectType,
+          commands: projectStructure.setupCommands,
+          filesCount: projectStructure.files?.length
+        });
       } catch (e) {
         console.error('Failed to parse project structure:', e);
+        console.error('Raw response:', analysisData);
         throw new Error('Could not understand project structure from AI response');
       }
 
@@ -513,8 +535,18 @@ Make sure the code is complete and functional.`
           }
         }
       } else if (onWebContainerNeeded) {
-        // Notify parent that WebContainer is needed for full functionality
-        onWebContainerNeeded();
+        // Auto-start WebContainer for projects with package.json
+        const hasPackageJson = generatedFiles.some(f =>
+          f.path === '/package.json' || f.name === 'package.json'
+        );
+
+        if (hasPackageJson) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: '🚀 Starting WebContainer to run your project...'
+          }]);
+          onWebContainerNeeded();
+        }
       }
 
       setMessages(prev => [...prev, {
