@@ -303,6 +303,13 @@ DEPENDENCY REQUIREMENTS:
   - axios: If any file imports 'axios'
   - etc.
 
+MODULE SYSTEM REQUIREMENTS:
+- If package.json has "type": "module", use ES modules (import/export)
+- If no "type" field or "type": "commonjs", use CommonJS (require/module.exports)
+- NEVER mix require() in ES modules - causes "require is not defined" error
+- For ES modules with CLI scripts, use .js extension and import statements
+- For CommonJS with CLI scripts, use .cjs extension or no "type": "module"
+
 For each framework, ensure:
 - Astro: Include /src/pages/index.astro (REQUIRED - without this you get "No HTML file found")
 - Next.js: Include /pages/index.jsx or /app/page.jsx
@@ -329,8 +336,10 @@ BEFORE RETURNING: Verify that:
 
 AFTER generating files, you MUST provide instructions for:
 1. Installing dependencies: "Run: npm install"
-2. Starting dev server: "Run: npm run dev" (or appropriate command)
+2. Starting dev server: "Run: npm run dev" (NEVER use direct commands like 'astro dev', always use npm scripts)
 3. What port/URL to expect (e.g., "Server will start at http://localhost:3000")
+
+IMPORTANT: Always use npm scripts (npm run dev) instead of direct commands (astro dev) to avoid "command not found" errors.
 
 Return JSON with this structure:
 {

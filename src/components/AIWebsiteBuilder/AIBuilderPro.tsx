@@ -42,6 +42,12 @@ const AIBuilderPro: React.FC = () => {
 
   useEffect(() => {
     setIsMounted(true);
+
+    // Auto-start WebContainer on page load
+    if (!webcontainerInstance && !isBooting) {
+      console.log('Auto-starting WebContainer on page load...');
+      bootWebContainer();
+    }
   }, []);
 
   const bootWebContainer = async () => {
@@ -102,11 +108,35 @@ const AIBuilderPro: React.FC = () => {
               if (!command.includes('dev') && !command.includes('start')) {
                 const exitCode = await process.exit;
                 if (exitCode !== 0) {
-                  addTerminalLine(`Process exited with code ${exitCode}`);
+                  addTerminalLine(`⚠️ Process exited with code ${exitCode}`);
+
+                  // Provide helpful error messages based on exit codes
+                  if (exitCode === 1) {
+                    addTerminalLine('💡 Tip: General error. Check the output above for details.');
+                  } else if (exitCode === 127) {
+                    addTerminalLine('💡 Tip: Command not found. Ensure all required tools are installed.');
+                  } else if (exitCode === 126) {
+                    addTerminalLine('💡 Tip: Permission denied. Check file permissions.');
+                  }
                 }
               }
-            } catch (error) {
-              addTerminalLine(`❌ Error: ${error}`);
+            } catch (error: any) {
+              const errorMessage = error?.message || error;
+              addTerminalLine(`❌ Command failed: ${command}`);
+              addTerminalLine(`📋 Error: ${errorMessage}`);
+
+              // Provide helpful suggestions based on error type
+              if (errorMessage.includes('npm') && errorMessage.includes('not found')) {
+                addTerminalLine('💡 Tip: npm might not be installed. Try using yarn instead.');
+              } else if (errorMessage.includes('ENOENT')) {
+                addTerminalLine('💡 Tip: Command or file not found. Check if all dependencies are installed.');
+              } else if (errorMessage.includes('permission')) {
+                addTerminalLine('💡 Tip: Permission error. The WebContainer might not have access to this operation.');
+              } else if (command.includes('install')) {
+                addTerminalLine('💡 Tip: Package installation failed. Check package.json for invalid dependencies.');
+              } else if (command.includes('dev') || command.includes('start')) {
+                addTerminalLine('💡 Tip: Dev server failed to start. Check for port conflicts or missing config files.');
+              }
             }
           }
 
@@ -127,22 +157,116 @@ const AIBuilderPro: React.FC = () => {
     }
   };
 
+  const validateFileContent = (fileName: string, content: string): { valid: boolean; error?: string } => {
+    // Basic validation for common file types
+    const ext = fileName.split('.').pop()?.toLowerCase();
+
+    try {
+      if (ext === 'json' || fileName === 'package.json' || fileName === 'tsconfig.json') {
+        // Validate JSON syntax
+        JSON.parse(content);
+      } else if (ext === 'js' || ext === 'mjs' || ext === 'jsx' || ext === 'ts' || ext === 'tsx') {
+        // Check for basic JavaScript syntax errors
+        // Look for common issues like unmatched braces
+        const openBraces = (content.match(/{/g) || []).length;
+        const closeBraces = (content.match(/}/g) || []).length;
+        if (openBraces !== closeBraces) {
+          return { valid: false, error: `Unmatched braces: ${openBraces} opening, ${closeBraces} closing` };
+        }
+
+        // Check for unclosed strings
+        const singleQuotes = content.split("'").length - 1;
+        const doubleQuotes = content.split('"').length - 1;
+        const backticks = content.split('`').length - 1;
+
+        if (singleQuotes % 2 !== 0) {
+          return { valid: false, error: 'Unclosed single quote' };
+        }
+        if (doubleQuotes % 2 !== 0) {
+          return { valid: false, error: 'Unclosed double quote' };
+        }
+        if (backticks % 2 !== 0) {
+          return { valid: false, error: 'Unclosed template literal' };
+        }
+      }
+
+      return { valid: true };
+    } catch (error: any) {
+      return { valid: false, error: error.message };
+    }
+  };
+
   const syncFilesToWebContainer = async (container: WebContainer, files: FileNode[], basePath = '') => {
+    console.log('Starting sync to WebContainer, basePath:', basePath, 'files:', files.length);
+
     for (const file of files) {
       const fullPath = basePath ? `${basePath}/${file.name}` : file.name;
 
       if (file.type === 'folder') {
         // Create directory
-        await container.fs.mkdir(fullPath, { recursive: true });
+        console.log(`Creating directory: ${fullPath}`);
+        try {
+          await container.fs.mkdir(fullPath, { recursive: true });
+        } catch (error) {
+          console.error(`Failed to create directory ${fullPath}:`, error);
+          addTerminalLine(`❌ Failed to create directory ${fullPath}: ${error}`);
+        }
+
         // Process children
-        if (file.children) {
+        if (file.children && file.children.length > 0) {
           await syncFilesToWebContainer(container, file.children, fullPath);
         }
-      } else if (file.type === 'file' && file.content) {
-        // Write file
-        await container.fs.writeFile(fullPath, file.content);
-        addTerminalLine(`📝 Created ${fullPath}`);
+      } else if (file.type === 'file' && file.content !== undefined) {
+        // Validate file content before writing
+        const validation = validateFileContent(file.name, file.content);
+        if (!validation.valid) {
+          addTerminalLine(`⚠️ Warning: ${fullPath} has potential syntax issues: ${validation.error}`);
+        }
+
+        // Write file with explicit error handling
+        console.log(`Writing file: ${fullPath}, content length: ${file.content.length}`);
+        try {
+          await container.fs.writeFile(fullPath, file.content);
+
+          // Verify the file was written
+          try {
+            const verifyContent = await container.fs.readFile(fullPath, 'utf8');
+            if (verifyContent === file.content) {
+              addTerminalLine(`✅ Created ${fullPath} (${file.content.length} bytes)`);
+            } else {
+              addTerminalLine(`⚠️ File ${fullPath} written but content mismatch`);
+            }
+          } catch (verifyError) {
+            console.error(`Failed to verify file ${fullPath}:`, verifyError);
+            addTerminalLine(`⚠️ Created ${fullPath} but couldn't verify`);
+          }
+        } catch (error) {
+          console.error(`Failed to write file ${fullPath}:`, error);
+          addTerminalLine(`❌ Failed to write ${fullPath}: ${error}`);
+        }
       }
+    }
+
+    // After syncing, list root directory contents to verify
+    try {
+      const rootContents = await container.fs.readdir('.');
+      console.log('Root directory contents after sync:', rootContents);
+      addTerminalLine(`📂 Root directory contains: ${rootContents.join(', ')}`);
+
+      // Check specifically for package.json
+      if (rootContents.includes('package.json')) {
+        try {
+          const pkgContent = await container.fs.readFile('package.json', 'utf8');
+          const pkg = JSON.parse(pkgContent);
+          addTerminalLine(`✅ package.json found with name: ${pkg.name}`);
+        } catch (error) {
+          addTerminalLine(`⚠️ package.json exists but couldn't read: ${error}`);
+        }
+      } else {
+        addTerminalLine(`⚠️ package.json not found in root directory`);
+      }
+    } catch (error) {
+      console.error('Failed to list root directory:', error);
     }
   };
 
@@ -169,8 +293,19 @@ const AIBuilderPro: React.FC = () => {
       if (exitCode !== 0) {
         addTerminalLine(`Process exited with code ${exitCode}`);
       }
-    } catch (error) {
-      addTerminalLine(`❌ Error: ${error}`);
+    } catch (error: any) {
+      const errorMessage = error?.message || error;
+      addTerminalLine(`❌ Command failed: ${command}`);
+      addTerminalLine(`📋 Error: ${errorMessage}`);
+
+      // Provide context-aware error messages
+      if (command.startsWith('npm')) {
+        addTerminalLine('💡 Tip: npm command failed. Try checking if package.json exists.');
+      } else if (command.startsWith('git')) {
+        addTerminalLine('💡 Tip: Git operations are not available in WebContainer.');
+      } else if (errorMessage.includes('spawn')) {
+        addTerminalLine('💡 Tip: Failed to spawn process. The command might not be available.');
+      }
     }
   };
 
@@ -215,14 +350,22 @@ const AIBuilderPro: React.FC = () => {
     };
     setProject(updatedProject);
 
-    // Sync to WebContainer if running
+    // Validate and sync to WebContainer if running
     if (webcontainerInstance && selectedFile.path) {
       try {
         const path = selectedFile.path.startsWith('/') ? selectedFile.path.slice(1) : selectedFile.path;
+
+        // Validate file content before syncing
+        const validation = validateFileContent(selectedFile.name, value);
+        if (!validation.valid) {
+          addTerminalLine(`⚠️ Warning: ${path} has potential syntax issues: ${validation.error}`);
+        }
+
         await webcontainerInstance.fs.writeFile(path, value);
         console.log(`Synced ${path} to WebContainer`);
       } catch (error) {
         console.error('Failed to sync to WebContainer:', error);
+        addTerminalLine(`❌ Failed to sync ${selectedFile.path}: ${error}`);
       }
     }
   };
@@ -230,9 +373,23 @@ const AIBuilderPro: React.FC = () => {
   const handleProjectUpdate = async (newProject: Project) => {
     setProject(newProject);
 
+    // If WebContainer is not running but project has package.json, start it
+    if (!webcontainerInstance && newProject.files.length > 0) {
+      const hasPackageJson = newProject.files.some(f =>
+        f.name === 'package.json' || f.path === '/package.json' || f.path === 'package.json'
+      );
+
+      if (hasPackageJson) {
+        console.log('Starting WebContainer for project with package.json...');
+        await bootWebContainer();
+        return; // WebContainer will handle syncing after boot
+      }
+    }
+
     // If WebContainer is running, sync the new files
     if (webcontainerInstance && newProject.files.length > 0) {
       addTerminalLine('📂 Syncing project files to WebContainer...');
+
       await syncFilesToWebContainer(webcontainerInstance, newProject.files);
 
       // Check if package.json exists (check all files recursively)
