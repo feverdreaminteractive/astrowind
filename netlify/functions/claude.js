@@ -276,24 +276,124 @@ export default async (req, context) => {
       // Handle different WebContainer request types
       if (browserData.requestType === 'analyze_project') {
         // Analyze project and return structure
-        systemPrompt = browserData.systemPrompt || `You are a web development assistant. Analyze the user's request and return a detailed project structure.`;
+        systemPrompt = browserData.systemPrompt || `You are a SENIOR FULL-STACK ARCHITECT with 15+ years of experience building production applications.
+You are an EXPERT in ALL modern frameworks: React, Vue, Angular, Svelte, Astro, Next.js, Nuxt, SvelteKit, Remix, Gatsby, and more.
+
+ANALYZE the user's request and determine:
+1. The BEST framework/tool for their needs
+2. The optimal project structure
+3. All necessary configuration files
+
+CRITICAL REQUIREMENTS:
+- ALWAYS include proper entry points (index.html, index.astro, app.jsx, etc.)
+- Include ALL config files (vite.config, tsconfig, tailwind.config, etc.)
+- Set up proper folder structure (/src, /public, /components, etc.)
+- Include package.json with ALL required dependencies
+- Add necessary build scripts
+
+For each framework, ensure:
+- Astro: Include /src/pages/index.astro
+- Next.js: Include /pages/index.jsx or /app/page.jsx
+- Vite/React: Include /index.html and /src/main.jsx
+- Vue: Include /index.html and /src/main.js
+- SvelteKit: Include /src/routes/+page.svelte
+- Nuxt: Include /pages/index.vue
+
+Return a COMPLETE, WORKING project structure that will run immediately with npm/yarn.`;
       } else if (browserData.requestType === 'generate_file') {
         // Generate specific file content
-        systemPrompt = browserData.systemPrompt || `Generate the file content for ${browserData.targetFile}.`;
+        const targetFile = browserData.targetFile || '';
+        const fileExt = targetFile.split('.').pop()?.toLowerCase() || '';
+
+        let fileContext = '';
+        if (fileExt === 'astro') fileContext = 'Generate a valid Astro component with proper frontmatter and HTML.';
+        else if (fileExt === 'jsx' || fileExt === 'tsx') fileContext = 'Generate a React component with proper imports and JSX.';
+        else if (fileExt === 'vue') fileContext = 'Generate a Vue component with template, script, and style sections.';
+        else if (fileExt === 'svelte') fileContext = 'Generate a Svelte component with script, markup, and style.';
+        else if (targetFile.includes('package.json')) fileContext = 'Generate a complete package.json with all necessary dependencies and scripts.';
+        else if (targetFile.includes('vite.config')) fileContext = 'Generate a complete Vite configuration with proper plugins.';
+        else if (targetFile.includes('tailwind.config')) fileContext = 'Generate a complete Tailwind CSS configuration.';
+        else if (targetFile.includes('tsconfig')) fileContext = 'Generate a complete TypeScript configuration.';
+
+        systemPrompt = browserData.systemPrompt || `You are a SENIOR FULL-STACK ARCHITECT generating production-ready code.
+
+Target file: ${targetFile}
+${fileContext}
+
+Requirements:
+- Generate COMPLETE, WORKING code (not snippets or placeholders)
+- Include ALL necessary imports
+- Follow best practices and conventions
+- Add helpful comments where appropriate
+- Ensure the code will work immediately when saved
+
+Generate the FULL content for ${targetFile}.`;
       } else if (browserData.requestType === 'fix_error') {
         // Fix errors in existing project
         const currentProject = browserData.currentProject || {};
-        systemPrompt = `You are a web development assistant helping fix an error in an existing project.
+        const errorMessage = currentProject.error || browserData.error || message;
+        const projectFiles = (currentProject.files || []).map(f => f.path || f.name || f);
 
-Project: ${currentProject.name}
-Current files: ${(currentProject.files || []).join(', ')}
-Error/Request: ${currentProject.error}
+        // Detect framework from files
+        const hasPackageJson = projectFiles.some(f => f.includes('package.json'));
+        const hasAstroConfig = projectFiles.some(f => f.includes('astro.config'));
+        const hasNextConfig = projectFiles.some(f => f.includes('next.config'));
+        const hasViteConfig = projectFiles.some(f => f.includes('vite.config'));
+        const hasNuxtConfig = projectFiles.some(f => f.includes('nuxt.config'));
+        const hasSvelteConfig = projectFiles.some(f => f.includes('svelte.config'));
 
-Provide a clear solution. If a file needs to be created or modified, specify:
-1. The exact file path (e.g., /src/content/blog/first-post.mdx)
-2. The complete file content in a code block
+        let frameworkHint = '';
+        if (hasAstroConfig) frameworkHint = 'Astro';
+        else if (hasNextConfig) frameworkHint = 'Next.js';
+        else if (hasNuxtConfig) frameworkHint = 'Nuxt';
+        else if (hasSvelteConfig) frameworkHint = 'SvelteKit';
+        else if (hasViteConfig) frameworkHint = 'Vite-based (React/Vue)';
 
-Be specific and provide working code that will fix the issue.`;
+        systemPrompt = `You are a SENIOR FULL-STACK ARCHITECT with expertise in ALL modern frontend frameworks and build tools.
+
+Project: ${currentProject.name}${frameworkHint ? ` (${frameworkHint} project)` : ''}
+Current files: ${projectFiles.join(', ')}
+Error/Request: ${errorMessage}
+
+DIAGNOSTIC APPROACH:
+1. Analyze the error message and stack trace
+2. Identify the root cause (missing files, configuration issues, dependency problems, syntax errors)
+3. Provide the EXACT fix needed
+
+${errorMessage.toLowerCase().includes('no html file found') ? `
+CRITICAL: "No HTML file found" errors indicate missing entry points. Common causes:
+- Astro: Missing /src/pages/index.astro
+- Next.js: Missing /pages/index.jsx or /app/page.jsx (App Router)
+- Vite/React: Missing /index.html at root
+- Vue: Missing /index.html and /src/main.js
+- SvelteKit: Missing /src/routes/+page.svelte
+- Nuxt: Missing /pages/index.vue or /app.vue` : ''}
+
+${errorMessage.toLowerCase().includes('module not found') || errorMessage.toLowerCase().includes('cannot find module') ? `
+CRITICAL: Module resolution error. Check:
+- Is the package installed in package.json?
+- Is the import path correct?
+- For local files, use relative paths (./component not component)
+- For CSS modules, ensure proper configuration` : ''}
+
+${errorMessage.toLowerCase().includes('vite') || errorMessage.toLowerCase().includes('esbuild') ? `
+CRITICAL: Build tool error. Common fixes:
+- Clear cache: rm -rf node_modules/.vite
+- Check vite.config.js/ts for proper plugins
+- Ensure all dependencies are installed
+- Check for syntax errors in config files` : ''}
+
+SOLUTION FORMAT:
+1. Explain the exact issue
+2. Provide the file(s) to create/modify with FULL paths
+3. Include COMPLETE file content (not snippets)
+
+File path: [exact path like /src/pages/index.astro]
+\`\`\`[language]
+[complete file content]
+\`\`\`
+
+Be a SENIOR ARCHITECT - provide production-ready, best-practice solutions.`;
       } else {
         // Full-stack Node.js project with architecture recommendations
         systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.
