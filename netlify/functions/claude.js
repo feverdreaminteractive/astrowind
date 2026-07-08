@@ -285,21 +285,47 @@ ANALYZE the user's request and determine:
 3. All necessary configuration files
 
 CRITICAL REQUIREMENTS:
+- **MUST include package.json as the FIRST file** with ALL dependencies and scripts
 - ALWAYS include proper entry points (index.html, index.astro, app.jsx, etc.)
 - Include ALL config files (vite.config, tsconfig, tailwind.config, etc.)
 - Set up proper folder structure (/src, /public, /components, etc.)
-- Include package.json with ALL required dependencies
-- Add necessary build scripts
+- Add necessary build scripts in package.json
+
+DEPENDENCY REQUIREMENTS:
+- SCAN all your generated code for imports
+- EVERY import statement MUST have a corresponding package in dependencies
+- Common packages that MUST be included if imported:
+  - commander: If any file imports 'commander'
+  - express: If any file imports 'express'
+  - fs-extra: If any file imports 'fs-extra'
+  - chalk: If any file imports 'chalk'
+  - dotenv: If any file imports 'dotenv'
+  - axios: If any file imports 'axios'
+  - etc.
 
 For each framework, ensure:
-- Astro: Include /src/pages/index.astro
+- Astro: Include /src/pages/index.astro (REQUIRED - without this you get "No HTML file found")
 - Next.js: Include /pages/index.jsx or /app/page.jsx
-- Vite/React: Include /index.html and /src/main.jsx
-- Vue: Include /index.html and /src/main.js
+- Vite/React: Include /index.html and /src/main.jsx (both REQUIRED)
+- Vue: Include /index.html and /src/main.js (both REQUIRED)
 - SvelteKit: Include /src/routes/+page.svelte
-- Nuxt: Include /pages/index.vue
+- Nuxt: Include /pages/index.vue or /app.vue
+- Static HTML: Include /index.html (REQUIRED)
 
-Return a COMPLETE, WORKING project structure that will run immediately with npm/yarn.
+Return a MINIMAL but COMPLETE, WORKING project structure that will run immediately with npm/yarn.
+LIMIT TO 5-7 ESSENTIAL FILES for initial setup.
+
+ESSENTIAL FILES CHECKLIST:
+1. package.json with ALL dependencies
+2. Main entry point (index.html, index.astro, etc.)
+3. Configuration file (if needed)
+4. Main component/page
+5. Styles (if applicable)
+
+BEFORE RETURNING: Verify that:
+- Every import in your code has a corresponding package in dependencies
+- The main entry point exists and is valid
+- All paths are correct
 
 AFTER generating files, you MUST provide instructions for:
 1. Installing dependencies: "Run: npm install"
