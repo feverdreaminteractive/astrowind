@@ -312,6 +312,8 @@ MODULE SYSTEM REQUIREMENTS:
 
 For each framework, ensure:
 - Astro: Include /src/pages/index.astro (REQUIRED - without this you get "No HTML file found")
+  IMPORTANT: astro.config.mjs MUST include: vite: { build: { sourcemap: false }, ssr: { noExternal: true } }
+  This prevents "line must be greater than 0" errors in WebContainer
 - Next.js: Include /pages/index.jsx or /app/page.jsx
 - Vite/React: Include /index.html and /src/main.jsx (both REQUIRED)
 - Vue: Include /index.html and /src/main.js (both REQUIRED)
@@ -358,9 +360,11 @@ Return JSON with this structure:
         // Generate specific file content
         const targetFile = browserData.targetFile || '';
         const fileExt = targetFile.split('.').pop()?.toLowerCase() || '';
+        const fileName = targetFile.split('/').pop() || '';
 
         let fileContext = '';
         if (fileExt === 'astro') fileContext = 'Generate a valid Astro component with proper frontmatter and HTML.';
+        else if (fileName === 'astro.config.mjs') fileContext = 'Generate Astro config with vite: { ssr: { noExternal: true } } to fix WebContainer source map issues.';
         else if (fileExt === 'jsx' || fileExt === 'tsx') fileContext = 'Generate a React component with proper imports and JSX.';
         else if (fileExt === 'vue') fileContext = 'Generate a Vue component with template, script, and style sections.';
         else if (fileExt === 'svelte') fileContext = 'Generate a Svelte component with script, markup, and style.';
