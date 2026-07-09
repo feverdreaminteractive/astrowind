@@ -546,7 +546,7 @@ Example for an Astro blog:
     },
     {
       "path": "/src/styles/global.css",
-      "description": "Global styles"
+      "description": "Global styles (IMPORTANT: name it global.css not globals.css)"
     }
   ]
 }`

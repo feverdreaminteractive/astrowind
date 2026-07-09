@@ -92,6 +92,30 @@ const WebContainerBuilder: React.FC<Props> = ({ onClose }) => {
     return process.exit;
   };
 
+  // Helper function to fetch GitHub repository structure
+  const fetchGitHubRepo = async (url: string) => {
+    const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+    if (!match) return null;
+
+    const [, owner, repo] = match;
+    const cleanRepo = repo.replace(/\.git$/, '');
+
+    try {
+      // Fetch repository tree
+      const treeResponse = await fetch(`https://api.github.com/repos/${owner}/${cleanRepo}/git/trees/main?recursive=1`);
+      if (!treeResponse.ok) {
+        // Try 'master' branch if 'main' doesn't exist
+        const masterResponse = await fetch(`https://api.github.com/repos/${owner}/${cleanRepo}/git/trees/master?recursive=1`);
+        if (!masterResponse.ok) throw new Error('Failed to fetch repository');
+        return await masterResponse.json();
+      }
+      return await treeResponse.json();
+    } catch (error) {
+      console.error('Error fetching GitHub repo:', error);
+      return null;
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
@@ -100,10 +124,37 @@ const WebContainerBuilder: React.FC<Props> = ({ onClose }) => {
     setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
+    // Check if message contains GitHub URL
+    const githubUrlMatch = userMessage.match(/https?:\/\/github\.com\/[^\s]+/);
+    let githubRepoInfo = null;
+
+    if (githubUrlMatch) {
+      const githubUrl = githubUrlMatch[0];
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '🔍 Analyzing GitHub repository...'
+      }]);
+
+      const repoData = await fetchGitHubRepo(githubUrl);
+      if (repoData) {
+        githubRepoInfo = {
+          url: githubUrl,
+          files: repoData.tree?.filter((item: any) => item.type === 'blob')
+            .map((item: any) => item.path) || []
+        };
+      }
+    }
+
     try {
       const apiUrl = window.location.hostname === 'localhost'
         ? 'http://localhost:9999/.netlify/functions/claude'
         : '/.netlify/functions/claude';
+
+      // Include existing files for follow-up requests
+      const existingFiles = files.length > 0 ? files.map(fileName => ({
+        name: fileName,
+        content: '' // We don't have the content readily available, but the name is enough
+      })) : undefined;
 
       const response = await fetch(apiUrl, {
         method: 'POST',
@@ -114,7 +165,9 @@ const WebContainerBuilder: React.FC<Props> = ({ onClose }) => {
             isWebContainer: true,
             isWebBuilder: true,
             hasNodeRuntime: true,
-            url: window.location.href
+            url: window.location.href,
+            existingFiles: existingFiles,
+            githubRepo: githubRepoInfo
           }
         })
       });

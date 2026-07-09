@@ -276,72 +276,25 @@ export default async (req, context) => {
       // Handle different WebContainer request types
       if (browserData.requestType === 'analyze_project') {
         // Analyze project and return structure
-        systemPrompt = browserData.systemPrompt || `You are a SENIOR FULL-STACK ARCHITECT with 15+ years of experience building production applications.
-You are an EXPERT in ALL modern frameworks: React, Vue, Angular, Svelte, Astro, Next.js, Nuxt, SvelteKit, Remix, Gatsby, and more.
+        systemPrompt = browserData.systemPrompt || `# Role
+You are a Staff-Level Software Engineer analyzing a project request.
 
-ANALYZE the user's request and determine:
-1. The BEST framework/tool for their needs
-2. The optimal project structure
-3. All necessary configuration files
+# User Request
+"${message}"
 
-CRITICAL REQUIREMENTS:
-- **MUST include package.json as the FIRST file** with ALL dependencies and scripts
-- ALWAYS include proper entry points (index.html, index.astro, app.jsx, etc.)
-- Include ALL config files (vite.config, tsconfig, tailwind.config, etc.)
-- Set up proper folder structure (/src, /public, /components, etc.)
-- Add necessary build scripts in package.json
+# Your Task
+1. Understand what the user wants to build
+2. Choose the most appropriate tools/framework for THIS specific request
+3. Create a production-ready implementation
+4. Ensure it runs immediately with proper dependencies
 
-DEPENDENCY REQUIREMENTS:
-- SCAN all your generated code for imports
-- EVERY import statement MUST have a corresponding package in dependencies
-- Common packages that MUST be included if imported:
-  - commander: If any file imports 'commander'
-  - express: If any file imports 'express'
-  - fs-extra: If any file imports 'fs-extra'
-  - chalk: If any file imports 'chalk'
-  - dotenv: If any file imports 'dotenv'
-  - axios: If any file imports 'axios'
-  - etc.
+Requirements:
+- Include package.json with all necessary dependencies
+- Ensure all imports have corresponding packages in dependencies
+- Create proper entry points for the chosen framework
+- Keep the initial setup minimal but complete (5-7 essential files)
+- Make sure it runs immediately with npm install && npm run dev/start
 
-MODULE SYSTEM REQUIREMENTS:
-- If package.json has "type": "module", use ES modules (import/export)
-- If no "type" field or "type": "commonjs", use CommonJS (require/module.exports)
-- NEVER mix require() in ES modules - causes "require is not defined" error
-- For ES modules with CLI scripts, use .js extension and import statements
-- For CommonJS with CLI scripts, use .cjs extension or no "type": "module"
-
-For each framework, ensure:
-- Astro: Include /src/pages/index.astro (REQUIRED - without this you get "No HTML file found")
-  IMPORTANT: astro.config.mjs MUST include: vite: { build: { sourcemap: false }, ssr: { noExternal: true } }
-  This prevents "line must be greater than 0" errors in WebContainer
-- Next.js: Include /pages/index.jsx or /app/page.jsx
-- Vite/React: Include /index.html and /src/main.jsx (both REQUIRED)
-- Vue: Include /index.html and /src/main.js (both REQUIRED)
-- SvelteKit: Include /src/routes/+page.svelte
-- Nuxt: Include /pages/index.vue or /app.vue
-- Static HTML: Include /index.html (REQUIRED)
-
-Return a MINIMAL but COMPLETE, WORKING project structure that will run immediately with npm/yarn.
-LIMIT TO 5-7 ESSENTIAL FILES for initial setup.
-
-ESSENTIAL FILES CHECKLIST:
-1. package.json with ALL dependencies
-2. Main entry point (index.html, index.astro, etc.)
-3. Configuration file (if needed)
-4. Main component/page
-5. Styles (if applicable)
-
-BEFORE RETURNING: Verify that:
-- Every import in your code has a corresponding package in dependencies
-- The main entry point exists and is valid
-- All paths are correct
-
-AFTER generating files, you MUST provide instructions for:
-1. Installing dependencies: "Run: npm install"
-2. Starting dev server: "Run: npm run dev" (NEVER use direct commands like 'astro dev', always use npm scripts)
-3. What port/URL to expect (e.g., "Server will start at http://localhost:3000")
-
-IMPORTANT: Always use npm scripts (npm run dev) instead of direct commands (astro dev) to avoid "command not found" errors.
 
 Return JSON with this structure:
 {
@@ -364,7 +317,7 @@ Return JSON with this structure:
 
         let fileContext = '';
         if (fileExt === 'astro') fileContext = 'Generate a valid Astro component with proper frontmatter and HTML.';
-        else if (fileName === 'astro.config.mjs') fileContext = 'Generate Astro config with vite: { ssr: { noExternal: true } } to fix WebContainer source map issues.';
+        else if (fileName === 'astro.config.mjs') fileContext = 'Generate minimal Astro config: import { defineConfig } from "astro/config"; export default defineConfig({});';
         else if (fileExt === 'jsx' || fileExt === 'tsx') fileContext = 'Generate a React component with proper imports and JSX.';
         else if (fileExt === 'vue') fileContext = 'Generate a Vue component with template, script, and style sections.';
         else if (fileExt === 'svelte') fileContext = 'Generate a Svelte component with script, markup, and style.';
@@ -407,57 +360,16 @@ Generate the FULL content for ${targetFile}.`;
         else if (hasSvelteConfig) frameworkHint = 'SvelteKit';
         else if (hasViteConfig) frameworkHint = 'Vite-based (React/Vue)';
 
-        systemPrompt = `You are a SENIOR FULL-STACK ARCHITECT with expertise in ALL modern frontend frameworks and build tools.
+        // If frontend provided a systemPrompt, use it as-is
+        if (browserData.systemPrompt) {
+          systemPrompt = browserData.systemPrompt;
+        } else {
+          systemPrompt = `Fix this error: ${errorMessage}
 
-Project: ${currentProject.name}${frameworkHint ? ` (${frameworkHint} project)` : ''}
-Current files: ${projectFiles.join(', ')}
-Error/Request: ${errorMessage}
+Project files: ${projectFiles.join(', ')}
 
-DIAGNOSTIC APPROACH:
-1. Analyze the error message and stack trace
-2. Identify the root cause (missing files, configuration issues, dependency problems, syntax errors)
-3. Provide the EXACT fix needed
-
-${errorMessage.toLowerCase().includes('no html file found') ? `
-CRITICAL: "No HTML file found" errors indicate missing entry points. Common causes:
-- Astro: Missing /src/pages/index.astro
-- Next.js: Missing /pages/index.jsx or /app/page.jsx (App Router)
-- Vite/React: Missing /index.html at root
-- Vue: Missing /index.html and /src/main.js
-- SvelteKit: Missing /src/routes/+page.svelte
-- Nuxt: Missing /pages/index.vue or /app.vue` : ''}
-
-${errorMessage.toLowerCase().includes('module not found') || errorMessage.toLowerCase().includes('cannot find module') ? `
-CRITICAL: Module resolution error. Check:
-- Is the package installed in package.json?
-- Is the import path correct?
-- For local files, use relative paths (./component not component)
-- For CSS modules, ensure proper configuration` : ''}
-
-${errorMessage.toLowerCase().includes('vite') || errorMessage.toLowerCase().includes('esbuild') ? `
-CRITICAL: Build tool error. Common fixes:
-- Clear cache: rm -rf node_modules/.vite
-- Check vite.config.js/ts for proper plugins
-- Ensure all dependencies are installed
-- Check for syntax errors in config files` : ''}
-
-SOLUTION FORMAT:
-1. Explain the exact issue
-2. Provide the file(s) to create/modify with FULL paths
-3. Include COMPLETE file content (not snippets)
-
-File path: [exact path like /src/pages/index.astro]
-\`\`\`[language]
-[complete file content]
-\`\`\`
-
-Be a SENIOR ARCHITECT - provide production-ready, best-practice solutions.
-
-ALWAYS end your response with:
-**Commands to run:**
-1. npm install (if dependencies changed)
-2. npm run dev (or the appropriate dev command)
-3. Expected URL: http://localhost:[PORT]`;
+Return the fixed/new files as JSON.`;
+        }
       } else {
         // Full-stack Node.js project with architecture recommendations
         systemPrompt = `You are an expert full-stack architect that builds COMPLETE, PRODUCTION-READY Node.js applications.
@@ -615,18 +527,40 @@ CRITICAL OUTPUT RULES:
     } else if (browserData && browserData.isWebBuilder) {
       // Website builder with modification capability
       const hasExistingFiles = browserData.existingFiles && browserData.existingFiles.length > 0;
+      const hasGithubRepo = browserData.githubRepo && browserData.githubRepo.url;
 
       let contextPrompt = '';
-      if (hasExistingFiles) {
+      if (hasGithubRepo) {
+        contextPrompt = `The user wants to recreate this GitHub repository: ${browserData.githubRepo.url}
+Repository structure (${browserData.githubRepo.files?.length || 0} files):
+${browserData.githubRepo.files?.slice(0, 20).join('\n')}
+${browserData.githubRepo.files?.length > 20 ? `... and ${browserData.githubRepo.files.length - 20} more files` : ''}
+
+Analyze the repository structure and create a working version with the core functionality.
+Focus on the main application files and essential dependencies.
+If it's a complex project, create a simplified but functional version.
+
+IMPORTANT for GitHub repos:
+- Include package.json with all necessary dependencies
+- Create the main application files (index.js, app.js, etc)
+- Include key configuration files
+- Set up the proper folder structure (src/, public/, etc)
+- Make it immediately runnable with npm install && npm start/dev`;
+      } else if (hasExistingFiles) {
         contextPrompt = `You have existing files to MODIFY (not replace):
 ${browserData.existingFiles.map((f) => `- ${f.name}: ${f.content?.length || 0} chars`).join('\n')}
 
 IMPORTANT: Keep existing content and structure, only modify what's requested.`;
       }
 
-      systemPrompt = `${hasExistingFiles ? 'MODIFY' : 'Create'} website: ${message}
+      systemPrompt = `You are a software engineer.
+
+User wants: "${message}"
+
 ${contextPrompt}
-Use Tailwind CSS. Return complete files in JSON:
+
+Build it. Don't explain, just implement.
+Return only the files needed, as JSON:
 <<<JSON_START>>>
 {
   "message": "What was changed",
@@ -636,7 +570,17 @@ Use Tailwind CSS. Return complete files in JSON:
     {"name": "script.js", "type": "file", "path": "/script.js", "content": "complete JS"}
   ]
 }
-<<<JSON_END>>>`;
+<<<JSON_END>>>
+
+For Astro projects specifically, return:
+{
+  "files": [
+    {"name": "package.json", "path": "/package.json", "content": "...with astro in dependencies..."},
+    {"name": "astro.config.mjs", "path": "/astro.config.mjs", "content": "import { defineConfig } from 'astro/config'; export default defineConfig({});"},
+    {"name": "index.astro", "path": "/src/pages/index.astro", "content": "---\nimport '../styles/global.css';\n---\n<html>..."},
+    {"name": "global.css", "path": "/src/styles/global.css", "content": "/* styles */"}
+  ]
+}`;
       console.log('AI Website Builder request - ', hasExistingFiles ? 'modifying existing' : 'creating new');
     } else {
       // Regular career assistant prompt
