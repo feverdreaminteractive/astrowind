@@ -1,0 +1,221 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { Icon } from 'astro-icon/components';
+---
+
+<Layout title="GitHub Team MCP Server - Ryan Clayton">
+  <main class="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <!-- Header -->
+      <div class="text-center mb-12">
+        <h1 class="text-5xl font-bold text-white mb-4">
+          GitHub Team MCP Server
+        </h1>
+        <p class="text-xl text-gray-300 max-w-3xl mx-auto">
+          A Model Context Protocol server that simulates a development team collaborating on GitHub repositories
+        </p>
+      </div>
+
+      <!-- Demo Section -->
+      <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-12">
+        <h2 class="text-3xl font-bold text-white mb-6">Live Demo</h2>
+
+        <div class="grid md:grid-cols-2 gap-8">
+          <!-- Team Members -->
+          <div>
+            <h3 class="text-xl font-semibold text-white mb-4">Virtual Team Members</h3>
+            <div class="space-y-3">
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold">AC</span>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold">Alex Chen</div>
+                    <div class="text-gray-300 text-sm">Tech Lead - Architecture & TypeScript</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold">SM</span>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold">Sarah Martinez</div>
+                    <div class="text-gray-300 text-sm">Frontend Dev - React & UI/UX</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold">MJ</span>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold">Marcus Johnson</div>
+                    <div class="text-gray-300 text-sm">Backend Dev - APIs & Databases</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold">JK</span>
+                  </div>
+                  <div>
+                    <div class="text-white font-semibold">Jordan Kim</div>
+                    <div class="text-gray-300 text-sm">DevOps - CI/CD & AWS</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Available Commands -->
+          <div>
+            <h3 class="text-xl font-semibold text-white mb-4">Available Tools</h3>
+            <div class="space-y-3">
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="font-mono text-blue-300 mb-1">team_review_pr</div>
+                <div class="text-gray-300 text-sm">Get team perspectives on pull requests</div>
+              </div>
+
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="font-mono text-blue-300 mb-1">team_standup</div>
+                <div class="text-gray-300 text-sm">Generate daily standup from commits</div>
+              </div>
+
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="font-mono text-blue-300 mb-1">team_code_review</div>
+                <div class="text-gray-300 text-sm">Simulate code review discussions</div>
+              </div>
+
+              <div class="bg-white/5 rounded-lg p-4">
+                <div class="font-mono text-blue-300 mb-1">team_planning</div>
+                <div class="text-gray-300 text-sm">Sprint planning with issue analysis</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Example Output -->
+      <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-12">
+        <h2 class="text-3xl font-bold text-white mb-6">Example Output</h2>
+        <div class="bg-black/30 rounded-lg p-6 font-mono text-sm">
+          <div class="text-green-400 mb-2">## Team Code Review Session</div>
+          <div class="text-gray-300 mb-4">
+            <span class="text-blue-400">Reviewing:</span> Fix navigation responsive issues<br/>
+            <span class="text-blue-400">Author:</span> ryanclayton
+          </div>
+
+          <div class="text-yellow-300 mb-2">### Alex Chen (Tech Lead):</div>
+          <div class="text-gray-300 mb-4">
+            "Looking at the overall structure, this follows our established patterns well.
+            Consider adding more comprehensive error handling, especially for edge cases.
+            Good use of TypeScript types for maintaining code quality."
+          </div>
+
+          <div class="text-yellow-300 mb-2">### Sarah Martinez (Frontend Developer):</div>
+          <div class="text-gray-300 mb-4">
+            "From a UI perspective, make sure we're maintaining consistency with our design system.
+            Have we considered the loading states and error boundaries?
+            Also, let's ensure this is tested across different screen sizes."
+          </div>
+
+          <div class="text-green-400">Consensus: Approved with minor suggestions</div>
+        </div>
+      </div>
+
+      <!-- Technical Details -->
+      <div class="grid md:grid-cols-2 gap-8 mb-12">
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
+          <h3 class="text-2xl font-bold text-white mb-4">Technical Stack</h3>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:check-circle" class="w-5 h-5 text-green-400" />
+              Model Context Protocol SDK
+            </li>
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:check-circle" class="w-5 h-5 text-green-400" />
+              GitHub API via Octokit
+            </li>
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:check-circle" class="w-5 h-5 text-green-400" />
+              Node.js async/await patterns
+            </li>
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:check-circle" class="w-5 h-5 text-green-400" />
+              Claude Desktop integration
+            </li>
+          </ul>
+        </div>
+
+        <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
+          <h3 class="text-2xl font-bold text-white mb-4">Use Cases</h3>
+          <ul class="space-y-3">
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:users" class="w-5 h-5 text-blue-400" />
+              Portfolio demonstration
+            </li>
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:git-pull-request" class="w-5 h-5 text-blue-400" />
+              PR review automation
+            </li>
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:message-square" class="w-5 h-5 text-blue-400" />
+              Team collaboration simulation
+            </li>
+            <li class="flex items-center gap-3 text-gray-300">
+              <Icon name="lucide:zap" class="w-5 h-5 text-blue-400" />
+              Development workflow showcase
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Setup Instructions -->
+      <div class="bg-white/10 backdrop-blur-lg rounded-2xl p-8 mb-12">
+        <h2 class="text-3xl font-bold text-white mb-6">Quick Setup</h2>
+        <div class="space-y-4">
+          <div class="bg-black/30 rounded-lg p-4">
+            <div class="text-gray-400 text-sm mb-1">Step 1: Install dependencies</div>
+            <code class="text-green-400">npm install @modelcontextprotocol/sdk @octokit/rest</code>
+          </div>
+
+          <div class="bg-black/30 rounded-lg p-4">
+            <div class="text-gray-400 text-sm mb-1">Step 2: Configure GitHub token</div>
+            <code class="text-green-400">export GITHUB_TOKEN=your_github_token_here</code>
+          </div>
+
+          <div class="bg-black/30 rounded-lg p-4">
+            <div class="text-gray-400 text-sm mb-1">Step 3: Run the server</div>
+            <code class="text-green-400">npm run mcp-server</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="text-center">
+        <div class="flex gap-4 justify-center">
+          <a href="https://github.com/feverdreaminteractive/portfolio/tree/feature/mcp-github-team"
+             target="_blank"
+             class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-lg hover:shadow-xl transition-all">
+            <Icon name="lucide:github" class="w-5 h-5" />
+            View Source Code
+          </a>
+          <a href="/README-MCP.md"
+             target="_blank"
+             class="inline-flex items-center gap-2 px-6 py-3 bg-white/10 text-white font-semibold rounded-lg hover:bg-white/20 transition-all">
+            <Icon name="lucide:book-open" class="w-5 h-5" />
+            Documentation
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</Layout>
