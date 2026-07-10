@@ -2,6 +2,10 @@
 
 import { Octokit } from '@octokit/rest';
 import readline from 'readline';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -58,8 +62,13 @@ async function setupGitHubRepo() {
     const { data: user } = await octokit.users.getAuthenticated();
     console.log(`✅ Authenticated as: ${user.login}\n`);
 
-    // Ask for repo name
-    const repoName = await question('Enter repository name (e.g., team-project-showcase): ');
+    // Get repo name from command line or ask
+    let repoName = process.argv[2];
+    if (!repoName) {
+      repoName = await question('Enter repository name (e.g., team-project-showcase): ');
+    } else {
+      console.log(`Using repository name: ${repoName}\n`);
+    }
 
     // Create repository
     console.log('\n📦 Creating repository...');
@@ -353,26 +362,12 @@ Assigned to: @alex_chen`,
       console.log(`  ✅ Issue #${data.number}: ${issue.title}`);
     }
 
-    // Create a project board
-    console.log('\n📊 Creating project board...');
-    const { data: project } = await octokit.projects.createForRepo({
-      owner: user.login,
-      repo: repoName,
-      name: 'Development Sprint Board',
-      body: 'Kanban board for tracking development progress'
-    });
-    console.log(`✅ Project board created: ${project.html_url}`);
-
-    // Create columns
-    console.log('  Creating columns...');
-    const columns = ['Backlog', 'To Do', 'In Progress', 'Review', 'Done'];
-    for (const columnName of columns) {
-      await octokit.projects.createColumn({
-        project_id: project.id,
-        name: columnName
-      });
-      console.log(`    ✅ Column: ${columnName}`);
-    }
+    // Note: GitHub Projects v2 (new) requires GraphQL API
+    // Classic projects API is deprecated, so we'll skip this for now
+    console.log('\n📊 Project board:');
+    console.log('  ℹ️  Please create a project board manually at:');
+    console.log(`  ${repo.html_url}/projects/new`);
+    console.log('  Recommended columns: Backlog, To Do, In Progress, Review, Done');
 
     // Create sample README with team info
     console.log('\n📝 Creating README with team information...');
@@ -552,13 +547,13 @@ Resolves #2`,
     console.log('✨ Setup Complete!');
     console.log('='.repeat(50));
     console.log(`\n📦 Repository: ${repo.html_url}`);
-    console.log(`📊 Project Board: ${project.html_url}`);
+    console.log(`📊 Project Board: ${repo.html_url}/projects`);
     console.log(`🔀 Sample PR: ${pr.html_url}`);
     console.log(`📋 Issues: ${repo.html_url}/issues`);
     console.log('\nNext steps:');
     console.log('1. Visit your repository to see the team structure');
     console.log('2. Check the Issues tab for the backlog');
-    console.log('3. View the Projects tab for the sprint board');
+    console.log('3. Create a Project board in the Projects tab');
     console.log('4. Review the sample PR for team collaboration example');
 
   } catch (error) {
