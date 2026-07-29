@@ -1,0 +1,87 @@
+---
+import Layout from '../layouts/Layout.astro';
+import GLSLShaderEditor from '../components/GLSLEditor/GLSLShaderEditor.tsx';
+import '../styles/global.css';
+
+const title = 'GLSL Shader Lab';
+const description = 'Interactive GLSL shader editor with AI-powered generation';
+---
+
+<Layout title={title} description={description}>
+  <div class="shader-lab-page">
+    <div class="shader-lab-header">
+      <h1>GLSL Shader Lab</h1>
+      <p>Create audio-reactive visuals with AI assistance</p>
+    </div>
+    <div class="shader-lab-container">
+      <GLSLShaderEditor client:load />
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .shader-lab-page {
+    height: 100vh;
+    background: var(--color-bg-primary);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .shader-lab-header {
+    flex-shrink: 0;
+    padding: 0.5rem;
+    text-align: center;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .shader-lab-header h1 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+    background: linear-gradient(135deg, #3b82f6, #9333ea);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .shader-lab-header p {
+    margin-top: 0.25rem;
+    color: var(--color-text-secondary);
+    font-size: 0.75rem;
+  }
+
+  .shader-lab-container {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* Monaco Editor specific styles */
+  :global(.monaco-editor) {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+  }
+
+  /* WebGL Canvas styles */
+  :global(.shader-canvas) {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+  }
+
+  /* Responsive design */
+  @media (max-width: 1024px) {
+    .shader-lab-header h1 {
+      font-size: 2rem;
+    }
+
+    .shader-lab-header p {
+      font-size: 1rem;
+    }
+
+    .shader-lab-container {
+      margin: 0.5rem;
+      height: calc(100vh - 160px);
+    }
+  }
+</style>

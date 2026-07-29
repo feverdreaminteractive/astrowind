@@ -36,11 +36,12 @@ export default defineConfig({
           secure: true,
         },
         // Proxy API calls to your deployed site
-        '/api': {
-          target: 'https://ryanclayton.io',
-          changeOrigin: true,
-          secure: true,
-        }
+        // Temporarily disabled for local testing
+        // '/api': {
+        //   target: 'https://ryanclayton.io',
+        //   changeOrigin: true,
+        //   secure: true,
+        // }
       }
     }
   },
