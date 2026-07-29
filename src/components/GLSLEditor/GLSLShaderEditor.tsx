@@ -75,7 +75,7 @@ void main(void) {
     gl_FragColor = vec4(color, 1.0);
 }`;
 
-const GLSLShaderEditor = ({ aiTeamEndpoint = '/api/ai-shader' }: GLSLShaderEditorProps) => {
+const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: GLSLShaderEditorProps) => {
   const [code, setCode] = useState(DEFAULT_SHADER);
   const [error, setError] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(true);

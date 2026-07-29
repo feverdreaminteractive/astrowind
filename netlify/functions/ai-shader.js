@@ -1,38 +1,41 @@
-import type { APIRoute } from 'astro';
+// Netlify Function for AI Shader Generation
 
-export const prerender = false;
-
-export const OPTIONS: APIRoute = async () => {
-  return new Response(null, {
-    status: 200,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    }
-  });
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
-export const POST: APIRoute = async ({ request }) => {
+const jsonResponse = (body, statusCode = 200) =>
+  new Response(JSON.stringify(body), {
+    status: statusCode,
+    headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+  });
+
+export default async (req, context) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('OK', { status: 200, headers: CORS_HEADERS });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return jsonResponse({ error: 'Method Not Allowed' }, 405);
+  }
+
   try {
-    const { prompt, task = 'generate-shader' } = await request.json();
+    const { prompt, task = 'generate-shader' } = await req.json();
 
     if (!prompt) {
-      return new Response(JSON.stringify({ error: 'Prompt is required' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({ error: 'Prompt is required' }, 400);
     }
 
     // Get Claude API key from environment
-    const apiKey = import.meta.env.CLAUDE_API_KEY || import.meta.env.VITE_CLAUDE_API_KEY || process.env.CLAUDE_API_KEY;
+    const apiKey = process.env.CLAUDE_API_KEY;
 
     if (!apiKey) {
-      console.error('Claude API key not configured. Checked: import.meta.env.CLAUDE_API_KEY, import.meta.env.VITE_CLAUDE_API_KEY, process.env.CLAUDE_API_KEY');
-      return new Response(JSON.stringify({ error: 'AI service not configured' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      console.error('Claude API key not configured');
+      return jsonResponse({ error: 'AI service not configured' }, 500);
     }
 
     console.log('Using Claude API with model: claude-haiku-4-5-20251001');
@@ -74,20 +77,14 @@ The code should start with the precision declaration and end with the main funct
     if (!response.ok) {
       const error = await response.text();
       console.error('Anthropic API error:', error);
-      return new Response(JSON.stringify({ error: 'Failed to generate shader' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({ error: 'Failed to generate shader' }, 500);
     }
 
     const data = await response.json();
     const shaderCode = data.content?.[0]?.text;
 
     if (!shaderCode) {
-      return new Response(JSON.stringify({ error: 'No shader generated' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' }
-      });
+      return jsonResponse({ error: 'No shader generated' }, 500);
     }
 
     // Clean up the shader code (remove any markdown formatting if present)
@@ -96,28 +93,17 @@ The code should start with the precision declaration and end with the main funct
       .replace(/```\n?/g, '')
       .trim();
 
-    return new Response(JSON.stringify({
+    return jsonResponse({
       code: cleanedCode,
       task: task,
       prompt: prompt
-    }), {
-      status: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type'
-      }
     });
 
   } catch (error) {
     console.error('Shader generation error:', error);
-    return new Response(JSON.stringify({
+    return jsonResponse({
       error: 'Internal server error',
       details: error instanceof Error ? error.message : 'Unknown error'
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' }
-    });
+    }, 500);
   }
 };

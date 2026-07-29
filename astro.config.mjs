@@ -5,13 +5,10 @@ import sitemap from '@astrojs/sitemap';
 import tailwindcss from '@tailwindcss/vite';
 import icon from 'astro-icon';
 import react from '@astrojs/react';
-import netlify from '@astrojs/netlify';
 
 // https://astro.build/config
 export default defineConfig({
   site: SITE_URL,
-  output: 'server',
-  adapter: netlify(),
   integrations: [react(), icon(), sitemap()],
   vite: {
     plugins: [
