@@ -222,8 +222,38 @@ const navItems = [
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <script>
-  // Set active navigation state on client side as fallback
-  document.addEventListener('DOMContentLoaded', () => {
+  // Store state globally to prevent duplicate listeners
+  let mobileMenuInitialized = false;
+
+  // Function to toggle mobile menu
+  function toggleMobileMenu() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+      mobileMenu.classList.toggle('hidden');
+    }
+  }
+
+  // Function to close mobile menu
+  function closeMobileMenu() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    if (mobileMenu) {
+      mobileMenu.classList.add('hidden');
+    }
+  }
+
+  // Function to handle clicks outside menu
+  function handleOutsideClick(e) {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuButton = document.getElementById('mobile-menu-button');
+    if (mobileMenu && menuButton &&
+        !mobileMenu.contains(e.target) &&
+        !menuButton.contains(e.target)) {
+      closeMobileMenu();
+    }
+  }
+
+  // Function to initialize navigation
+  function initializeNavigation() {
     const currentPath = window.location.pathname;
 
     // Update desktop nav items
@@ -232,26 +262,9 @@ const navItems = [
       const isActive = (href === '/' && currentPath === '/') ||
                        (href !== '/' && currentPath === href);
 
-      if (isActive) {
-        link.classList.add('text-white', 'font-medium');
-        link.classList.remove('text-gray-400');
-
-        // Add underline if it doesn't exist
-        if (!link.querySelector('.nav-underline')) {
-          const underline = document.createElement('span');
-          underline.className = 'nav-underline absolute -bottom-[21px] left-0 right-0 h-[2px] bg-white';
-          link.appendChild(underline);
-        }
-      } else {
-        link.classList.remove('text-white', 'font-medium');
-        link.classList.add('text-gray-400');
-
-        // Remove underline if it exists
-        const underline = link.querySelector('.nav-underline');
-        if (underline) {
-          underline.remove();
-        }
-      }
+      link.classList.toggle('text-white', isActive);
+      link.classList.toggle('font-medium', isActive);
+      link.classList.toggle('text-gray-400', !isActive);
     });
 
     // Update mobile nav items
@@ -260,62 +273,53 @@ const navItems = [
       const isActive = (href === '/' && currentPath === '/') ||
                        (href !== '/' && currentPath === href);
 
-      if (isActive) {
-        link.classList.add('text-white', 'font-medium');
-        link.classList.remove('text-gray-400');
-      } else {
-        link.classList.remove('text-white', 'font-medium');
-        link.classList.add('text-gray-400');
-      }
+      link.classList.toggle('text-white', isActive);
+      link.classList.toggle('font-medium', isActive);
+      link.classList.toggle('text-gray-400', !isActive);
     });
 
-    // Mobile menu toggle
-    const menuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    if (menuButton && mobileMenu) {
-      // Simple toggle without cloning
-      menuButton.addEventListener('click', (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        mobileMenu.classList.toggle('hidden');
-      });
-
-      // Close menu when clicking outside
+    // Setup mobile menu only once with event delegation
+    if (!mobileMenuInitialized) {
+      // Use event delegation for menu button
       document.addEventListener('click', (e) => {
-        const clickTarget = e.target;
-        if (!mobileMenu.contains(clickTarget) && !menuButton.contains(clickTarget)) {
-          mobileMenu.classList.add('hidden');
+        if (e.target.closest('#mobile-menu-button')) {
+          e.stopPropagation();
+          e.preventDefault();
+          toggleMobileMenu();
         }
       });
 
-      // Close menu when clicking on any navigation link
-      const menuLinks = mobileMenu.querySelectorAll('a');
-      menuLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-          // Allow the link to work, just close the menu
-          setTimeout(() => {
-            mobileMenu.classList.add('hidden');
-          }, 100);
-        });
+      // Use event delegation for outside clicks
+      document.addEventListener('click', handleOutsideClick);
+
+      // Use event delegation for menu links
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#mobile-menu a')) {
+          // Small delay to allow navigation
+          setTimeout(closeMobileMenu, 50);
+        }
       });
 
-      // Close menu on page navigation (Astro View Transitions)
-      document.addEventListener('astro:after-swap', () => {
-        mobileMenu.classList.add('hidden');
-      });
+      mobileMenuInitialized = true;
     }
+  }
+
+  // Initialize on first load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeNavigation);
+  } else {
+    initializeNavigation();
+  }
+
+  // Reinitialize navigation state after Astro navigation
+  document.addEventListener('astro:after-swap', () => {
+    initializeNavigation();
+    closeMobileMenu(); // Always close menu after navigation
   });
 
-  // Re-initialize after Astro page transitions
-  document.addEventListener('astro:after-swap', () => {
-    const menuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    if (menuButton && mobileMenu) {
-      // Ensure menu is hidden after navigation
-      mobileMenu.classList.add('hidden');
-    }
+  // Also listen for page show (back/forward navigation)
+  window.addEventListener('pageshow', () => {
+    initializeNavigation();
   });
 </script>
 
