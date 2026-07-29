@@ -83,6 +83,8 @@ const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: 
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [Editor, setEditor] = useState<any>(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -95,6 +97,16 @@ const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: 
     import('@monaco-editor/react').then((module) => {
       setEditor(() => module.default);
     });
+  }, []);
+
+  // Check for mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
   // AI Generation using your existing AI team
@@ -302,9 +314,20 @@ const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: 
   };
 
   return (
-    <div style={{ height: '100vh', width: '100%', display: 'flex', background: '#1a1a1a' }}>
+    <div style={{
+      height: '100vh',
+      width: '100%',
+      display: 'flex',
+      flexDirection: isMobile ? 'column' : 'row',
+      background: '#1a1a1a'
+    }}>
       {/* Canvas */}
-      <div style={{ flex: 1, position: 'relative', background: 'black', minHeight: 0 }}>
+      <div style={{
+        flex: isMobile ? (showEditor ? '0 0 40%' : 1) : 1,
+        position: 'relative',
+        background: 'black',
+        minHeight: isMobile ? '40%' : 0
+      }}>
         <canvas
           ref={canvasRef}
           style={{ width: '100%', height: '100%' }}
@@ -319,7 +342,14 @@ const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: 
         )}
 
         {/* Controls overlay */}
-        <div style={{ position: 'absolute', top: '1rem', left: '1rem', display: 'flex', gap: '0.5rem' }}>
+        <div style={{
+          position: 'absolute',
+          top: '1rem',
+          left: '1rem',
+          display: 'flex',
+          gap: '0.5rem',
+          flexWrap: 'wrap'
+        }}>
           <button
             onClick={() => setIsPlaying(!isPlaying)}
             style={{ background: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(4px)', color: 'white', padding: '0.5rem', borderRadius: '0.25rem', border: 'none', cursor: 'pointer' }}
@@ -341,18 +371,51 @@ const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: 
           >
             <Download size={18} />
           </button>
+          {isMobile && (
+            <button
+              onClick={() => setShowEditor(!showEditor)}
+              style={{
+                background: showEditor ? '#3b82f6' : 'rgba(0, 0, 0, 0.5)',
+                backdropFilter: 'blur(4px)',
+                color: 'white',
+                padding: '0.5rem',
+                borderRadius: '0.25rem',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              title="Toggle Editor"
+            >
+              {showEditor ? 'Hide' : 'Code'}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Editor */}
-      <div style={{ width: '600px', background: '#2d2d2d', display: 'flex', flexDirection: 'column' }}>
+      {(!isMobile || showEditor) && (
+      <div style={{
+        width: isMobile ? '100%' : '600px',
+        flex: isMobile ? 1 : 'none',
+        background: '#2d2d2d',
+        display: 'flex',
+        flexDirection: 'column',
+        position: isMobile ? 'relative' : 'static'
+      }}>
         {/* AI Generator */}
-        <div style={{ padding: '1rem', background: '#1a1a1a', borderBottom: '1px solid #444' }}>
+        <div style={{
+          padding: isMobile ? '0.75rem' : '1rem',
+          background: '#1a1a1a',
+          borderBottom: '1px solid #444'
+        }}>
           <div style={{ marginBottom: '0.5rem', fontSize: '0.75rem', color: '#999', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <Sparkles size={14} />
             AI Shader Generator
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{
+            display: 'flex',
+            gap: '0.5rem',
+            flexDirection: isMobile ? 'column' : 'row'
+          }}>
             <input
               type="text"
               value={aiPrompt}
@@ -365,7 +428,19 @@ const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: 
             <button
               onClick={generateWithAI}
               disabled={isGenerating}
-              style={{ padding: '0.5rem 1rem', background: isGenerating ? '#555' : '#3b82f6', color: 'white', fontSize: '0.875rem', borderRadius: '0.25rem', border: 'none', cursor: isGenerating ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+              style={{
+                padding: '0.5rem 1rem',
+                background: isGenerating ? '#555' : '#3b82f6',
+                color: 'white',
+                fontSize: '0.875rem',
+                borderRadius: '0.25rem',
+                border: 'none',
+                cursor: isGenerating ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
+              }}
             >
               {isGenerating ? (
                 <>
@@ -406,6 +481,7 @@ const GLSLShaderEditor = ({ aiTeamEndpoint = '/.netlify/functions/ai-shader' }: 
           )}
         </div>
       </div>
+      )}
     </div>
   );
 }

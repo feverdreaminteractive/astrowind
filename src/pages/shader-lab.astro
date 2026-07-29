@@ -70,18 +70,37 @@ const description = 'Interactive GLSL shader editor with AI-powered generation';
   }
 
   /* Responsive design */
-  @media (max-width: 1024px) {
+  @media (max-width: 768px) {
+    .shader-lab-header {
+      padding: 0.25rem;
+    }
+
     .shader-lab-header h1 {
-      font-size: 2rem;
+      font-size: 1.2rem;
     }
 
     .shader-lab-header p {
-      font-size: 1rem;
+      font-size: 0.65rem;
     }
 
     .shader-lab-container {
-      margin: 0.5rem;
-      height: calc(100vh - 160px);
+      margin: 0;
+      height: calc(100vh - 60px);
+    }
+  }
+
+  @media (max-width: 1024px) and (min-width: 769px) {
+    .shader-lab-header h1 {
+      font-size: 1.8rem;
+    }
+
+    .shader-lab-header p {
+      font-size: 0.9rem;
+    }
+
+    .shader-lab-container {
+      margin: 0;
+      height: calc(100vh - 80px);
     }
   }
 </style>
