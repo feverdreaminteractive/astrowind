@@ -28,7 +28,7 @@ const navItems = [
 ];
 ---
 
-<header class="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-sm border-b border-white/10 overflow-x-hidden">
+<header class="fixed top-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-b border-white/10" style="pointer-events: auto;">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <!-- Left: Logo -->
@@ -141,7 +141,7 @@ const navItems = [
   </nav>
 
   <!-- Mobile menu -->
-  <div class="hidden md:hidden" id="mobile-menu">
+  <div class="hidden md:hidden" id="mobile-menu" style="position: relative; z-index: 9999;">
     <div class="px-4 pt-2 pb-3 space-y-1 bg-black border-t border-white/10">
       {navItems.map((item) => (
         <a
@@ -274,12 +274,8 @@ const navItems = [
     const mobileMenu = document.getElementById('mobile-menu');
 
     if (menuButton && mobileMenu) {
-      // Remove any existing listeners to avoid duplicates
-      const newMenuButton = menuButton.cloneNode(true);
-      menuButton.parentNode.replaceChild(newMenuButton, menuButton);
-
-      // Toggle menu on button click
-      newMenuButton.addEventListener('click', (e) => {
+      // Simple toggle without cloning
+      menuButton.addEventListener('click', (e) => {
         e.stopPropagation();
         e.preventDefault();
         mobileMenu.classList.toggle('hidden');
@@ -287,17 +283,20 @@ const navItems = [
 
       // Close menu when clicking outside
       document.addEventListener('click', (e) => {
-        if (!mobileMenu.contains(e.target) && !newMenuButton.contains(e.target)) {
+        const clickTarget = e.target;
+        if (!mobileMenu.contains(clickTarget) && !menuButton.contains(clickTarget)) {
           mobileMenu.classList.add('hidden');
         }
       });
 
-      // Close menu when clicking on any navigation link (not the menu button)
+      // Close menu when clicking on any navigation link
       const menuLinks = mobileMenu.querySelectorAll('a');
       menuLinks.forEach(link => {
-        link.addEventListener('click', () => {
-          // Only close if it's an actual navigation
-          mobileMenu.classList.add('hidden');
+        link.addEventListener('click', (e) => {
+          // Allow the link to work, just close the menu
+          setTimeout(() => {
+            mobileMenu.classList.add('hidden');
+          }, 100);
         });
       });
 
