@@ -16,6 +16,7 @@
 		"ai-team": "node ai-dev-team.js team-dev-showcase"
 	},
 	"dependencies": {
+		"@astrojs/netlify": "^7.0.13",
 		"@astrojs/react": "^4.4.2",
 		"@astrojs/sitemap": "^3.6.0",
 		"@figma/plugin-typings": "^1.130.0",
