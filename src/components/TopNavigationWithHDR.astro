@@ -1,15 +1,11 @@
 ---
-// Top navigation component - Render.com inspired
+// Top navigation component with HDR glow effect
+import { HDRGlow, HDRGlowCSS } from './HDRGlow.tsx';
+
 const currentPath = Astro.url.pathname;
 
 // Helper function to check if a path is active
 const isActive = (href: string) => {
-  // For debugging in production
-  if (typeof window === 'undefined') {
-    console.log(`Server: Checking ${href} against ${currentPath}`);
-  }
-
-  // Handle trailing slashes and exact match
   const normalizedCurrent = currentPath.endsWith('/') && currentPath !== '/'
     ? currentPath.slice(0, -1)
     : currentPath;
@@ -22,7 +18,7 @@ const isActive = (href: string) => {
 
 const navItems = [
   { name: 'Home', href: '/' },
-  { name: 'About', href: '/experience' },  // Consolidated experience/skills/resume
+  { name: 'About', href: '/experience' },
   { name: 'AI Builder', href: '/builder' },
   { name: 'Shader Lab', href: '/shader-lab' },
 ];
@@ -31,23 +27,17 @@ const navItems = [
 <header class="fixed top-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-b border-white/10" style="pointer-events: auto;">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
-      <!-- Left: Logo -->
+      <!-- Left: Logo with HDR Glow -->
       <div class="flex items-center space-x-10">
         <a href="/" class="flex items-center space-x-2 sm:space-x-3">
-          <picture>
-            <!-- HDR source with background glow for capable displays -->
-            <source
-              srcset="/logoRC_hdr_background_glows.jpg"
-              type="image/jpeg"
-              media="(color-gamut: p3)"
-            />
-            <!-- SDR fallback -->
+          <div id="logo-container" class="relative">
+            <!-- Logo will be wrapped with HDR glow dynamically -->
             <img
-              src="/logoRC_sdr_reference.jpg"
+              src="https://github.com/ryanclayton.png"
               alt="Ryan Clayton"
-              class="w-8 sm:w-10 h-8 sm:h-10 object-contain"
+              class="logo-image w-8 sm:w-10 h-8 sm:h-10 rounded-full border border-white/20"
             />
-          </picture>
+          </div>
           <span class="hidden sm:inline text-white font-normal text-lg">Ryan Clayton</span>
         </a>
 
@@ -213,16 +203,15 @@ const navItems = [
           >
             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M18.561 13.158c-1.102 0-2.135-.467-3.074-1.227l.228-1.076.008-.042c.207-1.143.849-3.06 2.839-3.06 1.492 0 2.703 1.212 2.703 2.703-.001 1.489-1.212 2.702-2.704 2.702zm0-8.14c-2.539 0-4.51 1.649-5.31 4.366-1.22-1.834-2.148-4.036-2.687-5.892H7.828v7.112c-.002 1.406-1.141 2.546-2.547 2.548-1.405-.002-2.543-1.143-2.545-2.548V3.492H0v7.112c0 2.914 2.37 5.303 5.281 5.303 2.913 0 5.283-2.389 5.283-5.303v-1.19c.529 1.107 1.182 2.229 1.974 3.221l-1.673 7.873h2.797l1.213-5.71c1.063.679 2.285 1.109 3.686 1.109 3 0 5.439-2.452 5.439-5.45 0-3-2.439-5.439-5.439-5.439z"/>
-            </svg>
-          </a>
-        </div>
-        <a
-          href="/hire-me"
-          class="block px-3 py-2 text-base text-black bg-white text-center mt-2"
-        >
-          Contact
+          </svg>
         </a>
       </div>
+      <a
+        href="/hire-me"
+        class="block px-3 py-2 text-base text-black bg-white text-center mt-2"
+      >
+        Contact
+      </a>
     </div>
   </div>
 </header>
@@ -230,11 +219,103 @@ const navItems = [
 <!-- Font Awesome CDN -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-<!-- Remove all glow styles -->
+<!-- Enhanced CSS for HDR support -->
+<style>
+  @media (color-gamut: p3) {
+    .logo-image {
+      filter: saturate(1.1) contrast(1.05);
+    }
+  }
+
+  @media (color-gamut: rec2020) {
+    .logo-image {
+      filter: saturate(1.2) contrast(1.1) brightness(1.05);
+    }
+  }
+
+  @supports (color: color(display-p3 1 0 0)) {
+    #logo-container {
+      position: relative;
+    }
+
+    #logo-container::after {
+      content: '';
+      position: absolute;
+      inset: -15px;
+      background: radial-gradient(
+        circle at center,
+        color(display-p3 1 0.7 0.3 / 0.3),
+        color(display-p3 0.9 0.4 0.8 / 0.15),
+        transparent 60%
+      );
+      filter: blur(15px);
+      z-index: -1;
+      animation: hdr-glow 4s ease-in-out infinite;
+      pointer-events: none;
+    }
+  }
+
+  @keyframes hdr-glow {
+    0%, 100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 0.8;
+    }
+    25% {
+      transform: scale(1.15) rotate(90deg);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.05) rotate(180deg);
+      opacity: 0.9;
+    }
+    75% {
+      transform: scale(1.1) rotate(270deg);
+      opacity: 0.95;
+    }
+  }
+</style>
 
 <script>
+  import { HDRGlow } from './HDRGlow.tsx';
+  import React from 'react';
+  import { createRoot } from 'react-dom/client';
+
   // Store state globally to prevent duplicate listeners
   let mobileMenuInitialized = false;
+  let hdrGlowInitialized = false;
+
+  // Function to initialize HDR glow
+  function initializeHDRGlow() {
+    if (hdrGlowInitialized) return;
+
+    const logoContainer = document.getElementById('logo-container');
+    const logoImage = document.querySelector('.logo-image') as HTMLImageElement;
+
+    if (logoContainer && logoImage && typeof window !== 'undefined') {
+      // Check for HDR display support
+      const supportsP3 = window.matchMedia('(color-gamut: p3)').matches;
+      const supportsRec2020 = window.matchMedia('(color-gamut: rec2020)').matches;
+
+      // Use appropriate color space
+      const colorSpace = supportsRec2020 ? 'rec2020' : supportsP3 ? 'p3' : 'srgb';
+
+      // Create React root and render HDR glow component
+      const root = createRoot(logoContainer);
+      root.render(
+        React.createElement(HDRGlow, {
+          intensity: supportsRec2020 ? 1.5 : supportsP3 ? 1.2 : 0.8,
+          colorSpace: colorSpace,
+          children: React.createElement('img', {
+            src: logoImage.src,
+            alt: logoImage.alt,
+            className: logoImage.className,
+          })
+        })
+      );
+
+      hdrGlowInitialized = true;
+    }
+  }
 
   // Function to toggle mobile menu
   function toggleMobileMenu() {
@@ -289,9 +370,11 @@ const navItems = [
       link.classList.toggle('text-gray-400', !isActive);
     });
 
+    // Initialize HDR glow
+    initializeHDRGlow();
+
     // Setup mobile menu only once with event delegation
     if (!mobileMenuInitialized) {
-      // Use event delegation for menu button
       document.addEventListener('click', (e) => {
         if (e.target.closest('#mobile-menu-button')) {
           e.stopPropagation();
@@ -300,13 +383,10 @@ const navItems = [
         }
       });
 
-      // Use event delegation for outside clicks
       document.addEventListener('click', handleOutsideClick);
 
-      // Use event delegation for menu links
       document.addEventListener('click', (e) => {
         if (e.target.closest('#mobile-menu a')) {
-          // Small delay to allow navigation
           setTimeout(closeMobileMenu, 50);
         }
       });
@@ -324,8 +404,9 @@ const navItems = [
 
   // Reinitialize navigation state after Astro navigation
   document.addEventListener('astro:after-swap', () => {
+    hdrGlowInitialized = false; // Reset HDR glow for new page
     initializeNavigation();
-    closeMobileMenu(); // Always close menu after navigation
+    closeMobileMenu();
   });
 
   // Also listen for page show (back/forward navigation)
@@ -333,4 +414,3 @@ const navItems = [
     initializeNavigation();
   });
 </script>
-
