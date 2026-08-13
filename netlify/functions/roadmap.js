@@ -15,7 +15,10 @@ const LINEAR_QUERY = `
     issues(
       first: 150
       orderBy: updatedAt
-      filter: { state: { type: { nin: ["cancelled", "triage"] } } }
+      filter: {
+        team: { key: { eq: "FEV" } }
+        state: { type: { nin: ["cancelled", "triage"] } }
+      }
     ) {
       nodes {
         id
