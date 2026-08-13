@@ -6,6 +6,8 @@ interface RoadmapLabel {
   color: string;
 }
 
+type RoadmapAssignee = { name: string; avatarUrl: string | null } | null;
+
 interface RoadmapIssue {
   id: string;
   identifier: string;
@@ -16,18 +18,36 @@ interface RoadmapIssue {
   estimate: number | null;
   url: string;
   labels: RoadmapLabel[];
-  assignee: { name: string; avatarUrl: string | null } | null;
+  assignee: RoadmapAssignee;
   githubLinks: { url: string; title: string }[];
 }
 
+interface GithubIssue {
+  id: string;
+  number: number;
+  title: string;
+  url: string;
+  createdAt: string;
+  labels: RoadmapLabel[];
+  assignee: RoadmapAssignee;
+}
+
 type RoadmapColumns = Record<string, RoadmapIssue[]>;
+type GithubColumns = Record<string, GithubIssue[]>;
 
-const COLUMN_ORDER = ['Backlog', 'Planned', 'In Progress', 'Shipped'];
-
-const COLUMN_ACCENT: Record<string, string> = {
+const LINEAR_COLUMN_ORDER = ['Backlog', 'Planned', 'In Progress', 'Shipped'];
+const LINEAR_COLUMN_ACCENT: Record<string, string> = {
   Backlog: 'border-gray-500/40',
   Planned: 'border-blue-500/40',
   'In Progress': 'border-purple-500/40',
+  Shipped: 'border-green-500/40',
+};
+
+const GITHUB_COLUMN_ORDER = ['Backlog', 'In Progress', 'In Review', 'Shipped'];
+const GITHUB_COLUMN_ACCENT: Record<string, string> = {
+  Backlog: 'border-gray-500/40',
+  'In Progress': 'border-purple-500/40',
+  'In Review': 'border-blue-500/40',
   Shipped: 'border-green-500/40',
 };
 
@@ -115,6 +135,27 @@ function DueDateBadge({ dueDate }: { dueDate: string | null }) {
   );
 }
 
+function LabelTags({ labels }: { labels: RoadmapLabel[] }) {
+  if (labels.length === 0) return null;
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {labels.map((label) => (
+        <span
+          key={label.id}
+          className="text-[10px] px-1.5 py-0.5 rounded-full border"
+          style={{
+            color: label.color,
+            borderColor: `${label.color}40`,
+            backgroundColor: `${label.color}1a`,
+          }}
+        >
+          {label.name}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function GithubIcon() {
   return (
     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -141,23 +182,7 @@ function IssueCard({ issue }: { issue: RoadmapIssue }) {
 
       <p className="text-sm text-gray-200 leading-snug">{issue.title}</p>
 
-      {issue.labels.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mt-2">
-          {issue.labels.map((label) => (
-            <span
-              key={label.id}
-              className="text-[10px] px-1.5 py-0.5 rounded-full border"
-              style={{
-                color: label.color,
-                borderColor: `${label.color}40`,
-                backgroundColor: `${label.color}1a`,
-              }}
-            >
-              {label.name}
-            </span>
-          ))}
-        </div>
-      )}
+      <LabelTags labels={issue.labels} />
 
       {(issue.dueDate || issue.estimate != null || issue.githubLinks.length > 0) && (
         <div className="flex flex-wrap items-center gap-2 mt-2">
@@ -183,18 +208,72 @@ function IssueCard({ issue }: { issue: RoadmapIssue }) {
   );
 }
 
-export default function KanbanBoard() {
-  const [columns, setColumns] = useState<RoadmapColumns | null>(null);
+function GithubIssueCard({ issue }: { issue: GithubIssue }) {
+  return (
+    <a
+      href={issue.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg p-3 transition-colors"
+    >
+      <div className="flex items-center justify-between mb-1.5">
+        <span className="text-xs font-mono text-gray-500">#{issue.number}</span>
+        <AssigneeAvatar assignee={issue.assignee} />
+      </div>
+      <p className="text-sm text-gray-200 leading-snug">{issue.title}</p>
+      <LabelTags labels={issue.labels} />
+    </a>
+  );
+}
+
+function Board<T extends { id: string }>({
+  columnOrder,
+  columnAccent,
+  columns,
+  renderCard,
+}: {
+  columnOrder: string[];
+  columnAccent: Record<string, string>;
+  columns: Record<string, T[]>;
+  renderCard: (item: T) => React.ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-7xl mx-auto">
+      {columnOrder.map((columnName) => (
+        <div
+          key={columnName}
+          className={`bg-black/40 border-t-2 ${columnAccent[columnName]} rounded-lg p-3`}
+        >
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h3 className="text-sm font-medium text-white uppercase tracking-wider">{columnName}</h3>
+            <span className="text-xs text-gray-500">{columns[columnName]?.length ?? 0}</span>
+          </div>
+          <div className="space-y-2">
+            {(columns[columnName] ?? []).map((item) => (
+              <React.Fragment key={item.id}>{renderCard(item)}</React.Fragment>
+            ))}
+            {(columns[columnName] ?? []).length === 0 && (
+              <p className="text-xs text-gray-600 px-1">Nothing here</p>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function useFetchColumns<T>(url: string) {
+  const [columns, setColumns] = useState<Record<string, T[]> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
 
-    fetch('/api/roadmap')
+    fetch(url)
       .then(async (res) => {
         if (!res.ok) {
           const body = await res.json().catch(() => ({}));
-          throw new Error(body.error || 'Failed to load roadmap');
+          throw new Error(body.error || 'Failed to load board');
         }
         return res.json();
       })
@@ -208,51 +287,70 @@ export default function KanbanBoard() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [url]);
+
+  return { columns, error };
+}
+
+export default function KanbanBoard() {
+  const linear = useFetchColumns<RoadmapIssue>('/api/roadmap');
+  const github = useFetchColumns<GithubIssue>('/api/github-roadmap');
 
   return (
-    <div className="min-h-[80vh] px-4 sm:px-6 lg:px-8 py-8">
-      <div className="text-center mb-10">
-        <p className="text-xs uppercase tracking-[0.2em] text-purple-400 mb-3">Agentic Engineering Team</p>
-        <h1 className="text-3xl lg:text-4xl font-light text-white mb-2">What My AI Team Is Building</h1>
-        <p className="text-gray-400 font-light">
-          An autonomous dev team shipping this roadmap for me, synced live from Linear.
-        </p>
-      </div>
-
-      {error && (
-        <p className="text-center text-red-400 text-sm">{error}</p>
-      )}
-
-      {!error && !columns && (
-        <p className="text-center text-gray-500 text-sm">Loading roadmap...</p>
-      )}
-
-      {columns && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-7xl mx-auto">
-          {COLUMN_ORDER.map((columnName) => (
-            <div
-              key={columnName}
-              className={`bg-black/40 border-t-2 ${COLUMN_ACCENT[columnName]} rounded-lg p-3`}
-            >
-              <div className="flex items-center justify-between mb-3 px-1">
-                <h2 className="text-sm font-medium text-white uppercase tracking-wider">
-                  {columnName}
-                </h2>
-                <span className="text-xs text-gray-500">{columns[columnName]?.length ?? 0}</span>
-              </div>
-              <div className="space-y-2">
-                {(columns[columnName] ?? []).map((issue) => (
-                  <IssueCard key={issue.id} issue={issue} />
-                ))}
-                {(columns[columnName] ?? []).length === 0 && (
-                  <p className="text-xs text-gray-600 px-1">Nothing here</p>
-                )}
-              </div>
-            </div>
-          ))}
+    <div className="min-h-[80vh] px-4 sm:px-6 lg:px-8 py-8 space-y-16">
+      <section>
+        <div className="text-center mb-10">
+          <p className="text-xs uppercase tracking-[0.2em] text-purple-400 mb-3">Agentic Engineering Team</p>
+          <h1 className="text-3xl lg:text-4xl font-light text-white mb-2">What My AI Team Is Building</h1>
+          <p className="text-gray-400 font-light">
+            An autonomous dev team shipping this roadmap for me, synced live from Linear.
+          </p>
         </div>
-      )}
+
+        {linear.error && <p className="text-center text-red-400 text-sm">{linear.error}</p>}
+        {!linear.error && !linear.columns && (
+          <p className="text-center text-gray-500 text-sm">Loading roadmap...</p>
+        )}
+        {linear.columns && (
+          <Board
+            columnOrder={LINEAR_COLUMN_ORDER}
+            columnAccent={LINEAR_COLUMN_ACCENT}
+            columns={linear.columns}
+            renderCard={(issue) => <IssueCard issue={issue} />}
+          />
+        )}
+      </section>
+
+      <section>
+        <div className="text-center mb-10">
+          <h2 className="text-2xl lg:text-3xl font-light text-white mb-2">GitHub Activity</h2>
+          <p className="text-gray-400 font-light">
+            Live from{' '}
+            <a
+              href="https://github.com/feverdreaminteractive/team-dev-showcase/issues"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-300 underline hover:text-white"
+            >
+              team-dev-showcase
+            </a>
+            , the repo my AI team files its own work in.
+          </p>
+        </div>
+
+        {github.error && <p className="text-center text-red-400 text-sm">{github.error}</p>}
+        {!github.error && !github.columns && (
+          <p className="text-center text-gray-500 text-sm">Loading GitHub activity...</p>
+        )}
+        {github.columns && (
+          <Board
+            columnOrder={GITHUB_COLUMN_ORDER}
+            columnAccent={GITHUB_COLUMN_ACCENT}
+            columns={github.columns}
+            renderCard={(issue) => <GithubIssueCard issue={issue} />}
+          />
+        )}
+      </section>
     </div>
   );
 }

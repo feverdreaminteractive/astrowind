@@ -32,6 +32,11 @@
   to = "/.netlify/functions/roadmap"
   status = 200
 
+[[redirects]]
+  from = "/api/github-roadmap"
+  to = "/.netlify/functions/github-roadmap"
+  status = 200
+
 [[headers]]
   for = "/api/*"
   [headers.values]
