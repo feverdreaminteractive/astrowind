@@ -26,10 +26,24 @@ const LINEAR_QUERY = `
         title
         priority
         updatedAt
+        dueDate
+        estimate
         url
         state {
           name
           type
+        }
+        labels {
+          nodes {
+            id
+            name
+            color
+          }
+        }
+        assignee {
+          id
+          name
+          avatarUrl
         }
         attachments {
           nodes {
@@ -108,7 +122,11 @@ export default async (req, context) => {
         title: issue.title,
         priority: issue.priority,
         updatedAt: issue.updatedAt,
+        dueDate: issue.dueDate,
+        estimate: issue.estimate,
         url: issue.url,
+        labels: issue.labels.nodes.map((l) => ({ id: l.id, name: l.name, color: l.color })),
+        assignee: issue.assignee ? { name: issue.assignee.name, avatarUrl: issue.assignee.avatarUrl } : null,
         githubLinks,
       });
     }

@@ -1,12 +1,22 @@
 import React, { useEffect, useState } from 'react';
 
+interface RoadmapLabel {
+  id: string;
+  name: string;
+  color: string;
+}
+
 interface RoadmapIssue {
   id: string;
   identifier: string;
   title: string;
   priority: number;
   updatedAt: string;
+  dueDate: string | null;
+  estimate: number | null;
   url: string;
+  labels: RoadmapLabel[];
+  assignee: { name: string; avatarUrl: string | null } | null;
   githubLinks: { url: string; title: string }[];
 }
 
@@ -28,6 +38,83 @@ const PRIORITY_LABEL: Record<number, string> = {
   4: 'Low',
 };
 
+function FlagIcon() {
+  return (
+    <svg className="w-3.5 h-3.5 text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+      <path d="M4 2a1 1 0 00-1 1v14a1 1 0 102 0v-4.586l1.293-1.293a1 1 0 011.414 0L9 12.414a1 1 0 001.414 0l1.293-1.293a1 1 0 011.414 0L14.414 12.414A1 1 0 0016 11.707V4.293a1 1 0 00-1.707-.707L13 4.879a1 1 0 01-1.414 0L10.293 3.586a1 1 0 00-1.414 0L7.586 4.879a1 1 0 01-1.414 0L4.879 3.586A1 1 0 004 3z" />
+    </svg>
+  );
+}
+
+function PriorityBars({ level }: { level: number }) {
+  const filled = 4 - level; // priority 2 (High) -> 3 bars, 3 (Medium) -> 2, 4 (Low) -> 1
+  const heights = [4, 7, 10];
+  return (
+    <div className="flex items-end gap-[2px] h-2.5" title={PRIORITY_LABEL[level]}>
+      {heights.map((h, i) => (
+        <div
+          key={i}
+          className={`w-[3px] rounded-sm ${i < filled ? 'bg-gray-300' : 'bg-gray-700'}`}
+          style={{ height: `${h}px` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function PriorityIcon({ priority }: { priority: number }) {
+  if (!priority) return null;
+  if (priority === 1) return <FlagIcon />;
+  return <PriorityBars level={priority} />;
+}
+
+function AssigneeAvatar({ assignee }: { assignee: RoadmapIssue['assignee'] }) {
+  if (!assignee) return null;
+  const initials = assignee.name
+    .split(' ')
+    .map((p) => p[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
+
+  if (assignee.avatarUrl) {
+    return (
+      <img
+        src={assignee.avatarUrl}
+        alt={assignee.name}
+        title={assignee.name}
+        className="w-5 h-5 rounded-full object-cover"
+      />
+    );
+  }
+
+  return (
+    <div
+      title={assignee.name}
+      className="w-5 h-5 rounded-full bg-white/10 text-[9px] flex items-center justify-center text-gray-300 shrink-0"
+    >
+      {initials}
+    </div>
+  );
+}
+
+function DueDateBadge({ dueDate }: { dueDate: string | null }) {
+  if (!dueDate) return null;
+  const date = new Date(dueDate);
+  const isOverdue = date < new Date(new Date().toDateString());
+  const label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+  return (
+    <span
+      className={`text-[10px] px-1.5 py-0.5 rounded ${
+        isOverdue ? 'bg-red-500/15 text-red-400' : 'bg-white/5 text-gray-400'
+      }`}
+    >
+      {label}
+    </span>
+  );
+}
+
 function GithubIcon() {
   return (
     <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
@@ -46,15 +133,40 @@ function IssueCard({ issue }: { issue: RoadmapIssue }) {
     >
       <div className="flex items-center justify-between mb-1.5">
         <span className="text-xs font-mono text-gray-500">{issue.identifier}</span>
-        {PRIORITY_LABEL[issue.priority] && (
-          <span className="text-[10px] uppercase tracking-wider text-gray-500">
-            {PRIORITY_LABEL[issue.priority]}
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          <PriorityIcon priority={issue.priority} />
+          <AssigneeAvatar assignee={issue.assignee} />
+        </div>
       </div>
+
       <p className="text-sm text-gray-200 leading-snug">{issue.title}</p>
-      {issue.githubLinks.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
+
+      {issue.labels.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {issue.labels.map((label) => (
+            <span
+              key={label.id}
+              className="text-[10px] px-1.5 py-0.5 rounded-full border"
+              style={{
+                color: label.color,
+                borderColor: `${label.color}40`,
+                backgroundColor: `${label.color}1a`,
+              }}
+            >
+              {label.name}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {(issue.dueDate || issue.estimate != null || issue.githubLinks.length > 0) && (
+        <div className="flex flex-wrap items-center gap-2 mt-2">
+          <DueDateBadge dueDate={issue.dueDate} />
+          {issue.estimate != null && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/5 text-gray-400">
+              {issue.estimate} pt{issue.estimate === 1 ? '' : 's'}
+            </span>
+          )}
           {issue.githubLinks.map((link) => (
             <span
               key={link.url}
