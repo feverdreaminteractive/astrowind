@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+import KanbanBoard from '../components/KanbanBoard';
+---
+
+<Layout title="Roadmap | Ryan Clayton" showNavigation={true}>
+  <main class="min-h-screen bg-black pt-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+    <div class="relative">
+      <KanbanBoard client:load />
+    </div>
+  </main>
+</Layout>
