@@ -213,8 +213,11 @@ export default function KanbanBoard() {
   return (
     <div className="min-h-[80vh] px-4 sm:px-6 lg:px-8 py-8">
       <div className="text-center mb-10">
-        <h1 className="text-3xl lg:text-4xl font-light text-white mb-2">Roadmap</h1>
-        <p className="text-gray-400 font-light">What I'm building next, synced live from Linear.</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-purple-400 mb-3">Agentic Engineering Team</p>
+        <h1 className="text-3xl lg:text-4xl font-light text-white mb-2">What My AI Team Is Building</h1>
+        <p className="text-gray-400 font-light">
+          An autonomous dev team shipping this roadmap for me, synced live from Linear.
+        </p>
       </div>
 
       {error && (
