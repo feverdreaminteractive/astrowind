@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StackAuditor from '../components/StackAuditor';
+---
+
+<Layout title="Martech Stack Auditor | Ryan Clayton" description="Paste a URL and get an AI-powered read on the martech stack running behind it — gaps, redundancies, and data-flow risks." showNavigation={true}>
+  <main class="min-h-screen bg-black pt-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+    <div class="relative">
+      <StackAuditor client:load />
+    </div>
+  </main>
+</Layout>

@@ -27,6 +27,16 @@
   to = "/.netlify/functions/figma-proxy"
   status = 200
 
+[[redirects]]
+  from = "/api/stack-scan"
+  to = "/.netlify/functions/stack-scan"
+  status = 200
+
+[[redirects]]
+  from = "/api/stack-analyze"
+  to = "/.netlify/functions/stack-analyze"
+  status = 200
+
 [[headers]]
   for = "/api/*"
   [headers.values]
