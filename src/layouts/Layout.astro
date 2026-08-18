@@ -10,15 +10,16 @@ interface Props {
 	title?: string;
 	description?: string;
 	showNavigation?: boolean;
+	image?: string;
 }
 
-const { title = SITE_TITLE, description = SITE_DESCRIPTION, showNavigation = true } = Astro.props;
+const { title = SITE_TITLE, description = SITE_DESCRIPTION, showNavigation = true, image } = Astro.props;
 ---
 
 <!doctype html>
 <html lang="en" class="antialiased">
 	<head>
-		<BaseHead title={title} description={description} />
+		<BaseHead title={title} description={description} image={image} />
 		<ViewTransitions />
 		<style>
 			@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap');
