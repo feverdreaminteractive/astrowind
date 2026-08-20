@@ -23,11 +23,36 @@ const isActive = (href: string) => {
 const navItems = [
   { name: 'Home', href: '/' },
   { name: 'About', href: '/experience' },  // Consolidated experience/skills/resume
-  { name: 'AI Builder', href: '/builder' },
-  { name: 'Shader Lab', href: '/shader-lab' },
-  { name: 'Stack Auditor', href: '/stack-audit' },
-  { name: 'AEO Checker', href: '/aeo-check' },
 ];
+
+const aiTools = [
+  {
+    name: 'AI Builder',
+    href: '/builder',
+    description: 'Generate a working website from a prompt, live in the browser.',
+    icon: 'M13 3L4 14h6l-1 7 9-11h-6l1-7z',
+  },
+  {
+    name: 'Shader Lab',
+    href: '/shader-lab',
+    description: 'Write and preview GLSL shaders with AI-assisted generation.',
+    icon: 'M8 9l-4 3 4 3M16 9l4 3-4 3',
+  },
+  {
+    name: 'Stack Auditor',
+    href: '/stack-audit',
+    description: "Scan any site's martech stack and get an AI-powered audit.",
+    icon: 'search', // rendered specially below (circle + line, not a single path)
+  },
+  {
+    name: 'AEO Checker',
+    href: '/aeo-check',
+    description: 'See what AI answer engines actually say about a brand.',
+    icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+  },
+];
+
+const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
 ---
 
 <header class="fixed top-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-b border-white/10" style="pointer-events: auto;">
@@ -70,6 +95,63 @@ const navItems = [
               )}
             </a>
           ))}
+
+          <!-- AI Tools mega menu -->
+          <div class="relative" id="ai-menu-wrapper">
+            <button
+              type="button"
+              id="ai-menu-button"
+              class={`relative flex items-center gap-1 text-sm transition-colors ${
+                isAiToolActive ? 'text-white font-medium' : 'text-gray-400 hover:text-white'
+              }`}
+              aria-haspopup="true"
+              aria-expanded="false"
+            >
+              AI Tools
+              <svg id="ai-menu-chevron" class="w-3 h-3 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              {isAiToolActive && (
+                <span class="absolute -bottom-[21px] left-0 right-0 h-[2px] bg-white"></span>
+              )}
+            </button>
+
+            <div
+              id="ai-menu-panel"
+              class="hidden absolute left-1/2 -translate-x-1/2 top-full mt-3 w-[560px] bg-black/95 backdrop-blur-md border border-white/10 rounded-xl shadow-2xl p-3 z-50"
+              role="menu"
+            >
+              <div class="grid grid-cols-2 gap-2">
+                {aiTools.map((tool) => (
+                  <a
+                    href={tool.href}
+                    role="menuitem"
+                    class={`flex items-start gap-3 p-3 rounded-lg transition-colors ${
+                      isActive(tool.href) ? 'bg-white/10' : 'hover:bg-white/5'
+                    }`}
+                  >
+                    <span class="mt-0.5 flex items-center justify-center w-8 h-8 rounded-lg bg-purple-500/15 text-purple-400 shrink-0">
+                      {tool.icon === 'search' ? (
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
+                          <path stroke-linecap="round" stroke-width="2" d="M21 21l-4.35-4.35"></path>
+                        </svg>
+                      ) : (
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={tool.icon}></path>
+                        </svg>
+                      )}
+                    </span>
+                    <span>
+                      <span class={`block text-sm ${isActive(tool.href) ? 'text-white font-medium' : 'text-gray-200'}`}>{tool.name}</span>
+                      <span class="block text-xs text-gray-500 mt-0.5 leading-snug">{tool.description}</span>
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+
           <!-- Resume Download Link -->
           <a
             href="/Ryan_Clayton_Resume.pdf"
@@ -166,6 +248,37 @@ const navItems = [
           {item.name}
         </a>
       ))}
+
+      <!-- AI Tools (Mobile) -->
+      <div class="pt-1">
+        <p class="px-3 pt-2 pb-1 text-xs uppercase tracking-wider text-gray-600">AI Tools</p>
+        {aiTools.map((tool) => (
+          <a
+            href={tool.href}
+            class={`mobile-nav-item flex items-start gap-3 px-3 py-2 ${
+              isActive(tool.href) ? 'text-white' : 'text-gray-400 hover:text-white'
+            }`}
+          >
+            <span class="mt-0.5 flex items-center justify-center w-7 h-7 rounded-lg bg-purple-500/15 text-purple-400 shrink-0">
+              {tool.icon === 'search' ? (
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
+                  <path stroke-linecap="round" stroke-width="2" d="M21 21l-4.35-4.35"></path>
+                </svg>
+              ) : (
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={tool.icon}></path>
+                </svg>
+              )}
+            </span>
+            <span>
+              <span class="block text-base leading-tight">{tool.name}</span>
+              <span class="block text-xs text-gray-600 mt-0.5 leading-snug">{tool.description}</span>
+            </span>
+          </a>
+        ))}
+      </div>
+
       <!-- Resume Download Link (Mobile) -->
       <a
         href="/Ryan_Clayton_Resume.pdf"
@@ -265,6 +378,33 @@ const navItems = [
     }
   }
 
+  const AI_TOOL_PATHS = ['/builder', '/shader-lab', '/stack-audit', '/aeo-check'];
+  let aiMenuCloseTimer = null;
+
+  function openAiMenu() {
+    clearTimeout(aiMenuCloseTimer);
+    const panel = document.getElementById('ai-menu-panel');
+    const button = document.getElementById('ai-menu-button');
+    const chevron = document.getElementById('ai-menu-chevron');
+    if (panel) panel.classList.remove('hidden');
+    if (button) button.setAttribute('aria-expanded', 'true');
+    if (chevron) chevron.classList.add('rotate-180');
+  }
+
+  function closeAiMenu() {
+    const panel = document.getElementById('ai-menu-panel');
+    const button = document.getElementById('ai-menu-button');
+    const chevron = document.getElementById('ai-menu-chevron');
+    if (panel) panel.classList.add('hidden');
+    if (button) button.setAttribute('aria-expanded', 'false');
+    if (chevron) chevron.classList.remove('rotate-180');
+  }
+
+  function scheduleCloseAiMenu() {
+    clearTimeout(aiMenuCloseTimer);
+    aiMenuCloseTimer = setTimeout(closeAiMenu, 150);
+  }
+
   // Function to initialize navigation
   function initializeNavigation() {
     const currentPath = window.location.pathname;
@@ -279,6 +419,17 @@ const navItems = [
       link.classList.toggle('font-medium', isActive);
       link.classList.toggle('text-gray-400', !isActive);
     });
+
+    // Update AI Tools trigger active state (any of the tool pages)
+    const aiMenuButton = document.getElementById('ai-menu-button');
+    if (aiMenuButton) {
+      const normalizedCurrent = currentPath.endsWith('/') && currentPath !== '/' ? currentPath.slice(0, -1) : currentPath;
+      const isAiActive = AI_TOOL_PATHS.includes(normalizedCurrent);
+      aiMenuButton.classList.toggle('text-white', isAiActive);
+      aiMenuButton.classList.toggle('font-medium', isAiActive);
+      aiMenuButton.classList.toggle('text-gray-400', !isAiActive);
+    }
+    closeAiMenu();
 
     // Update mobile nav items
     document.querySelectorAll('.mobile-nav-item').forEach(link => {
@@ -311,6 +462,43 @@ const navItems = [
           // Small delay to allow navigation
           setTimeout(closeMobileMenu, 50);
         }
+      });
+
+      // AI Tools mega menu — hover to open/close (desktop pointer), with a
+      // short close delay so moving from the trigger to the panel doesn't
+      // flicker it shut.
+      document.addEventListener('mouseover', (e) => {
+        if (e.target.closest('#ai-menu-wrapper')) openAiMenu();
+      });
+      document.addEventListener('mouseout', (e) => {
+        const wrapper = document.getElementById('ai-menu-wrapper');
+        if (wrapper && wrapper.contains(e.target) && !wrapper.contains(e.relatedTarget)) {
+          scheduleCloseAiMenu();
+        }
+      });
+
+      // Click always opens (not a toggle) — needed for touch devices, which
+      // don't hover. A toggle would fight the hover handler: moving the
+      // mouse onto the button already opens it via 'mouseover', so a click
+      // right after would immediately close what hover just opened. Closing
+      // is handled by outside-click, Escape, and mouseout instead.
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#ai-menu-button')) {
+          e.stopPropagation();
+          e.preventDefault();
+          openAiMenu();
+        }
+      });
+
+      // Close on outside click, on Escape, and after picking a link
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('#ai-menu-wrapper')) closeAiMenu();
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeAiMenu();
+      });
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('#ai-menu-panel a')) closeAiMenu();
       });
 
       mobileMenuInitialized = true;
