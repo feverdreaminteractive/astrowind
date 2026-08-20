@@ -1,46 +1,64 @@
-// Homepage hero background — same kaleidoscope motion as the Shader Lab's
-// default shader, but recolored to the site's purple/blue accent palette and
-// dimmed for a subtle backdrop rather than a foreground effect.
+// Homepage hero background — domain-warped fBM noise ("Base Warp fBM" by
+// Inigo Quilez, iquilezles.org/articles/warp), recolored from the original
+// fiery colormap to a black-to-purple wash matching the site's accent
+// palette. Adapted from Shadertoy conventions (mainImage/iTime/iResolution)
+// to this project's plain GLSL fragment shader format (main/time/resolution).
 export const HERO_SHADER = `#ifdef GL_ES
-precision mediump float;
+precision highp float;
 #endif
 
 uniform float time;
 uniform vec2 resolution;
 uniform vec2 mouse;
 
-void main(void) {
-    vec2 uv = gl_FragCoord.xy / resolution.xy;
-    vec2 center = vec2(0.5, 0.5);
-    vec2 p = uv - center;
+vec4 colormap(float x) {
+    vec3 black = vec3(0.0, 0.0, 0.0);
+    vec3 deepPurple = vec3(0.29, 0.0, 0.51);
+    vec3 brightPurple = vec3(0.545, 0.361, 0.965);
+    vec3 col = mix(black, deepPurple, smoothstep(0.0, 0.5, x));
+    col = mix(col, brightPurple, smoothstep(0.5, 1.0, x));
+    return vec4(col, 1.0);
+}
 
-    float dist = length(p);
-    float angle = atan(p.y, p.x);
+float rand(vec2 n) {
+    return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+}
 
-    float mouseInfluence = length(mouse - uv) * 0.5;
-    float t = time * 0.3 + mouseInfluence;
+float noise(vec2 p){
+    vec2 ip = floor(p);
+    vec2 u = fract(p);
+    u = u*u*(3.0-2.0*u);
 
-    float kaleidoscope = abs(sin(angle * 6.0 + t));
-    kaleidoscope = mix(kaleidoscope, abs(cos(angle * 8.0 - t * 1.3)), 0.5);
+    float res = mix(
+        mix(rand(ip),rand(ip+vec2(1.0,0.0)),u.x),
+        mix(rand(ip+vec2(0.0,1.0)),rand(ip+vec2(1.0,1.0)),u.x),u.y);
+    return res*res;
+}
 
-    float gooey = sin(dist * 8.0 - t) * cos(angle * 4.0 + t * 0.7);
-    gooey += sin(dist * 5.0 + t * 1.5) * 0.5;
-    gooey = smoothstep(-1.0, 1.0, gooey);
+const mat2 mtx = mat2( 0.80,  0.60, -0.60,  0.80 );
 
-    float pattern = kaleidoscope * gooey;
-    pattern = mix(pattern, 1.0 - pattern, sin(time * 2.0) * 0.5 + 0.5);
+float fbm( vec2 p )
+{
+    float f = 0.0;
 
-    // Two theme colors — purple and blue, matching the site's accent palette
-    vec3 purple = vec3(0.545, 0.361, 0.965); // Tailwind purple-500
-    vec3 blue = vec3(0.231, 0.510, 0.965);   // Tailwind blue-500
+    f += 0.500000*noise( p + time  ); p = mtx*p*2.02;
+    f += 0.031250*noise( p ); p = mtx*p*2.01;
+    f += 0.250000*noise( p ); p = mtx*p*2.03;
+    f += 0.125000*noise( p ); p = mtx*p*2.01;
+    f += 0.062500*noise( p ); p = mtx*p*2.04;
+    f += 0.015625*noise( p + sin(time) );
 
-    vec3 color = mix(purple, blue, pattern);
+    return f/0.96875;
+}
 
-    float vignette = smoothstep(1.0, 0.3, dist);
-    color *= vignette + 0.3;
+float pattern( in vec2 p )
+{
+    return fbm( p + fbm( p + fbm( p ) ) );
+}
 
-    // Dim the whole effect — this is a backdrop, not the focal point
-    color *= 0.28;
-
-    gl_FragColor = vec4(color, 1.0);
+void main(void)
+{
+    vec2 uv = gl_FragCoord.xy / resolution.x;
+    float shade = pattern(uv);
+    gl_FragColor = vec4(colormap(shade).rgb, shade);
 }`;
