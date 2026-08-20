@@ -12,13 +12,92 @@ import Newsletter from '../components/Newsletter.astro';
 
     <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
 
-      <!-- Experience Header -->
+      <!-- About Header -->
       <div class="text-center mb-12 animate-fade-in">
         <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">
-          Professional Experience
+          About
         </h1>
         <p class="text-xl text-gray-400 max-w-2xl mx-auto font-light">
-          12+ years of experience in web development management, leading technical teams, and building scalable platforms across fintech, legaltech, and AI-powered solutions.
+          Who I am, what this site is, and 12+ years of building the platforms in between.
+        </p>
+      </div>
+
+      <!-- What This Site Is -->
+      <div class="animate-fade-in bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 mb-8">
+        <h2 class="text-2xl font-light text-white mb-4 flex items-center">
+          <svg class="w-6 h-6 mr-3 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+          </svg>
+          What This Site Is
+        </h2>
+        <p class="text-gray-300 font-light leading-relaxed mb-4">
+          This isn't just a portfolio — it's a live workbench. Every interactive tool below is a real, working
+          integration built with Claude, not a mockup: Netlify Functions calling the Claude API with web search,
+          structured outputs, and tool use against actual infrastructure. I build them here first because it's the
+          fastest way to find out what's genuinely useful versus what just sounds good in a deck.
+        </p>
+        <p class="text-gray-400 font-light leading-relaxed mb-6">
+          Poke around — each one is fully functional, not a screenshot.
+        </p>
+
+        <div class="grid sm:grid-cols-2 gap-4">
+          {[
+            {
+              name: 'AI Builder',
+              href: '/builder',
+              description: 'Generate a working website from a prompt, live in the browser.',
+              icon: 'M13 3L4 14h6l-1 7 9-11h-6l1-7z',
+            },
+            {
+              name: 'Shader Lab',
+              href: '/shader-lab',
+              description: 'Write and preview GLSL shaders with AI-assisted generation.',
+              icon: 'M8 9l-4 3 4 3M16 9l4 3-4 3',
+            },
+            {
+              name: 'Stack Auditor',
+              href: '/stack-audit',
+              description: "Scan any site's martech stack and get an AI-powered audit.",
+              icon: 'search',
+            },
+            {
+              name: 'AEO Checker',
+              href: '/aeo-check',
+              description: 'See what AI answer engines actually say about a brand.',
+              icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z',
+            },
+          ].map((tool) => (
+            <a
+              href={tool.href}
+              class="flex items-start gap-3 p-4 rounded-lg border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors"
+            >
+              <span class="mt-0.5 flex items-center justify-center w-9 h-9 rounded-lg bg-purple-500/15 text-purple-400 shrink-0">
+                {tool.icon === 'search' ? (
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <circle cx="11" cy="11" r="7" stroke-width="2"></circle>
+                    <path stroke-linecap="round" stroke-width="2" d="M21 21l-4.35-4.35"></path>
+                  </svg>
+                ) : (
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d={tool.icon}></path>
+                  </svg>
+                )}
+              </span>
+              <span>
+                <span class="block text-white">{tool.name}</span>
+                <span class="block text-sm text-gray-500 mt-0.5 leading-snug">{tool.description}</span>
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      <!-- Experience Header -->
+      <div class="text-center mb-8 animate-fade-in">
+        <h2 class="text-2xl font-light text-white mb-2">Professional Experience</h2>
+        <p class="text-gray-400 max-w-2xl mx-auto font-light">
+          12+ years in web development management, leading technical teams, and building scalable platforms across
+          fintech, legaltech, and AI-powered solutions.
         </p>
       </div>
 
