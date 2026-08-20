@@ -179,7 +179,13 @@ export function extractSignals(html) {
 // ---- Best-effort in-memory rate limiting + short cache (per warm instance) ----
 
 const RATE_LIMIT_WINDOW_MS = 60_000;
-const RATE_LIMIT_MAX = { scan: 6, analyze: 4 };
+const RATE_LIMIT_MAX = {
+  scan: 6,
+  analyze: 4,
+  'aeo-questions': 5,
+  'aeo-question-run': 20, // several fire concurrently per AEO check
+  'aeo-analyze': 3,
+};
 const rateLimitHits = new Map();
 
 export function checkRateLimit(ip, bucket = 'scan') {

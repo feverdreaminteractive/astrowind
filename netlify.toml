@@ -17,6 +17,18 @@
 [functions.claude]
   timeout = 60
 
+[functions.aeo-run-question]
+  timeout = 40
+
+[functions.aeo-analyze]
+  timeout = 40
+
+[functions.aeo-generate-questions]
+  timeout = 20
+
+[functions.aeo-site-audit]
+  timeout = 20
+
 [[redirects]]
   from = "/api/claude"
   to = "/.netlify/functions/claude"
@@ -35,6 +47,26 @@
 [[redirects]]
   from = "/api/stack-analyze"
   to = "/.netlify/functions/stack-analyze"
+  status = 200
+
+[[redirects]]
+  from = "/api/aeo-generate-questions"
+  to = "/.netlify/functions/aeo-generate-questions"
+  status = 200
+
+[[redirects]]
+  from = "/api/aeo-run-question"
+  to = "/.netlify/functions/aeo-run-question"
+  status = 200
+
+[[redirects]]
+  from = "/api/aeo-site-audit"
+  to = "/.netlify/functions/aeo-site-audit"
+  status = 200
+
+[[redirects]]
+  from = "/api/aeo-analyze"
+  to = "/.netlify/functions/aeo-analyze"
   status = 200
 
 [[headers]]

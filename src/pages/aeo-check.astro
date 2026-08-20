@@ -1,0 +1,13 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AeoChecker from '../components/AeoChecker';
+---
+
+<Layout title="AEO Visibility Checker | Ryan Clayton" description="See what AI answer engines actually say about your brand — visibility, competitors, factual errors, and a site audit explaining why." showNavigation={true}>
+  <main class="min-h-screen bg-black pt-20 relative overflow-hidden">
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+    <div class="relative">
+      <AeoChecker client:load />
+    </div>
+  </main>
+</Layout>
