@@ -17,17 +17,11 @@
 [functions.claude]
   timeout = 60
 
-[functions.aeo-run-question]
-  timeout = 40
-
-[functions.aeo-analyze]
-  timeout = 40
-
-[functions.aeo-generate-questions]
-  timeout = 20
-
-[functions.aeo-site-audit]
-  timeout = 20
+# Netlify's synchronous function timeout (10s free / 26s paid) is a fixed
+# platform ceiling, not configurable here — these entries do nothing on their
+# own. The real guard is each function's internal timeoutMs, kept under that
+# ceiling so slow calls fail via our own clean JSON error instead of racing
+# Netlify's raw 504. See netlify/functions/aeo-run-question.js.
 
 [[redirects]]
   from = "/api/claude"

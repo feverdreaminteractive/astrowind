@@ -49,17 +49,18 @@ export default async (req, context) => {
     data = await callClaude(
       {
         model: 'claude-sonnet-5',
-        max_tokens: 1024,
+        max_tokens: 2048,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: question }],
         tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 2 }],
         output_config: { effort: 'low' },
       },
-      // Web search latency is inherently variable — even a single sequential
-      // call occasionally exceeds 20s. This bounds the true worst case (a
-      // hung request) without punishing normal variance; the frontend treats
-      // a timeout as a soft per-question failure and keeps the rest running.
-      { timeoutMs: 35_000 }
+      // Netlify's synchronous function timeout (26s on paid plans, not
+      // configurable) is the real ceiling here — this must stay comfortably
+      // under it so a slow question fails via our own clean JSON error
+      // instead of racing Netlify's raw 504. The frontend treats a timeout
+      // as a soft per-question failure and keeps the rest of the run going.
+      { timeoutMs: 20_000 }
     );
   } catch (err) {
     return jsonResponse({ error: err.message }, err.status || 502);

@@ -140,7 +140,9 @@ export default async (req, context) => {
         messages: [{ role: 'user', content: userMessage }],
         output_config: { effort: 'low', format: { type: 'json_schema', schema: RESPONSE_SCHEMA } },
       },
-      { timeoutMs: 30_000 }
+      // Kept under Netlify's 26s synchronous function ceiling — see the note
+      // in aeo-run-question.js for why this has to be a hard rule, not a guess.
+      { timeoutMs: 22_000 }
     );
   } catch (err) {
     return jsonResponse({ error: err.message }, err.status || 502);
