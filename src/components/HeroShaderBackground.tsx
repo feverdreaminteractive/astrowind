@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { HERO_SHADER } from '../shaders/hero-shader';
+import React, { useEffect, useRef, useState } from 'react';
+import { HERO_SHADERS } from '../shaders/hero-shader';
 
 interface HeroShaderBackgroundProps {
   className?: string;
@@ -16,6 +16,15 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
   const startTimeRef = useRef(performance.now());
   const rafRef = useRef<number>(0);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
+  const [shaderIndex, setShaderIndex] = useState(0);
+
+  // A quiet, undocumented interaction rather than a visible control — click
+  // anywhere on the background (not on the actual content sitting above it)
+  // to cycle to the next variant. Not persisted — a refresh always starts
+  // back at the default.
+  const handleBackgroundClick = () => {
+    setShaderIndex((prev) => (prev + 1) % HERO_SHADERS.length);
+  };
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -65,8 +74,12 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
       gl.VERTEX_SHADER
     );
 
-    // Fragment shader with intensity adjustment
-    const adjustedShader = HERO_SHADER.replace(
+    // Fragment shader with intensity adjustment (only applies to shaders
+    // whose final line matches this exact pattern — a no-op otherwise,
+    // which is fine since every current variant is authored for full
+    // strength and intensity is always passed as 1.0 today)
+    const activeShader = HERO_SHADERS[shaderIndex] ?? HERO_SHADERS[0];
+    const adjustedShader = activeShader.replace(
       'gl_FragColor = vec4(color, 1.0);',
       `gl_FragColor = vec4(color * ${intensity.toFixed(2)}, 1.0);`
     );
@@ -178,11 +191,12 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
         gl.deleteProgram(program);
       }
     };
-  }, [intensity]);
+  }, [intensity, shaderIndex]);
 
   return (
     <canvas
       ref={canvasRef}
+      onClick={handleBackgroundClick}
       className={`w-full h-full ${className}`}
       style={{
         position: 'absolute',
@@ -191,7 +205,7 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
         width: '100%',
         height: '100%',
         opacity: 0.6,
-        pointerEvents: 'none'
+        pointerEvents: 'auto'
       }}
     />
   );
