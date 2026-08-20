@@ -4,17 +4,23 @@ import Profile from '../components/Profile.astro';
 import CareerAssistant from '../components/CareerAssistant';
 import SlackMeButton from '../components/SlackMeButton';
 import LogoCloud from '../components/LogoCloud.astro';
+import { HeroShaderBackground } from '../components/HeroShaderBackground.tsx';
 ---
 
 <Layout showNavigation={true}>
 	<main class="min-h-screen bg-black pt-20 relative overflow-hidden">
-		<!-- Gradient background similar to Render -->
-		<div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+		<!-- Static gradient — sits behind the canvas as a fallback if WebGL fails to init -->
+		<div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20 z-0 pointer-events-none"></div>
+
+		<!-- WebGL animated background — paints over the static gradient when WebGL works -->
+		<div class="absolute inset-0 z-[1] pointer-events-none">
+			<HeroShaderBackground client:load intensity={1.0} />
+		</div>
 
 		<!-- Grid pattern overlay -->
-		<div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+		<div class="absolute inset-0 bg-grid-pattern opacity-5 z-[2] pointer-events-none"></div>
 
-		<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+		<div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 z-10">
 			<!-- Hero Section with Split Layout -->
 			<div class="grid lg:grid-cols-2 gap-12 items-center min-h-[600px]">
 
