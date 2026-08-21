@@ -16,41 +16,34 @@ const meta = {
     },
   },
   tags: ['autodocs'],
+  args: {
+    project: { name: 'my-website', files: [] },
+  },
 } satisfies Meta<typeof PreviewPane>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-export const Default: Story = {
-  args: {
-    url: 'https://localhost:3000',
-    isLoading: false,
-  },
-};
+export const EmptyProject: Story = {};
 
-export const Loading: Story = {
+export const WithGeneratedSite: Story = {
   args: {
-    isLoading: true,
-  },
-};
-
-export const WithError: Story = {
-  args: {
-    url: 'https://localhost:3000',
-    error: 'Failed to load preview',
-  },
-};
-
-export const MobileView: Story = {
-  args: {
-    url: 'https://localhost:3000',
-    viewMode: 'mobile',
-  },
-};
-
-export const TabletView: Story = {
-  args: {
-    url: 'https://localhost:3000',
-    viewMode: 'tablet',
+    project: {
+      name: 'my-website',
+      files: [
+        {
+          name: 'index.html',
+          type: 'file',
+          path: '/index.html',
+          content: '<html><body><h1>Hello from the preview pane</h1></body></html>',
+        },
+        {
+          name: 'styles.css',
+          type: 'file',
+          path: '/styles.css',
+          content: 'body { font-family: sans-serif; }',
+        },
+      ],
+    },
   },
 };

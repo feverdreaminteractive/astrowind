@@ -9,6 +9,10 @@ const meta = {
     layout: 'fullscreen',
   },
   tags: ['autodocs'],
+  args: {
+    project: { name: 'my-website', files: [{ name: 'index.html', type: 'file', path: '/index.html', content: '<html></html>' }] },
+    onClose: () => {},
+  },
 } satisfies Meta<typeof DeploymentPanel>;
 
 export default meta;

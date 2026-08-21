@@ -4,7 +4,7 @@
 	"version": "1.0.0",
 	"scripts": {
 		"dev": "astro dev",
-		"build": "astro build",
+		"build": "astro build && storybook build -o dist/storybook",
 		"preview": "astro preview",
 		"astro": "astro",
 		"api": "node api-server.js",
@@ -16,7 +16,7 @@
 		"ai-team": "node ai-dev-team.js team-dev-showcase",
 		"storybook": "storybook dev -p 6006",
 		"storybook:astro": "storybook dev -c .storybook-astro -p 6007",
-		"build-storybook": "storybook build"
+		"build-storybook": "storybook build -o dist/storybook"
 	},
 	"dependencies": {
 		"@astrojs/netlify": "^7.0.13",

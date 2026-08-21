@@ -1,6 +1,6 @@
 import React from 'react'
 import type { Meta, StoryObj } from '@storybook/react'
-import AIWebsiteBuilder from '@/components/AIWebsiteBuilder'
+import AIWebsiteBuilder from '@/components/AIWebsiteBuilder/index'
 
 const meta = {
   title: 'Portfolio/AIWebsiteBuilder',

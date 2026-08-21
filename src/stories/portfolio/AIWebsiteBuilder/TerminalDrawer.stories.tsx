@@ -9,6 +9,14 @@ const meta = {
     layout: 'fullscreen',
   },
   tags: ['autodocs'],
+  args: {
+    output: [
+      '$ npm install',
+      'added 125 packages in 3.2s',
+      '$ npm run dev',
+      'Server running at http://localhost:3000',
+    ],
+  },
 } satisfies Meta<typeof TerminalDrawer>;
 
 export default meta;

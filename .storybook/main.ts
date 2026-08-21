@@ -27,6 +27,14 @@ const config: StorybookConfig = {
           '@/styles': path.resolve(__dirname, '../src/styles'),
         },
       },
+      server: {
+        // Match astro.config.mjs's dev server headers so WebContainer (which
+        // needs self.crossOriginIsolated) can boot in stories that use it.
+        headers: {
+          'Cross-Origin-Embedder-Policy': 'credentialless',
+          'Cross-Origin-Opener-Policy': 'same-origin',
+        },
+      },
     });
   },
 };

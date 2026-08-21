@@ -9,6 +9,9 @@ const meta = {
     layout: 'fullscreen',
   },
   tags: ['autodocs'],
+  args: {
+    onClose: () => {},
+  },
 } satisfies Meta<typeof WebContainerBuilder>;
 
 export default meta;

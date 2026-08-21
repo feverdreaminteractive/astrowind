@@ -9,6 +9,11 @@ const meta = {
     layout: 'fullscreen',
   },
   tags: ['autodocs'],
+  args: {
+    project: { name: 'demo-project', files: [] },
+    setProject: () => {},
+    selectedFile: null,
+  },
 } satisfies Meta<typeof AIAssistantEnhanced>;
 
 export default meta;
