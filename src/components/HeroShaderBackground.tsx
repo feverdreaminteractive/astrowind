@@ -4,11 +4,13 @@ import { HERO_SHADERS } from '../shaders/hero-shader';
 interface HeroShaderBackgroundProps {
   className?: string;
   intensity?: number;
+  shaders?: string[];
 }
 
 export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
   className = '',
-  intensity = 1.0
+  intensity = 1.0,
+  shaders = HERO_SHADERS
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const glRef = useRef<WebGLRenderingContext | null>(null);
@@ -23,7 +25,7 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
   // to cycle to the next variant. Not persisted — a refresh always starts
   // back at the default.
   const handleBackgroundClick = () => {
-    setShaderIndex((prev) => (prev + 1) % HERO_SHADERS.length);
+    setShaderIndex((prev) => (prev + 1) % shaders.length);
   };
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
     // whose final line matches this exact pattern — a no-op otherwise,
     // which is fine since every current variant is authored for full
     // strength and intensity is always passed as 1.0 today)
-    const activeShader = HERO_SHADERS[shaderIndex] ?? HERO_SHADERS[0];
+    const activeShader = shaders[shaderIndex] ?? shaders[0];
     const adjustedShader = activeShader.replace(
       'gl_FragColor = vec4(color, 1.0);',
       `gl_FragColor = vec4(color * ${intensity.toFixed(2)}, 1.0);`
@@ -191,7 +193,7 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
         gl.deleteProgram(program);
       }
     };
-  }, [intensity, shaderIndex]);
+  }, [intensity, shaderIndex, shaders]);
 
   return (
     <canvas

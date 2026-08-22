@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import { HeroShaderBackground } from '../components/HeroShaderBackground.tsx';
+import { FEVER_DREAM_SHADERS } from '../shaders/fever-dream-shader';
 
 const steps = [
   {
@@ -33,7 +34,7 @@ const steps = [
 
     <!-- WebGL animated background — paints over the static gradient when WebGL works -->
     <div class="absolute inset-0 z-[1] pointer-events-none">
-      <HeroShaderBackground client:load intensity={1.0} />
+      <HeroShaderBackground client:load intensity={1.0} shaders={FEVER_DREAM_SHADERS} />
     </div>
 
     <!-- Grid pattern overlay -->
@@ -57,6 +58,9 @@ const steps = [
           <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Core Audio</span>
           <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">macOS 14.2+</span>
         </div>
+        <p class="text-xs text-gray-600 mt-4">
+          That background is both of the actual patterns, live — click anywhere to switch.
+        </p>
       </div>
 
       <!-- Download CTA -->
