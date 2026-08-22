@@ -14,8 +14,8 @@ const config: StorybookConfig = {
   // /logoRC_sdr_reference.jpg for the custom branding.
   staticDirs: ['../public'],
   addons: [
-    "@storybook/addon-essentials",
     "@chromatic-com/storybook",
+    "@storybook/addon-docs",
     "@storybook/addon-a11y",
     "@storybook/addon-mcp"
   ],
