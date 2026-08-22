@@ -1,0 +1,113 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const steps = [
+  {
+    title: 'Download the DMG',
+    body: 'Click the download button above. It\'s signed with a Developer ID certificate and notarized by Apple, so Gatekeeper won\'t show any "unidentified developer" warning.',
+  },
+  {
+    title: 'Open FeverDreamScreen.dmg',
+    body: 'Open it from your Downloads folder (or the browser\'s download tray) to mount the disk image.',
+  },
+  {
+    title: 'Double-click Fever Dream Screen.saver',
+    body: 'This installs it to ~/Library/Screen Savers and opens System Settings straight to the Screen Saver pane with it already selected.',
+  },
+  {
+    title: 'Grant the audio permission',
+    body: 'The first time it runs, macOS will ask to let it record system audio — that\'s how it hears whatever\'s playing out of your speakers. Allow it, or the visual just sits static.',
+  },
+];
+---
+
+<Layout
+  title="Fever Dream Screen | Ryan Clayton"
+  description="An audio-reactive moiré visualizer for macOS — captured via Core Audio's process-tap API, rendered in a custom Metal shader. Download the signed, notarized screen saver."
+  showNavigation={true}
+>
+  <main class="min-h-screen bg-black pt-20 relative overflow-hidden">
+    <!-- Gradient background -->
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
+    <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+
+    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+
+      <!-- Header -->
+      <div class="text-center mb-10 animate-fade-in">
+        <img
+          src="/fever-dream-screen-icon.png"
+          alt="Fever Dream Screen icon"
+          class="w-20 h-20 mx-auto mb-6 rounded-2xl"
+          width="80"
+          height="80"
+        />
+        <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">Fever Dream Screen</h1>
+        <p class="text-lg text-gray-400 max-w-xl mx-auto font-light">
+          A moiré visualizer that reacts live to whatever's playing out of your speakers — captured via Core Audio's process-tap API, rendered in a custom Metal shader.
+        </p>
+        <div class="flex flex-wrap justify-center gap-2 mt-6">
+          <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Swift</span>
+          <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Metal</span>
+          <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Core Audio</span>
+          <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">macOS 14.2+</span>
+        </div>
+      </div>
+
+      <!-- Download CTA -->
+      <div class="flex flex-col items-center gap-3 mb-14 animate-fade-in">
+        <a
+          href="/downloads/FeverDreamScreen.dmg"
+          download
+          class="inline-flex items-center gap-2 text-base text-black bg-white hover:bg-gray-100 rounded-lg px-6 py-3 font-medium transition-all"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+          </svg>
+          Download for macOS
+        </a>
+        <p class="text-xs text-gray-500">FeverDreamScreen.dmg &middot; signed &amp; notarized</p>
+      </div>
+
+      <!-- Install steps -->
+      <div class="bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 mb-8">
+        <h2 class="text-xl font-light text-white mb-6">Installing it</h2>
+        <ol class="space-y-6">
+          {steps.map((step, i) => (
+            <li class="flex gap-4">
+              <div class="flex-shrink-0 w-8 h-8 rounded-full bg-purple-600/40 text-white text-sm flex items-center justify-center font-medium">
+                {i + 1}
+              </div>
+              <div>
+                <h3 class="text-white font-normal mb-1">{step.title}</h3>
+                <p class="text-gray-400 text-sm leading-relaxed">{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+      <!-- Troubleshooting -->
+      <div class="bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 mb-8">
+        <h2 class="text-xl font-light text-white mb-4">Troubleshooting</h2>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4">
+          Denied the audio permission by accident, or the visual is just sitting static? Reset it and you'll be prompted again next time the screen saver runs:
+        </p>
+        <pre class="bg-black/60 border border-white/10 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto"><code>tccutil reset AudioCapture com.feverdream.screen.saver</code></pre>
+      </div>
+
+      <!-- Source -->
+      <div class="text-center">
+        <a
+          href="https://github.com/feverdreaminteractive/AudioMoire"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-sm text-gray-400 hover:text-white transition-colors"
+        >
+          View source on GitHub &rarr;
+        </a>
+      </div>
+
+    </div>
+  </main>
+</Layout>
