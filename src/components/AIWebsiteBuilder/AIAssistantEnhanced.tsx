@@ -68,7 +68,7 @@ const AIAssistantEnhanced: React.FC<Props> = ({
   const [isFirstMessage, setIsFirstMessage] = useState(
     () => !messages.some(m => m.role === 'user')
   );
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -86,8 +86,15 @@ const AIAssistantEnhanced: React.FC<Props> = ({
     }
   }, [input]);
 
+  // Scroll the message list's own scroll position directly, rather than
+  // calling scrollIntoView() on a descendant — that scrolls every scrollable
+  // ancestor needed to bring the target into view, including the page/window
+  // itself if the list isn't already fully in the viewport.
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
   };
 
   useEffect(() => {
@@ -1020,7 +1027,7 @@ export default defineConfig({});`;
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message, index) => (
           <div
             key={index}
@@ -1045,7 +1052,6 @@ export default defineConfig({});`;
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       <div className="p-4 border-t border-gray-800">

@@ -52,7 +52,7 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
   const [isFirstMessage, setIsFirstMessage] = useState(
     () => !messages.some(m => m.role === 'user')
   );
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
 
   // Persist the conversation whenever it changes.
   useEffect(() => {
@@ -72,8 +72,15 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
     }
   }, [input]);
 
+  // Scroll the message list's own scroll position directly, rather than
+  // calling scrollIntoView() on a descendant — that scrolls every scrollable
+  // ancestor needed to bring the target into view, including the page/window
+  // itself if the list isn't already fully in the viewport.
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+    }
   };
 
   useEffect(() => {
@@ -369,7 +376,7 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((msg, i) => (
           <div key={i} className="flex gap-3">
             <div className="flex-shrink-0">
@@ -407,7 +414,6 @@ const AIAssistant: React.FC<Props> = ({ project, setProject, selectedFile, onFir
             </div>
           </div>
         )}
-        <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
