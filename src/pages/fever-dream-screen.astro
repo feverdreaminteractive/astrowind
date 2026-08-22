@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { HeroShaderBackground } from '../components/HeroShaderBackground.tsx';
 
 const steps = [
   {
@@ -27,11 +28,18 @@ const steps = [
   showNavigation={true}
 >
   <main class="min-h-screen bg-black pt-20 relative overflow-hidden">
-    <!-- Gradient background -->
-    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20"></div>
-    <div class="absolute inset-0 bg-grid-pattern opacity-5"></div>
+    <!-- Static gradient — sits behind the canvas as a fallback if WebGL fails to init -->
+    <div class="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black to-blue-900/20 z-0 pointer-events-none"></div>
 
-    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <!-- WebGL animated background — paints over the static gradient when WebGL works -->
+    <div class="absolute inset-0 z-[1] pointer-events-none">
+      <HeroShaderBackground client:load intensity={1.0} />
+    </div>
+
+    <!-- Grid pattern overlay -->
+    <div class="absolute inset-0 bg-grid-pattern opacity-5 z-[2] pointer-events-none"></div>
+
+    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 z-10">
 
       <!-- Header -->
       <div class="text-center mb-10 animate-fade-in">
