@@ -1,6 +1,7 @@
 import type { Preview } from '@storybook/react-vite'
 import * as React from 'react'
 import '../src/styles/global.css'
+import { theme } from './theme'
 
 const preview: Preview = {
   parameters: {
@@ -15,6 +16,9 @@ const preview: Preview = {
     },
     darkMode: {
       current: 'dark',
+    },
+    docs: {
+      theme,
     },
   },
   decorators: [
