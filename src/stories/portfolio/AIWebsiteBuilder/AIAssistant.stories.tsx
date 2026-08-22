@@ -20,7 +20,7 @@ const meta = {
     // actually scrolls internally, so the mount-time scrollIntoView() drags
     // the whole Storybook page down instead.
     (Story) => (
-      <div style={{ height: '100vh' }}>
+      <div style={{ height: '640px' }}>
         <Story />
       </div>
     ),
