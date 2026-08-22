@@ -18,12 +18,22 @@ export const HeroShaderBackground: React.FC<HeroShaderBackgroundProps> = ({
   const startTimeRef = useRef(performance.now());
   const rafRef = useRef<number>(0);
   const mouseRef = useRef({ x: 0.5, y: 0.5 });
-  const [shaderIndex, setShaderIndex] = useState(0);
+
+  // `?bg=<index>` picks the starting variant directly (e.g. ?bg=1 for a
+  // shareable link to a specific pattern), wrapping via modulo so an
+  // out-of-range index doesn't just fall back silently. Read once at mount
+  // — later prop/shaders changes don't re-read the URL.
+  const [shaderIndex, setShaderIndex] = useState(() => {
+    if (typeof window === 'undefined') return 0;
+    const raw = new URLSearchParams(window.location.search).get('bg');
+    const parsed = raw !== null ? parseInt(raw, 10) : NaN;
+    return Number.isInteger(parsed) ? ((parsed % shaders.length) + shaders.length) % shaders.length : 0;
+  });
 
   // A quiet, undocumented interaction rather than a visible control — click
   // anywhere on the background (not on the actual content sitting above it)
   // to cycle to the next variant. Not persisted — a refresh always starts
-  // back at the default.
+  // back at ?bg (or the default).
   const handleBackgroundClick = () => {
     setShaderIndex((prev) => (prev + 1) % shaders.length);
   };
