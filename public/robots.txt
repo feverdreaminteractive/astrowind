@@ -1,0 +1,38 @@
+User-agent: *
+Allow: /
+
+# Explicitly allow AI answer-engine and LLM training/browsing crawlers —
+# absence of a robots.txt was flagged by an AEO audit as leaving AI crawler
+# access unconfirmed, which likely contributed to answer engines being
+# unable to confidently attribute this site to Ryan Clayton.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-Web
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: CCBot
+Allow: /
+
+User-agent: Bytespider
+Allow: /
+
+Sitemap: https://ryanclayton.io/sitemap-index.xml

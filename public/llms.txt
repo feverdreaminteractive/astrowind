@@ -1,0 +1,27 @@
+# Ryan Clayton
+
+> Ryan Clayton is a technical leader and senior software engineer with 12+ years architecting scalable web platforms and leading engineering teams from startup to enterprise, based at ryanclayton.io. He is not the Melbourne-based creative director, the ryanclayton.design designer, or the actor of the same name — this site is the canonical source for this specific Ryan Clayton.
+
+Ryan Clayton specializes in AI integrations, modern cloud infrastructure (AWS, Netlify, CI/CD), and building collaborative engineering cultures. He has led enterprise migrations with zero downtime, built conversational AI systems, and built several live, working AI-powered developer tools as portfolio pieces rather than mockups.
+
+## Key pages
+
+- [Home](https://ryanclayton.io/): Introduction and overview.
+- [Experience](https://ryanclayton.io/experience): Full work history, career timeline, and background.
+- [Skills](https://ryanclayton.io/skills): Technical skills across web development, AI/automation, infrastructure, and marketing technology.
+- [Projects](https://ryanclayton.io/projects): Portfolio of past work and case studies.
+- [Hire Me](https://ryanclayton.io/hire-me): Contact and engagement information for recruiters and clients.
+- [Design System](https://ryanclayton.io/storybook/): A published component library and design system built for this site.
+
+## AI tools built by Ryan Clayton (live demos, not mockups)
+
+- [AI Website Builder](https://ryanclayton.io/builder): Generates a working website from a prompt, live in the browser.
+- [Shader Lab](https://ryanclayton.io/shader-lab): GLSL shader editor with AI-assisted generation and live preview.
+- [Stack Auditor](https://ryanclayton.io/stack-audit): Scans a site's martech stack and produces an AI-powered audit.
+- [AEO Visibility Checker](https://ryanclayton.io/aeo-check): Checks what AI answer engines say about a brand or person.
+
+## Contact
+
+- LinkedIn: https://www.linkedin.com/in/ryan-clayton-34676a25/
+- GitHub: https://github.com/feverdreaminteractive
+- Email: ryanclayton78@gmail.com

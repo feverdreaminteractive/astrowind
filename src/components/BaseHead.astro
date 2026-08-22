@@ -2,7 +2,7 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import '../styles/global.css';
-import { SITE_TITLE } from '../consts';
+import { SITE_TITLE, SITE_URL, PROFILE_CONFIG, SOCIAL_LINKS } from '../consts';
 
 interface Props {
   title: string;
@@ -13,6 +13,25 @@ interface Props {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 const { title, description, image = '/og-image.png' } = Astro.props;
+
+// Person schema (site-wide, not just the homepage) so AI/search engines can
+// reliably disambiguate this specific Ryan Clayton from the several other
+// unrelated people who share the name — see the AEO audit that flagged this
+// as the top reason answer engines couldn't confidently identify this site.
+const sameAs = SOCIAL_LINKS
+  .map((link) => link.href)
+  .filter((href) => href.startsWith('http'));
+
+const personSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: PROFILE_CONFIG.name,
+  url: SITE_URL,
+  image: new URL('/og-image.png', SITE_URL).toString(),
+  jobTitle: PROFILE_CONFIG.title,
+  description: PROFILE_CONFIG.bio,
+  sameAs,
+};
 ---
 
 <!-- Global Metadata -->
@@ -34,6 +53,9 @@ const { title, description, image = '/og-image.png' } = Astro.props;
 
 <!-- Canonical URL -->
 <link rel="canonical" href={canonicalURL} />
+
+<!-- Person schema — see comment above for why this exists -->
+<script type="application/ld+json" set:html={JSON.stringify(personSchema)} />
 
 <!-- Primary Meta Tags -->
 <title>{title}</title>

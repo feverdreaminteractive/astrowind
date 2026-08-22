@@ -23,7 +23,19 @@ export const SOCIAL_LINKS = [
   {
     name: 'LinkedIn',
     icon: 'simple-icons:linkedin',
-    href: 'https://linkedin.com/in/ryan-clayton-atx',
+    // Matches the URL actually used site-wide (TopNavigation, homepage
+    // footer) — this used to point to a different, unused profile slug.
+    href: 'https://www.linkedin.com/in/ryan-clayton-34676a25/',
+  },
+  {
+    name: 'GitHub',
+    icon: 'simple-icons:github',
+    href: 'https://github.com/feverdreaminteractive',
+  },
+  {
+    name: 'Upwork',
+    icon: 'simple-icons:upwork',
+    href: 'https://www.upwork.com/freelancers/~0121b06b0b5825c7a0?viewMode=1',
   },
   {
     name: 'Twitter',
