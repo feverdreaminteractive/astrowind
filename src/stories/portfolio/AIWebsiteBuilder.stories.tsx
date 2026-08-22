@@ -23,8 +23,14 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   args: {},
   decorators: [
+    // 100vh/100vw made the Docs page (which stacks the description, controls
+    // table, etc. above the preview) taller than one viewport, so the whole
+    // window had to scroll — and the nested AIAssistant's mount-time
+    // scrollIntoView() then scrolled that all the way to the bottom. A fixed
+    // size keeps this contained; 100% width still fills the docs column
+    // without overflowing it the way 100vw does.
     (Story) => (
-      <div style={{ height: '100vh', width: '100vw' }}>
+      <div style={{ height: '700px', width: '100%' }}>
         <Story />
       </div>
     ),

@@ -19,7 +19,7 @@ export const Default: Story = {};
 export const DarkTheme: Story = {
   decorators: [
     (Story) => (
-      <div className="dark" style={{ backgroundColor: '#0a0a0a', minHeight: '100vh', padding: '2rem' }}>
+      <div className="dark" style={{ backgroundColor: '#0a0a0a', padding: '2rem' }}>
         <Story />
       </div>
     ),
