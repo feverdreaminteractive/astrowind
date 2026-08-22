@@ -10,6 +10,9 @@ const config: StorybookConfig = {
     "../src/**/*.mdx",
     "../src/**/*.stories.@(js|jsx|mjs|ts|tsx)"
   ],
+  // Exposes public/ (logo, etc.) so .storybook/manager.ts can reference
+  // /logoRC_sdr_reference.jpg for the custom branding.
+  staticDirs: ['../public'],
   addons: [
     "@storybook/addon-essentials",
     "@chromatic-com/storybook",
