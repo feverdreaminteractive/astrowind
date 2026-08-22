@@ -1,11 +1,16 @@
-// Fever Dream Screen's actual patterns, ported from the macOS screen saver's
-// Metal shaders (Shaders.metal in the AudioMoire repo) to GLSL for use as a
-// WebGL page background. The screen saver drives `mouse` from bass/treble
-// audio magnitudes and `colorMagnitude` from loudness — there's no
-// microphone here, so `mouse` instead tracks the real cursor (see
-// HeroShaderBackground's mousemove handler) and colorMagnitude is a slow
-// synthetic breathing value, keeping both patterns alive and interactive
-// without audio.
+// Fever Dream Screen's actual patterns, ported to GLSL for use as a WebGL
+// page background. The moiré pattern matches the screen saver's Metal port
+// (Shaders.metal in the AudioMoire repo); the OpArt pattern is ported
+// straight from the original Quartz Composer patch's embedded GLSL
+// (~/Downloads/aim/OpArtSeries1-5.qtz's QCGLSLShader fragmentShader) rather
+// than through the Metal intermediary, so its hue math (0.4 + r * 0.8) is
+// byte-for-byte the original's, not the Metal port's variant. The screen
+// saver drives `mouse` from bass/treble audio magnitudes and
+// `colorMagnitude` from loudness — there's no microphone here, so `mouse`
+// instead tracks the real cursor (see HeroShaderBackground's mousemove
+// handler) and colorMagnitude is a slow synthetic breathing value in place
+// of the original patch's static A-E and looping "time" input, keeping both
+// patterns alive and interactive without audio or a 5-second loop reset.
 const MOIRE_SHADER = `#ifdef GL_ES
 precision highp float;
 #endif
@@ -79,9 +84,8 @@ void main(void) {
     uv *= sin(length(uv) * 2.0 + E);
 
     float r = length(uv);
-    float hueShift = colorMagnitude * 0.3;
 
-    vec3 color = (1.0 - vec3(exp(r) - 1.1)) * opArtHsv(0.4 + hueShift + r * 0.8, 1.0, 1.0);
+    vec3 color = (1.0 - vec3(exp(r) - 1.1)) * opArtHsv(0.4 + r * 0.8, 1.0, 1.0);
 
     // Dimmed for background use — full strength is too loud behind text.
     color *= 0.5;
