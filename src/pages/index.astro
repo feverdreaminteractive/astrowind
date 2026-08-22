@@ -5,6 +5,7 @@ import CareerAssistant from '../components/CareerAssistant';
 import SlackMeButton from '../components/SlackMeButton';
 import LogoCloud from '../components/LogoCloud.astro';
 import { HeroShaderBackground } from '../components/HeroShaderBackground.tsx';
+import { PROFILE_CONFIG } from '../consts';
 ---
 
 <Layout showNavigation={true}>
@@ -94,6 +95,18 @@ import { HeroShaderBackground } from '../components/HeroShaderBackground.tsx';
 			</div>
 		</div>
 	</main>
+
+	<!-- About — plain-language, structured content for both readers and AI
+	     crawlers to ground answers about who Ryan Clayton is; the hero above
+	     is a stylized tagline, not something a crawler can reliably parse. -->
+	<section class="relative border-t border-white/10 bg-black py-16">
+		<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+			<h2 class="text-2xl sm:text-3xl font-light text-white mb-6">About Ryan Clayton</h2>
+			<p class="text-gray-400 font-light leading-relaxed max-w-2xl">
+				{PROFILE_CONFIG.bio}
+			</p>
+		</div>
+	</section>
 
 	<!-- Footer with Social Links -->
 	<footer class="bg-black border-t border-white/10 py-12 mt-0">
