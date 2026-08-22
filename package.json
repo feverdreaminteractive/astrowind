@@ -87,6 +87,7 @@
 		"netlify-cli": "^26.2.0",
 		"playwright": "^1.62.0",
 		"storybook": "^10.5.5",
+		"vite": "^6.4.3",
 		"vitest": "^4.1.10"
 	}
 }
