@@ -9,6 +9,17 @@ const meta = {
     layout: 'fullscreen',
   },
   tags: ['autodocs'],
+  decorators: [
+    // AIBuilderSimple's root is h-full, which needs a height-bounded
+    // ancestor to resolve — without one, its internal overflow-y-auto message
+    // list never actually scrolls internally, so the mount-time
+    // scrollIntoView() drags the whole Storybook page down instead.
+    (Story) => (
+      <div style={{ height: '100vh' }}>
+        <Story />
+      </div>
+    ),
+  ],
 } satisfies Meta<typeof AIBuilderSimple>;
 
 export default meta;
@@ -19,7 +30,7 @@ export const Default: Story = {};
 export const DarkTheme: Story = {
   decorators: [
     (Story) => (
-      <div className="dark" style={{ backgroundColor: '#0a0a0a', minHeight: '100vh', padding: '2rem' }}>
+      <div className="dark" style={{ backgroundColor: '#0a0a0a', height: '100%', padding: '2rem' }}>
         <Story />
       </div>
     ),
