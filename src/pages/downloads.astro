@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import { SCREENSAVER_CATALOG } from '../data/screensaver-catalog';
 
 // Add future screen savers / downloads here — each renders as a card below.
 const DOWNLOADS = [
@@ -11,6 +12,14 @@ const DOWNLOADS = [
     href: '/fever-dream-screen',
     cta: 'View & Download',
   },
+  ...SCREENSAVER_CATALOG.map((entry) => ({
+    name: entry.name,
+    subtitle: 'macOS Screen Saver',
+    icon: '/fever-dream-screen-icon.png',
+    tags: ['Swift', 'Metal', 'Core Audio'],
+    href: `/downloads/${entry.slug}`,
+    cta: 'View & Download',
+  })),
 ];
 ---
 
