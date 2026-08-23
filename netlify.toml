@@ -63,6 +63,41 @@
   to = "/.netlify/functions/aeo-analyze"
   status = 200
 
+[[redirects]]
+  from = "/fever-dream-screen"
+  to = "/downloads"
+  status = 301
+
+[[redirects]]
+  from = "/downloads/grid"
+  to = "/downloads"
+  status = 301
+
+[[redirects]]
+  from = "/downloads/spiral"
+  to = "/downloads"
+  status = 301
+
+[[redirects]]
+  from = "/downloads/hypno"
+  to = "/downloads"
+  status = 301
+
+[[redirects]]
+  from = "/downloads/chevrons"
+  to = "/downloads"
+  status = 301
+
+[[redirects]]
+  from = "/downloads/sunburst"
+  to = "/downloads"
+  status = 301
+
+[[redirects]]
+  from = "/downloads/bloom"
+  to = "/downloads"
+  status = 301
+
 [[headers]]
   for = "/api/*"
   [headers.values]

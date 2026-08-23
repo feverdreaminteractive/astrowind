@@ -1,21 +1,28 @@
 // The Fever Dream Screens catalog — screen savers ported from Ryan's old
-// Quartz Composer patches in ~/Downloads/aim/. Each entry drives both the
-// /downloads listing card and its dedicated /downloads/<slug> page.
+// Quartz Composer patches in ~/Downloads/aim/. Each entry drives its card
+// on the /downloads listing page (a direct download, no per-item page).
 export interface ScreensaverEntry {
   slug: string;
   name: string;
   sourcePatch: string; // the original .qtz this was ported from
-  bundleId: string; // for the tccutil reset command
+  bundleId: string; // this product's signed bundle identifier
   zipFile: string; // filename under public/downloads/
 }
 
 export const SCREENSAVER_CATALOG: ScreensaverEntry[] = [
   {
-    slug: 'grid',
-    name: 'Grid',
+    slug: 'drippy',
+    name: 'Drippy',
+    sourcePatch: 'Moire1.qtz, OpArtSeries1-5.qtz',
+    bundleId: 'com.feverdream.drippy.saver',
+    zipFile: 'Drippy.zip',
+  },
+  {
+    slug: 'moire',
+    name: 'Moire',
     sourcePatch: 'moire2.qtz',
-    bundleId: 'com.feverdream.grid.saver',
-    zipFile: 'Grid.zip',
+    bundleId: 'com.feverdream.moire.saver',
+    zipFile: 'Moire.zip',
   },
   {
     slug: 'spiral',
