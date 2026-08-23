@@ -5,16 +5,16 @@ import { FEVER_DREAM_SHADERS } from '../shaders/fever-dream-shader';
 
 const steps = [
   {
-    title: 'Download the DMG',
+    title: 'Download it',
     body: 'Click the download button above. It\'s signed with a Developer ID certificate and notarized by Apple, so Gatekeeper won\'t show any "unidentified developer" warning.',
   },
   {
-    title: 'Open FeverDreamScreen.dmg',
-    body: 'Open it from your Downloads folder (or the browser\'s download tray) to mount the disk image.',
+    title: 'Open Fever Dream Screen.saver',
+    body: 'Safari unzips it automatically — find it in your Downloads folder (or the browser\'s download tray) and double-click it.',
   },
   {
-    title: 'Double-click Fever Dream Screen.saver',
-    body: 'This installs it to ~/Library/Screen Savers and opens System Settings straight to the Screen Saver pane with it already selected.',
+    title: 'It installs itself',
+    body: 'Double-clicking installs it to ~/Library/Screen Savers and opens System Settings straight to the Screen Saver pane with it already selected.',
   },
   {
     title: 'Grant the audio permission',
@@ -66,7 +66,7 @@ const steps = [
       <!-- Download CTA -->
       <div class="flex flex-col items-center gap-3 mb-14 animate-fade-in">
         <a
-          href="/downloads/FeverDreamScreen.dmg"
+          href="/downloads/FeverDreamScreen.zip"
           download
           class="inline-flex items-center gap-2 text-base text-black bg-white hover:bg-gray-100 rounded-lg px-6 py-3 font-medium transition-all"
         >
@@ -75,7 +75,7 @@ const steps = [
           </svg>
           Download for macOS
         </a>
-        <p class="text-xs text-gray-500">FeverDreamScreen.dmg &middot; signed &amp; notarized</p>
+        <p class="text-xs text-gray-500">FeverDreamScreen.zip &middot; signed &amp; notarized</p>
       </div>
 
       <!-- Install steps -->
