@@ -223,6 +223,5 @@ export const CATALOG_SHADERS: Record<string, string> = {
   spiral: SPIRAL_SHADER,
   hypno: HYPNO_SHADER,
   chevrons: CHEVRONS_SHADER,
-  sunburst: SUNBURST_SHADER,
   bloom: BLOOM_SHADER,
 };

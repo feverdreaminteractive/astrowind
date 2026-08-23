@@ -9,7 +9,7 @@ const steps = [
     body: 'Click the download button above. It\'s signed with a Developer ID certificate and notarized by Apple, so Gatekeeper won\'t show any "unidentified developer" warning.',
   },
   {
-    title: 'Open Fever Dream Screen.saver',
+    title: 'Open Drippy.saver',
     body: 'Safari unzips it automatically — find it in your Downloads folder (or the browser\'s download tray) and double-click it.',
   },
   {
@@ -24,7 +24,7 @@ const steps = [
 ---
 
 <Layout
-  title="Fever Dream Screen | Ryan Clayton"
+  title="Drippy | Ryan Clayton"
   description="An audio-reactive moiré visualizer for macOS — captured via Core Audio's process-tap API, rendered in a custom Metal shader. Download the signed, notarized screen saver."
   showNavigation={true}
 >
@@ -45,13 +45,13 @@ const steps = [
       <!-- Header -->
       <div class="text-center mb-10 animate-fade-in">
         <img
-          src="/fever-dream-screen-icon.png"
-          alt="Fever Dream Screen icon"
+          src="/drippy-icon.png"
+          alt="Drippy icon"
           class="w-20 h-20 mx-auto mb-6 rounded-2xl"
           width="80"
           height="80"
         />
-        <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">Fever Dream Screen</h1>
+        <h1 class="text-4xl lg:text-5xl font-light text-white mb-4">Drippy</h1>
         <div class="flex flex-wrap justify-center gap-2 mt-6">
           <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Swift</span>
           <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Metal</span>
@@ -66,7 +66,7 @@ const steps = [
       <!-- Download CTA -->
       <div class="flex flex-col items-center gap-3 mb-14 animate-fade-in">
         <a
-          href="/downloads/FeverDreamScreen.zip"
+          href="/downloads/Drippy.zip"
           download
           class="inline-flex items-center gap-2 text-base text-black bg-white hover:bg-gray-100 rounded-lg px-6 py-3 font-medium transition-all"
         >
@@ -75,7 +75,7 @@ const steps = [
           </svg>
           Download for macOS
         </a>
-        <p class="text-xs text-gray-500">FeverDreamScreen.zip &middot; signed &amp; notarized</p>
+        <p class="text-xs text-gray-500">Drippy.zip &middot; signed &amp; notarized</p>
       </div>
 
       <!-- Install steps -->
@@ -96,13 +96,33 @@ const steps = [
         </ol>
       </div>
 
+      <!-- Trust / verification -->
+      <div class="bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 mb-8">
+        <h2 class="text-xl font-light text-white mb-4">Why you can trust this download</h2>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4">
+          This is built and signed by me, Ryan Clayton, under my own Apple Developer ID
+          (Team ID <code class="text-gray-300">AWLLM3Q8GW</code>) — the same certificate signs everything
+          in this catalog. It's also notarized: Apple independently scanned the exact binary you're
+          downloading and issued it a ticket, which is stapled to the file so Gatekeeper can verify
+          it offline. You don't have to take my word for any of that — check it yourself after
+          downloading:
+        </p>
+        <pre class="bg-black/60 border border-white/10 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto"><code>spctl -a -vv -t install ~/Downloads/Drippy.saver</code></pre>
+        <p class="text-gray-400 text-sm leading-relaxed mt-4">
+          That should print <code class="text-gray-300">source=Notarized Developer ID</code> and
+          <code class="text-gray-300">origin=Developer ID Application: Ryan Clayton (AWLLM3Q8GW)</code>.
+          If it doesn't say exactly that, don't run it. The source is also public (link below) if
+          you'd rather read the code than trust a signature.
+        </p>
+      </div>
+
       <!-- Troubleshooting -->
       <div class="bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 mb-8">
         <h2 class="text-xl font-light text-white mb-4">Troubleshooting</h2>
         <p class="text-gray-400 text-sm leading-relaxed mb-4">
           Denied the audio permission by accident, or the visual is just sitting static? Reset it and you'll be prompted again next time the screen saver runs:
         </p>
-        <pre class="bg-black/60 border border-white/10 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto"><code>tccutil reset AudioCapture com.feverdream.screen.saver</code></pre>
+        <pre class="bg-black/60 border border-white/10 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto"><code>tccutil reset AudioCapture com.feverdream.drippy.saver</code></pre>
       </div>
 
       <!-- Source -->

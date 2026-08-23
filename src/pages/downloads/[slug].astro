@@ -56,7 +56,7 @@ const steps = [
       <!-- Header -->
       <div class="text-center mb-10 animate-fade-in">
         <img
-          src="/fever-dream-screen-icon.png"
+          src={`/${entry.slug}-icon.png`}
           alt={`${entry.name} icon`}
           class="w-20 h-20 mx-auto mb-6 rounded-2xl"
           width="80"
@@ -105,6 +105,26 @@ const steps = [
             </li>
           ))}
         </ol>
+      </div>
+
+      <!-- Trust / verification -->
+      <div class="bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 mb-8">
+        <h2 class="text-xl font-light text-white mb-4">Why you can trust this download</h2>
+        <p class="text-gray-400 text-sm leading-relaxed mb-4">
+          This is built and signed by me, Ryan Clayton, under my own Apple Developer ID
+          (Team ID <code class="text-gray-300">AWLLM3Q8GW</code>) — the same certificate signs everything
+          in this catalog. It's also notarized: Apple independently scanned the exact binary you're
+          downloading and issued it a ticket, which is stapled to the file so Gatekeeper can verify
+          it offline. You don't have to take my word for any of that — check it yourself after
+          downloading:
+        </p>
+        <pre class="bg-black/60 border border-white/10 rounded-lg p-4 text-sm text-gray-300 overflow-x-auto"><code>spctl -a -vv -t install ~/Downloads/{entry.name}.saver</code></pre>
+        <p class="text-gray-400 text-sm leading-relaxed mt-4">
+          That should print <code class="text-gray-300">source=Notarized Developer ID</code> and
+          <code class="text-gray-300">origin=Developer ID Application: Ryan Clayton (AWLLM3Q8GW)</code>.
+          If it doesn't say exactly that, don't run it. The source is also public (link below) if
+          you'd rather read the code than trust a signature.
+        </p>
       </div>
 
       <!-- Troubleshooting -->
