@@ -113,7 +113,7 @@ void main(void) {
     float colorMagnitude = 0.5 + 0.5 * sin(time * 0.3);
 
     vec3 color = vec3(3.0, 1.0, 1.0);
-    float width = 50.0;
+    float width = 100.0;
 
     float x = gl_FragCoord.x - resolution.x / 2.5;
     float y = gl_FragCoord.y - resolution.y / 2.5;
