@@ -110,10 +110,10 @@ export const CHEVRONS_SHADER = `${HEADER}
 ${HSV2RGB}
 
 void main(void) {
-    float colorMagnitude = 0.5 + 0.5 * sin(time * 0.3);
-
-    vec3 color = vec3(3.0, 1.0, 1.0);
-    float width = 100.0;
+    vec3 orange = vec3(4.0, 1.5, 0.0);
+    vec3 pink = vec3(4.0, 0.4, 2.2);
+    vec3 color = orange;
+    float width = 200.0;
 
     float x = gl_FragCoord.x - resolution.x / 2.5;
     float y = gl_FragCoord.y - resolution.y / 2.5;
@@ -127,14 +127,11 @@ void main(void) {
     float xp = xr * cos(angle * s) - yr * sin(angle * s) - time * (550.0 + mouse.y * 300.0);
 
     if (mod(xp, width) - width / 2.0 > 0.0) {
-        color = vec3(1.0, 0.0, 5.0);
+        color = pink;
     }
 
-    vec3 hueColor = hsv2rgb(vec3(fract(time * 0.05 + colorMagnitude * 0.6), 0.85, 1.0));
-    vec3 finalColor = mix(color, hueColor * 3.0, clamp(colorMagnitude, 0.0, 1.0) * 0.6);
-
-    finalColor *= 0.5;
-    gl_FragColor = vec4(finalColor, 1.0);
+    color *= 0.5;
+    gl_FragColor = vec4(color, 1.0);
 }`;
 
 // Ported from ~/Downloads/aim/sunburst.qtz.
