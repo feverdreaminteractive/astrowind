@@ -14,7 +14,7 @@ const CORS_HEADERS = {
 const jsonResponse = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
 
-const SYSTEM_PROMPT = `You are analyzing how a brand shows up in AI assistant answers. You'll receive a set of buyer questions, the answers Claude actually gave (with web search), and the sources each answer cited — plus, if provided, a structural audit of the brand's own website.
+const SYSTEM_PROMPT = `You are analyzing how a brand shows up in AI assistant answers. You'll receive a set of buyer questions, the answers Perplexity's web-search model actually gave, and the sources each answer cited — plus, if provided, a structural audit of the brand's own website.
 
 Be specific and concrete. Ground every claim in the actual answer text and sources given — never invent a competitor, source, or error that isn't supported by what's in front of you. Keep every point to one or two sentences.
 

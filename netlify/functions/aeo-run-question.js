@@ -1,8 +1,18 @@
-// AEO Visibility Checker — runs a single buyer question through Claude with
-// web search enabled, so the answer reflects current retrievable content
-// rather than training data alone. One question per call; the frontend fires
-// several of these concurrently (capped) so results stream in as they land.
-import { callClaude, extractText, extractWebSearchSources } from './lib/claude-client.js';
+// AEO Visibility Checker — runs a single buyer question through Perplexity's
+// web-search-augmented sonar model, so the answer reflects current
+// retrievable content rather than training data alone. One question per
+// call; the frontend fires several of these concurrently (capped) so
+// results stream in as they land.
+//
+// This was Claude with the web_search tool until the switch to Perplexity —
+// Claude's agentic search loop regularly took 15-25s end to end for a
+// single question (confirmed live: a direct call clocked 20.4s even at
+// max_uses 1), close enough to Netlify's synchronous function ceiling that
+// runs kept timing out. Perplexity's sonar models are purpose-built for
+// search+answer in one pass instead of an agentic tool loop, so this should
+// be meaningfully faster — question generation and final analysis stay on
+// Claude (lib/claude-client.js), since neither needs live search.
+import { callPerplexity, extractPerplexityText, extractPerplexitySources } from './lib/perplexity-client.js';
 import { checkRateLimit } from './lib/scan-helpers.js';
 
 const CORS_HEADERS = {
@@ -14,7 +24,7 @@ const CORS_HEADERS = {
 const jsonResponse = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
 
-const SYSTEM_PROMPT = `You are a helpful research assistant answering a question from someone evaluating options in a market. Search the web as needed and answer naturally and normally, the way you'd answer anyone — don't skew toward or away from any particular company. Be concise: a few sentences to a short paragraph, mentioning specific vendors by name where relevant, as you normally would.`;
+const SYSTEM_PROMPT = `You are a helpful research assistant answering a question from someone evaluating options in a market. Search the web as needed and answer naturally and normally, the way you'd answer anyone — don't skew toward or away from any particular company. Be concise: a few sentences to a short paragraph, mentioning specific vendors by name where relevant, as you normally would. Plain conversational prose only — no markdown formatting, no bold text, no headers, no bullet lists; this gets displayed as plain text, not rendered markdown.`;
 
 export default async (req, context) => {
   if (req.method === 'OPTIONS') {
@@ -46,35 +56,27 @@ export default async (req, context) => {
 
   let data;
   try {
-    data = await callClaude(
+    data = await callPerplexity(
       {
-        model: 'claude-sonnet-5',
-        max_tokens: 2048,
-        system: SYSTEM_PROMPT,
-        messages: [{ role: 'user', content: question }],
-        // max_uses: 1, not 2 — each extra search round-trip inside the same
-        // call adds real wall-clock time (this is a live web search, not a
-        // lookup), and this endpoint is already the latency bottleneck for
-        // the whole checker (see AeoChecker.tsx's CONCURRENCY note).
-        tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 1 }],
-        output_config: { effort: 'low' },
+        model: 'sonar',
+        max_tokens: 1024,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          { role: 'user', content: question },
+        ],
       },
-      // Netlify's synchronous function timeout (26s on paid plans, not
-      // configurable) is the real ceiling here — this must stay comfortably
-      // under it so a slow question fails via our own clean JSON error
-      // instead of racing Netlify's raw 504. The frontend treats a timeout
-      // as a soft per-question failure and keeps the rest of the run going.
-      // 24s, not 20s: even at max_uses 1, a single web search regularly
-      // takes close to 20s end to end (confirmed live), so the old margin
-      // was cutting off runs that would have finished a few seconds later.
-      { timeoutMs: 24_000 }
+      // Generous safety net, not the expected case — sonar should typically
+      // answer in a few seconds, well under this. Still kept comfortably
+      // under Netlify's 26s synchronous ceiling so a genuinely slow call
+      // fails via our own clean JSON error instead of racing a raw 504.
+      { timeoutMs: 20_000 }
     );
   } catch (err) {
     return jsonResponse({ error: err.message }, err.status || 502);
   }
 
-  const answerText = extractText(data);
-  const sources = extractWebSearchSources(data);
+  const answerText = extractPerplexityText(data);
+  const sources = extractPerplexitySources(data);
 
   return jsonResponse({ questionId: body.questionId ?? null, question, answerText, sources });
 };

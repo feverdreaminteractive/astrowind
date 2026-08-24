@@ -114,7 +114,7 @@ function highlightBrand(text: string, company: string): React.ReactNode {
 function buildReportMarkdown(company: string, results: QuestionResult[], analysis: Analysis, siteAudit: SiteAudit | null): string {
   const lines: string[] = [];
   lines.push(`# AEO Visibility Report — ${company}`);
-  lines.push(`_Single-run snapshot using Claude with web search. Other assistants (ChatGPT, Perplexity, Gemini) will differ, and re-running may vary._`);
+  lines.push(`_Single-run snapshot: buyer questions answered by Perplexity's web search, analyzed by Claude. Other assistants (ChatGPT, Claude itself, Gemini) will differ, and re-running may vary._`);
   lines.push('');
   lines.push(`## Visibility Scorecard`);
   lines.push(`Appeared in ${analysis.visibility.appearedIn} of ${analysis.visibility.totalQuestions} answers.`);
@@ -553,7 +553,7 @@ export default function AeoChecker() {
               </div>
             )}
             <p className="text-xs text-gray-600 mt-4">
-              One run, one model (Claude, with web search). ChatGPT, Perplexity, and Gemini will differ — and re-running this may vary too.
+              One run, one search engine (Perplexity). ChatGPT, Claude's own web search, and Gemini will differ — and re-running this may vary too.
             </p>
           </section>
 
