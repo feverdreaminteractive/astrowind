@@ -1,10 +1,18 @@
 // AEO Visibility Checker — site-side structural audit. No LLM involved here;
 // this is pure extraction of the signals that determine whether a model can
-// cleanly lift facts about a company off its site. Fetches at most three
-// URLs (homepage, /robots.txt, /llms.txt) — no crawling beyond that.
+// cleanly lift facts about a company off its site. Fetches at most four URLs
+// (homepage, /robots.txt, /llms.txt, /sitemap.xml) — no crawling beyond that.
+// Deliberately the fast, always-fast tier of the checker (see AeoChecker.tsx)
+// — every signal here comes from HTML/text already fetched, no LLM calls.
 import { USER_AGENT, FETCH_TIMEOUT_MS } from './scan-helpers.js';
 
 const AI_CRAWLERS = ['GPTBot', 'ClaudeBot', 'PerplexityBot', 'Google-Extended'];
+
+// Schema.org types that actually matter for AEO — the ones that let a model
+// (or Google's AI Overviews) lift structured facts directly instead of
+// guessing from prose. Any JSON-LD block can declare dozens of types; this
+// is just what to call out as present/missing.
+const KEY_SCHEMA_TYPES = ['Organization', 'FAQPage', 'Product', 'SoftwareApplication', 'WebSite', 'BreadcrumbList'];
 
 async function fetchText(url) {
   const controller = new AbortController();
@@ -99,6 +107,18 @@ function extractComparisonSignals(html) {
   };
 }
 
+function extractCanonical(html) {
+  const match = html.match(/<link\s+[^>]*rel=["']canonical["'][^>]*href=["']([^"']+)["']/i)
+    || html.match(/<link\s+[^>]*href=["']([^"']+)["'][^>]*rel=["']canonical["']/i);
+  return { present: !!match, url: match ? match[1] : null };
+}
+
+function extractOpenGraph(html) {
+  const has = (prop) => new RegExp(`<meta\\s+[^>]*property=["']og:${prop}["'][^>]*content=["']([^"']*)["']`, 'i').test(html)
+    || new RegExp(`<meta\\s+[^>]*content=["']([^"']*)["'][^>]*property=["']og:${prop}["']`, 'i').test(html);
+  return { titlePresent: has('title'), descriptionPresent: has('description'), imagePresent: has('image') };
+}
+
 function extractFreshnessSignals(html, lastModifiedHeader) {
   const dateMatches = html.match(/\b(20[2-9]\d)[-/]\d{1,2}[-/]\d{1,2}\b/g) || [];
   const updatedTextMatch = html.match(/\b(updated|last updated|published)\s*[:\-]?\s*[A-Za-z0-9 ,]{4,20}/i);
@@ -125,9 +145,10 @@ export async function auditSite(siteUrl) {
   }
 
   const origin = new URL(siteUrl).origin;
-  const [robotsTxt, llmsTxt] = await Promise.all([
+  const [robotsTxt, llmsTxt, sitemapXml] = await Promise.all([
     fetchText(`${origin}/robots.txt`),
     fetchText(`${origin}/llms.txt`),
+    fetchText(`${origin}/sitemap.xml`),
   ]);
 
   const crawlerAccess = {};
@@ -150,15 +171,24 @@ export async function auditSite(siteUrl) {
   const description = extractAboveFoldDescription(html);
   const comparison = extractComparisonSignals(html);
   const freshness = extractFreshnessSignals(html, lastModified);
+  const canonical = extractCanonical(html);
+  const openGraph = extractOpenGraph(html);
 
   return {
-    schema: { types: jsonLd.types, present: jsonLd.blockCount > 0 },
+    schema: {
+      types: jsonLd.types,
+      present: jsonLd.blockCount > 0,
+      keyTypesPresent: KEY_SCHEMA_TYPES.filter((t) => jsonLd.types.includes(t)),
+    },
     headings,
     description,
     comparison,
     freshness,
+    canonical,
+    openGraph,
     llmsTxtPresent: !!llmsTxt,
     robotsTxtPresent: !!robotsTxt,
+    sitemapPresent: !!sitemapXml,
     aiCrawlerAccess: robotsTxt ? crawlerAccess : null,
   };
 }

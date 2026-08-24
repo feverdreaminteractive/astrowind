@@ -52,7 +52,11 @@ export default async (req, context) => {
         max_tokens: 2048,
         system: SYSTEM_PROMPT,
         messages: [{ role: 'user', content: question }],
-        tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 2 }],
+        // max_uses: 1, not 2 — each extra search round-trip inside the same
+        // call adds real wall-clock time (this is a live web search, not a
+        // lookup), and this endpoint is already the latency bottleneck for
+        // the whole checker (see AeoChecker.tsx's CONCURRENCY note).
+        tools: [{ type: 'web_search_20260209', name: 'web_search', max_uses: 1 }],
         output_config: { effort: 'low' },
       },
       // Netlify's synchronous function timeout (26s on paid plans, not

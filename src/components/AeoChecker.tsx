@@ -22,13 +22,16 @@ interface QuestionResult {
 
 interface SiteAudit {
   url: string;
-  schema: { types: string[]; present: boolean };
+  schema: { types: string[]; present: boolean; keyTypesPresent: string[] };
   headings: { h1Count: number; h1Text: string | null; totalHeadings: number; skippedLevel: boolean };
   description: { metaDescription: string | null; firstParagraph: string | null };
   comparison: { hasFaqLink: boolean; hasComparisonLink: boolean };
   freshness: { httpLastModified: string | null; visibleDateFound: boolean; updatedLabelFound: boolean };
+  canonical: { present: boolean; url: string | null };
+  openGraph: { titlePresent: boolean; descriptionPresent: boolean; imagePresent: boolean };
   llmsTxtPresent: boolean;
   robotsTxtPresent: boolean;
+  sitemapPresent: boolean;
   aiCrawlerAccess: Record<string, string> | null;
 }
 
@@ -55,7 +58,11 @@ interface Analysis {
   visibility: { appearedIn: number; totalQuestions: number };
 }
 
-type Phase = 'input' | 'generating' | 'review' | 'running' | 'analyzing' | 'done' | 'error';
+// 'audit' is the fast tier: a technical site audit with no LLM involved,
+// shown immediately after submit. Everything from 'generating' on is the
+// slow tier (real web searches via Claude) — an explicit follow-on action
+// from 'audit', not bundled into the same blocking request.
+type Phase = 'input' | 'audit' | 'generating' | 'review' | 'running' | 'analyzing' | 'done' | 'error';
 
 // Claude's web_search tool shows real latency degradation under concurrency
 // on this account/tier (verified empirically — plain calls scale fine, but
@@ -146,9 +153,13 @@ function buildReportMarkdown(company: string, results: QuestionResult[], analysi
     lines.push('');
   }
   if (siteAudit) {
-    lines.push('## Site Audit');
+    lines.push('## Technical AEO Audit');
     lines.push(`- Schema.org: ${siteAudit.schema.present ? siteAudit.schema.types.join(', ') : 'none detected'}`);
+    lines.push(`- AEO-relevant schema types (Organization/FAQPage/Product/SoftwareApplication): ${siteAudit.schema.keyTypesPresent.length ? siteAudit.schema.keyTypesPresent.join(', ') : 'none'}`);
     lines.push(`- Meta description: ${siteAudit.description.metaDescription || 'none found'}`);
+    lines.push(`- Canonical tag: ${siteAudit.canonical.present ? 'present' : 'missing'}`);
+    lines.push(`- Open Graph: ${[siteAudit.openGraph.titlePresent && 'title', siteAudit.openGraph.descriptionPresent && 'description', siteAudit.openGraph.imagePresent && 'image'].filter(Boolean).join(', ') || 'none found'}`);
+    lines.push(`- sitemap.xml: ${siteAudit.sitemapPresent ? 'present' : 'not found'}`);
     lines.push(`- llms.txt: ${siteAudit.llmsTxtPresent ? 'present' : 'not found'}`);
     if (siteAudit.aiCrawlerAccess) {
       lines.push(`- AI crawler access: ${Object.entries(siteAudit.aiCrawlerAccess).map(([b, v]) => `${b}: ${v}`).join(', ')}`);
@@ -166,6 +177,7 @@ export default function AeoChecker() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [results, setResults] = useState<Map<string, QuestionResult>>(new Map());
   const [siteAudit, setSiteAudit] = useState<SiteAudit | null>(null);
+  const [auditLoading, setAuditLoading] = useState(false);
   const [analysis, setAnalysis] = useState<Analysis | null>(null);
   const [copied, setCopied] = useState(false);
   const [expandedQ, setExpandedQ] = useState<string | null>(null);
@@ -174,9 +186,37 @@ export default function AeoChecker() {
   // pattern (which can double-fire side effects under StrictMode).
   const resultsRef = React.useRef<Map<string, QuestionResult>>(new Map());
 
-  async function generateQuestions(e: React.FormEvent) {
+  // Fast tier: no LLM involved, just fetches + regex extraction (see
+  // lib/aeo-site-audit.js) — normally resolves in well under a second, so
+  // it's safe to block phase transition on it without the "this can take a
+  // minute or two" warning the slow tier needs.
+  async function startAudit(e: React.FormEvent) {
     e.preventDefault();
     if (!company.trim()) return;
+    setError(null);
+    setSiteAudit(null);
+    setPhase('audit');
+    if (!url.trim()) return;
+    setAuditLoading(true);
+    try {
+      const res = await fetch('/api/aeo-site-audit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim() }),
+      });
+      const body = await res.json();
+      setSiteAudit(body.error ? null : body);
+    } catch {
+      setSiteAudit(null);
+    } finally {
+      setAuditLoading(false);
+    }
+  }
+
+  // Slow tier: an explicit follow-on from 'audit', not bundled into the
+  // same request — this is the part that's actually slow (real web
+  // searches), so it only runs when someone chooses to wait for it.
+  async function startVisibilityCheck() {
     setError(null);
     setPhase('generating');
     try {
@@ -210,21 +250,9 @@ export default function AeoChecker() {
     setError(null);
     resultsRef.current = new Map();
     setResults(new Map());
-    setSiteAudit(null);
     setAnalysis(null);
     setCopied(false);
     setPhase('running');
-
-    const sitePromise = url.trim()
-      ? fetch('/api/aeo-site-audit', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: url.trim() }),
-        })
-          .then((r) => r.json())
-          .then((body) => (body.error ? null : (setSiteAudit(body), body)))
-          .catch(() => null)
-      : Promise.resolve(null);
 
     await runWithConcurrency(live, CONCURRENCY, async (q) => {
       try {
@@ -246,15 +274,13 @@ export default function AeoChecker() {
       }
     });
 
-    const finalSiteAudit = await sitePromise;
-
     setPhase('analyzing');
     try {
       const list = live.map((q) => resultsRef.current.get(q.id)).filter((r): r is QuestionResult => !!r && !r.error);
       const res = await fetch('/api/aeo-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ company: company.trim(), results: list, siteAudit: finalSiteAudit }),
+        body: JSON.stringify({ company: company.trim(), results: list, siteAudit }),
       });
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'Could not analyze results.');
@@ -285,19 +311,99 @@ export default function AeoChecker() {
 
   const isBusy = phase === 'generating' || phase === 'running' || phase === 'analyzing';
 
+  // Shared between the 'audit' phase (fast tier, shown alone) and 'done'
+  // (shown again as part of the full report, with siteConnections from the
+  // analysis once that's run) — one definition so the two don't drift.
+  function renderSiteAudit() {
+    if (!url.trim()) {
+      return (
+        <p className="text-center text-sm text-gray-500">
+          No website given, so there's no technical audit to show — add one above for schema, meta description,
+          llms.txt, and AI crawler access checks.
+        </p>
+      );
+    }
+    if (auditLoading) {
+      return <p className="text-center text-sm text-gray-500">Auditing {url.trim()}…</p>;
+    }
+    if (!siteAudit) {
+      return <p className="text-center text-sm text-red-400">Couldn't audit that site — check the URL and try again.</p>;
+    }
+    return (
+      <section className="bg-black/40 border border-white/10 rounded-lg p-5">
+        <h2 className="text-sm font-medium text-white uppercase tracking-wider mb-3">Technical AEO Audit</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-center">
+          <div>
+            <p className="text-lg text-white">{siteAudit.schema.present ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">Schema.org</p>
+          </div>
+          <div>
+            <p className="text-lg text-white">{siteAudit.description.metaDescription ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">Meta description</p>
+          </div>
+          <div>
+            <p className="text-lg text-white">{siteAudit.canonical.present ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">Canonical tag</p>
+          </div>
+          <div>
+            <p className="text-lg text-white">{siteAudit.openGraph.titlePresent && siteAudit.openGraph.descriptionPresent ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">Open Graph</p>
+          </div>
+          <div>
+            <p className="text-lg text-white">{siteAudit.sitemapPresent ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">sitemap.xml</p>
+          </div>
+          <div>
+            <p className="text-lg text-white">{siteAudit.llmsTxtPresent ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">llms.txt</p>
+          </div>
+          <div>
+            <p className="text-lg text-white">{siteAudit.robotsTxtPresent ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">robots.txt</p>
+          </div>
+          <div>
+            <p className="text-lg text-white">{siteAudit.comparison.hasFaqLink ? '✓' : '✕'}</p>
+            <p className="text-xs text-gray-500">FAQ page</p>
+          </div>
+        </div>
+        {siteAudit.schema.present && (
+          <p className="text-xs text-gray-500 mb-2">
+            AEO-relevant schema (Organization/FAQPage/Product/SoftwareApplication):{' '}
+            {siteAudit.schema.keyTypesPresent.length ? siteAudit.schema.keyTypesPresent.join(', ') : 'none of these — only ' + siteAudit.schema.types.join(', ')}
+          </p>
+        )}
+        {siteAudit.aiCrawlerAccess && Object.values(siteAudit.aiCrawlerAccess).some((v) => v === 'blocked') && (
+          <p className="text-sm text-red-400 mb-2">
+            ⚠ Blocking AI crawlers: {Object.entries(siteAudit.aiCrawlerAccess).filter(([, v]) => v === 'blocked').map(([b]) => b).join(', ')}
+          </p>
+        )}
+        {analysis && analysis.siteConnections.length > 0 && (
+          <ul className="space-y-2 pt-3 mt-3 border-t border-white/10">
+            {analysis.siteConnections.map((s, i) => (
+              <li key={i} className="text-sm text-gray-300 flex gap-2">
+                <span className="text-purple-400 shrink-0">—</span>
+                <span>{s}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    );
+  }
+
   return (
     <div className="min-h-[80vh] px-4 sm:px-6 lg:px-8 py-8">
       <div className="text-center mb-10 max-w-2xl mx-auto">
         <p className="text-xs uppercase tracking-[0.2em] text-purple-400 mb-3">AEO Visibility Checker</p>
         <h1 className="text-3xl lg:text-4xl font-light text-white mb-2">What do AI answer engines say about you?</h1>
         <p className="text-gray-400 font-light">
-          Enter a company. I'll generate the questions a real buyer would ask, run them against Claude with web
-          search, and report what shows up — or doesn't.
+          Enter a company and site. You'll get a fast technical audit right away — then, if you want it, a deeper
+          check of how you actually show up when Claude searches the web and answers real buyer questions.
         </p>
       </div>
 
       {phase === 'input' && (
-        <form onSubmit={generateQuestions} className="max-w-xl mx-auto space-y-3 mb-8">
+        <form onSubmit={startAudit} className="max-w-xl mx-auto space-y-3 mb-8">
           <input
             type="text"
             value={company}
@@ -309,7 +415,7 @@ export default function AeoChecker() {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="gong.io (optional — enables the site audit)"
+            placeholder="gong.io (optional — enables the technical audit)"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-purple-400/50"
           />
           <button
@@ -317,9 +423,32 @@ export default function AeoChecker() {
             disabled={!company.trim()}
             className="w-full px-6 py-3 rounded-lg bg-white text-black text-sm font-medium hover:bg-gray-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Generate questions
+            Run technical audit
           </button>
         </form>
+      )}
+
+      {phase === 'audit' && (
+        <div className="mb-10">
+          <div className="max-w-2xl mx-auto mb-8">{renderSiteAudit()}</div>
+          <div className="max-w-2xl mx-auto text-center">
+            <button
+              type="button"
+              onClick={startVisibilityCheck}
+              disabled={auditLoading}
+              className="px-6 py-3 rounded-lg bg-white text-black text-sm font-medium hover:bg-gray-200 transition-colors disabled:opacity-40"
+            >
+              Check how you show up in AI answers →
+            </button>
+            <p className="text-xs text-gray-600 mt-3">
+              This part is slower — real web searches against Claude, not a lookup. Usually well under a minute.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {phase !== 'input' && phase !== 'audit' && phase !== 'done' && (
+        <div className="max-w-2xl mx-auto mb-8">{renderSiteAudit()}</div>
       )}
 
       {phase === 'generating' && (
@@ -480,44 +609,7 @@ export default function AeoChecker() {
             </section>
           </div>
 
-          {siteAudit && (
-            <section className="bg-black/40 border border-white/10 rounded-lg p-5">
-              <h2 className="text-sm font-medium text-white uppercase tracking-wider mb-3">Site Audit</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 text-center">
-                <div>
-                  <p className="text-lg text-white">{siteAudit.schema.present ? '✓' : '✕'}</p>
-                  <p className="text-xs text-gray-500">Schema.org</p>
-                </div>
-                <div>
-                  <p className="text-lg text-white">{siteAudit.description.metaDescription ? '✓' : '✕'}</p>
-                  <p className="text-xs text-gray-500">Meta description</p>
-                </div>
-                <div>
-                  <p className="text-lg text-white">{siteAudit.llmsTxtPresent ? '✓' : '✕'}</p>
-                  <p className="text-xs text-gray-500">llms.txt</p>
-                </div>
-                <div>
-                  <p className="text-lg text-white">{siteAudit.comparison.hasFaqLink ? '✓' : '✕'}</p>
-                  <p className="text-xs text-gray-500">FAQ page</p>
-                </div>
-              </div>
-              {siteAudit.aiCrawlerAccess && Object.values(siteAudit.aiCrawlerAccess).some((v) => v === 'blocked') && (
-                <p className="text-sm text-red-400 mb-3">
-                  ⚠ Blocking AI crawlers: {Object.entries(siteAudit.aiCrawlerAccess).filter(([, v]) => v === 'blocked').map(([b]) => b).join(', ')}
-                </p>
-              )}
-              {analysis.siteConnections.length > 0 && (
-                <ul className="space-y-2 pt-3 border-t border-white/10">
-                  {analysis.siteConnections.map((s, i) => (
-                    <li key={i} className="text-sm text-gray-300 flex gap-2">
-                      <span className="text-purple-400 shrink-0">—</span>
-                      <span>{s}</span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-          )}
+          {renderSiteAudit()}
 
           <section className="bg-black/40 border-t-2 border-purple-500/40 rounded-lg p-5">
             <div className="flex items-center justify-between mb-3">

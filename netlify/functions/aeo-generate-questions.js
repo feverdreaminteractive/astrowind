@@ -14,7 +14,10 @@ const CORS_HEADERS = {
 const jsonResponse = (body, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } });
 
-const QUESTION_COUNT = 6;
+// Lower this and the run phase gets faster (each question is a real web
+// search — see aeo-run-question.js): at CONCURRENCY 2 in AeoChecker.tsx,
+// 4 questions is 2 sequential waves instead of 3 for 6.
+const QUESTION_COUNT = 4;
 
 const SYSTEM_PROMPT = `You generate the questions a real buyer would ask an AI assistant while researching a purchase in a category — before they've decided which vendor to use.
 
