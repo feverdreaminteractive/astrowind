@@ -52,4 +52,25 @@ export const SCREENSAVER_CATALOG: ScreensaverEntry[] = [
     bundleId: 'com.feverdream.bloom.saver',
     zipFile: 'Bloom.zip',
   },
+  {
+    slug: 'halo',
+    name: 'Halo',
+    sourcePatch: 'OpArtSeries1-8.qtz',
+    bundleId: 'com.feverdream.halo.saver',
+    zipFile: 'Halo.zip',
+  },
+  {
+    slug: 'vortex',
+    name: 'Vortex',
+    sourcePatch: 'hw5.qtz',
+    bundleId: 'com.feverdream.vortex.saver',
+    zipFile: 'Vortex.zip',
+  },
+  {
+    slug: 'shatter',
+    name: 'Shatter',
+    sourcePatch: 'viz28.qtz',
+    bundleId: 'com.feverdream.shatter.saver',
+    zipFile: 'Shatter.zip',
+  },
 ];
