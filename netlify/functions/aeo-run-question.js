@@ -64,7 +64,10 @@ export default async (req, context) => {
       // under it so a slow question fails via our own clean JSON error
       // instead of racing Netlify's raw 504. The frontend treats a timeout
       // as a soft per-question failure and keeps the rest of the run going.
-      { timeoutMs: 20_000 }
+      // 24s, not 20s: even at max_uses 1, a single web search regularly
+      // takes close to 20s end to end (confirmed live), so the old margin
+      // was cutting off runs that would have finished a few seconds later.
+      { timeoutMs: 24_000 }
     );
   } catch (err) {
     return jsonResponse({ error: err.message }, err.status || 502);

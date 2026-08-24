@@ -277,6 +277,9 @@ export default function AeoChecker() {
     setPhase('analyzing');
     try {
       const list = live.map((q) => resultsRef.current.get(q.id)).filter((r): r is QuestionResult => !!r && !r.error);
+      if (list.length === 0) {
+        throw new Error('Every question timed out during web search — this is usually transient. Try running the check again.');
+      }
       const res = await fetch('/api/aeo-analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -408,14 +411,14 @@ export default function AeoChecker() {
             type="text"
             value={company}
             onChange={(e) => setCompany(e.target.value)}
-            placeholder="Gong"
+            placeholder="Company Name"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-purple-400/50"
           />
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="gong.io (optional — enables the technical audit)"
+            placeholder="company.com (optional — enables the technical audit)"
             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white placeholder-gray-600 focus:outline-none focus:border-purple-400/50"
           />
           <button
