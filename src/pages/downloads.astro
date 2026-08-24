@@ -15,10 +15,6 @@ const steps = [
     title: 'It installs itself',
     body: 'Double-clicking installs it to ~/Library/Screen Savers and opens System Settings straight to the Screen Saver pane with it already selected.',
   },
-  {
-    title: 'Grant the audio permission',
-    body: 'The first time it runs, macOS will ask to let it record system audio — that\'s how it reacts to whatever\'s playing out of your speakers. Allow it, or the visual just sits static.',
-  },
 ];
 ---
 
@@ -43,12 +39,12 @@ const steps = [
       </div>
 
       <!-- Photosensitivity warning -->
-      <div class="flex gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-12">
-        <svg class="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="flex flex-col items-center gap-2 text-center bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-12">
+        <svg class="w-5 h-5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
         </svg>
         <p class="text-sm text-amber-200/90 leading-relaxed">
-          <strong class="font-medium text-amber-100">Photosensitivity warning:</strong> these audio-reactive
+          <strong class="font-medium text-amber-100">Photosensitivity warning:</strong> these
           patterns include rapid flashing, strobing, and high-contrast pulsing — especially Bloom and Hypno.
           If you or anyone in your household has photosensitive epilepsy or a seizure disorder, use caution
           or skip these.
@@ -74,7 +70,6 @@ const steps = [
             <div class="flex flex-wrap gap-2 mb-4">
               <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Swift</span>
               <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Metal</span>
-              <span class="px-2 py-1 bg-white/10 text-gray-300 text-xs rounded">Core Audio</span>
             </div>
             <a
               href={`/downloads/${entry.zipFile}`}
@@ -133,17 +128,6 @@ const steps = [
         >
           View source on GitHub &rarr;
         </a>
-      </div>
-
-      <!-- Troubleshooting -->
-      <div class="bg-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8">
-        <h2 class="text-xl font-light text-white mb-4">Troubleshooting</h2>
-        <p class="text-gray-400 text-sm leading-relaxed">
-          Denied the audio permission by accident, or the visual is just sitting static? Reset it
-          with <code class="text-gray-300">tccutil reset AudioCapture &lt;bundle-id&gt;</code> (each
-          screen saver's bundle ID is <code class="text-gray-300">com.feverdream.&lt;name&gt;.saver</code>,
-          lowercase) and you'll be prompted again next time it runs.
-        </p>
       </div>
 
     </div>

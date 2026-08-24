@@ -165,16 +165,6 @@ const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
             </svg>
           </a>
 
-          <!-- Design System Link -->
-          <a
-            href="/storybook"
-            class={`text-sm transition-colors ${
-              isActive('/storybook') ? 'text-white font-medium' : 'text-gray-500 hover:text-white'
-            }`}
-          >
-            Design Sys
-          </a>
-
           <!-- Resume Download Link -->
           <a
             href="/Ryan_Clayton_Resume.pdf"
@@ -218,6 +208,15 @@ const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
           title="GitHub"
         >
           <i class="fab fa-github text-lg"></i>
+        </a>
+        <a
+          href="/storybook"
+          class="hidden md:inline-flex text-gray-400 hover:text-white transition-colors"
+          title="Storybook"
+        >
+          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12 4c-2-1.5-5-2-8-2v16c3 0 6 .5 8 2 2-1.5 5-2 8-2V2c-3 0-6 .5-8 2z"/>
+          </svg>
         </a>
         <a
           href="https://www.upwork.com/freelancers/~0121b06b0b5825c7a0?viewMode=1"
@@ -313,14 +312,6 @@ const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
         </svg>
       </a>
 
-      <!-- Design System Link (Mobile) -->
-      <a
-        href="/storybook"
-        class="block px-3 py-2 text-sm text-gray-500 hover:text-white"
-      >
-        Design Sys
-      </a>
-
       <!-- Resume Download Link (Mobile) -->
       <a
         href="/Ryan_Clayton_Resume.pdf"
@@ -360,6 +351,15 @@ const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
             title="GitHub"
           >
             <i class="fab fa-github text-xl"></i>
+          </a>
+          <a
+            href="/storybook"
+            class="text-gray-400 hover:text-white"
+            title="Storybook"
+          >
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 4c-2-1.5-5-2-8-2v16c3 0 6 .5 8 2 2-1.5 5-2 8-2V2c-3 0-6 .5-8 2z"/>
+            </svg>
           </a>
           <a
             href="https://www.upwork.com/freelancers/~0121b06b0b5825c7a0?viewMode=1"
