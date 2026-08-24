@@ -106,13 +106,17 @@ export default defineConfig({
           changeOrigin: true,
           secure: true,
         },
-        // Proxy API calls to your deployed site
-        // Temporarily disabled for local testing
-        // '/api': {
-        //   target: 'https://ryanclayton.io',
-        //   changeOrigin: true,
-        //   secure: true,
-        // }
+        // Proxy API calls to your deployed site — same pattern as
+        // /.netlify/functions above. Without this, every component that
+        // fetches /api/* (AeoChecker, stack-audit, the Claude chat, etc.)
+        // 404s against Astro's own router under plain `npm run dev`, since
+        // that never runs the Netlify Functions or applies netlify.toml's
+        // redirects the way `netlify dev` does.
+        '/api': {
+          target: 'https://ryanclayton.io',
+          changeOrigin: true,
+          secure: true,
+        }
       }
     }
   },
