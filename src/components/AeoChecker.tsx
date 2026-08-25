@@ -60,7 +60,7 @@ interface Analysis {
 
 // 'audit' is the fast tier: a technical site audit with no LLM involved,
 // shown immediately after submit. Everything from 'generating' on is the
-// slow tier (real web searches via Claude) — an explicit follow-on action
+// slow tier (real web searches via Perplexity) — an explicit follow-on action
 // from 'audit', not bundled into the same blocking request.
 type Phase = 'input' | 'audit' | 'generating' | 'review' | 'running' | 'analyzing' | 'done' | 'error';
 
@@ -401,7 +401,7 @@ export default function AeoChecker() {
         <h1 className="text-3xl lg:text-4xl font-light text-white mb-2">What do AI answer engines say about you?</h1>
         <p className="text-gray-400 font-light">
           Enter a company and site. You'll get a fast technical audit right away — then, if you want it, a deeper
-          check of how you actually show up when Claude searches the web and answers real buyer questions.
+          check of how you actually show up when Perplexity searches the web and answers real buyer questions.
         </p>
       </div>
 
@@ -444,7 +444,7 @@ export default function AeoChecker() {
               Check how you show up in AI answers →
             </button>
             <p className="text-xs text-gray-600 mt-3">
-              This part is slower — real web searches against Claude, not a lookup. Usually well under a minute.
+              This part is slower — real web searches against Perplexity, not a lookup. Usually well under a minute.
             </p>
           </div>
         </div>
