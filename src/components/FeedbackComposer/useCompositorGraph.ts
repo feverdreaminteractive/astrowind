@@ -11,7 +11,7 @@ import {
 } from '@xyflow/react';
 import { getNodeDef, defaultParamsForDef, type RegistryKey } from './registry/nodeRegistry';
 import type { RenderGraph } from './engine/types';
-import type { PatchGraphNode } from './nodes/patchTypes';
+import { DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT, type PatchGraphNode } from './nodes/patchTypes';
 import { PRESETS } from './presets';
 
 // "Video echo" loads by default so the page is already doing something the
@@ -114,15 +114,17 @@ export function useCompositorGraph() {
         // hidden under the node added after it).
         const base = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
         const index = getNodes().length;
-        const step = 48;
+        const step = 40;
         const col = index % 6;
         const row = Math.floor(index / 6);
-        position = { x: base.x + col * step * 3, y: base.y + col * step + row * 220 };
+        position = { x: base.x + col * step * 3, y: base.y + col * step + row * 200 };
       }
       const newNode: PatchGraphNode = {
         id: crypto.randomUUID(),
         type: registryKey,
         position,
+        width: DEFAULT_NODE_WIDTH,
+        height: DEFAULT_NODE_HEIGHT,
         data: { registryKey, params: defaultParamsForDef(def) },
       };
       setNodes((nds) => [...nds, newNode]);

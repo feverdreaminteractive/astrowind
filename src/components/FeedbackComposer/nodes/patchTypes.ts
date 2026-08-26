@@ -7,3 +7,8 @@ export interface PatchNodeData extends Record<string, unknown> {
 }
 
 export type PatchGraphNode = Node<PatchNodeData, RegistryKey>;
+
+// Compact by default -- NodeResizer lets a node grow from here when its
+// thumbnail or param list needs more room.
+export const DEFAULT_NODE_WIDTH = 220;
+export const DEFAULT_NODE_HEIGHT = 200;

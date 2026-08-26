@@ -1,5 +1,5 @@
 import type { Edge } from '@xyflow/react';
-import type { PatchGraphNode } from './nodes/patchTypes';
+import { DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT, type PatchGraphNode } from './nodes/patchTypes';
 import { defaultParamsForDef, getNodeDef } from './registry/nodeRegistry';
 
 export interface Preset {
@@ -15,6 +15,8 @@ function node(id: string, registryKey: string, x: number, y: number, params: Rec
     id,
     type: registryKey as PatchGraphNode['type'],
     position: { x, y },
+    width: DEFAULT_NODE_WIDTH,
+    height: DEFAULT_NODE_HEIGHT,
     data: { registryKey: registryKey as PatchGraphNode['data']['registryKey'], params: { ...defaultParamsForDef(def), ...params } },
   };
 }
