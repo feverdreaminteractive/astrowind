@@ -32,7 +32,7 @@ const initialEdges: Edge[] = DEFAULT_PRESET.edges;
 export function useCompositorGraph() {
   const [nodes, setNodes, onNodesChange] = useNodesState<PatchGraphNode>(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  const { getNodes, getEdges, screenToFlowPosition } = useReactFlow<PatchGraphNode>();
+  const { getNodes, getEdges, screenToFlowPosition, setCenter, getZoom } = useReactFlow<PatchGraphNode>();
 
   const signature = useMemo(() => {
     const nodeSig = nodes
@@ -125,11 +125,20 @@ export function useCompositorGraph() {
         position,
         width: DEFAULT_NODE_WIDTH,
         height: DEFAULT_NODE_HEIGHT,
+        selected: true,
         data: { registryKey, params: defaultParamsForDef(def) },
       };
-      setNodes((nds) => [...nds, newNode]);
+      // Select it (shows the fuchsia ring + resize handles) and pan the
+      // viewport to it -- a cascaded sidebar-add can easily land outside the
+      // current view, and a node that appears with no visible change reads
+      // as "nothing happened" rather than "a node was added".
+      setNodes((nds) => [...nds.map((n) => ({ ...n, selected: false })), newNode]);
+      void setCenter(position.x + DEFAULT_NODE_WIDTH / 2, position.y + DEFAULT_NODE_HEIGHT / 2, {
+        zoom: getZoom(),
+        duration: 400,
+      });
     },
-    [screenToFlowPosition, setNodes, getNodes]
+    [screenToFlowPosition, setNodes, getNodes, setCenter, getZoom]
   );
 
   // Cmd+D duplicate. Not built into React Flow; a plain keydown listener

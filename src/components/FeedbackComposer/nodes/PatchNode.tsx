@@ -25,7 +25,7 @@ export default function PatchNode({ id, data, selected }: NodeProps<PatchGraphNo
 
   useEffect(() => {
     const canvas = thumbRef.current;
-    if (!canvas || def.category === 'output') return;
+    if (!canvas) return;
     engine.registerThumbnailCanvas(id, canvas);
     return () => engine.unregisterThumbnailCanvas(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -69,17 +69,15 @@ export default function PatchNode({ id, data, selected }: NodeProps<PatchGraphNo
           )}
         </div>
 
-        {def.category !== 'output' && (
-          <div className="min-h-0 flex-1 px-2.5 pt-1.5">
-            <canvas
-              ref={thumbRef}
-              width={200}
-              height={100}
-              className="h-full w-full rounded-md bg-black object-cover"
-              style={{ transform: 'scaleY(-1)' }}
-            />
-          </div>
-        )}
+        <div className="min-h-0 flex-1 px-2.5 pt-1.5">
+          <canvas
+            ref={thumbRef}
+            width={200}
+            height={100}
+            className="h-full w-full rounded-md bg-black object-cover"
+            style={{ transform: 'scaleY(-1)' }}
+          />
+        </div>
 
         {/* Bounded to a share of the card's height (not shrink-0 / natural
             content height) so a param-heavy node like Feedback scrolls

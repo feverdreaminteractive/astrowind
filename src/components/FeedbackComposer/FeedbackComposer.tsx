@@ -150,6 +150,7 @@ function FeedbackComposerRoot() {
               }}
               onPaneClick={() => setContextMenu(null)}
               fitView
+              fitViewOptions={{ padding: 0.35 }}
             >
               <Background color="#333" gap={24} />
               <Controls />

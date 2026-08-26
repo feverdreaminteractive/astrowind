@@ -261,10 +261,14 @@ export class CompositorEngine {
     return null;
   }
 
-  private getOutputFbo(runtime: NodeRuntime | undefined): Fbo | null {
+  // The Output node itself has no FBO -- it renders straight to the visible
+  // canvas -- so its thumbnail source is the canvas backbuffer instead
+  // (preserveDrawingBuffer:true keeps it readable after the draw call).
+  private getOutputFbo(runtime: NodeRuntime | undefined): Fbo | 'canvas' | null {
     if (!runtime) return null;
     if (runtime.kind === 'feedback') return runtime.buffers[runtime.activeIndex];
     if (runtime.kind === 'effect' || runtime.kind === 'source') return runtime.fbo;
+    if (runtime.kind === 'output') return 'canvas';
     return null;
   }
 
@@ -365,7 +369,7 @@ export class CompositorEngine {
 
   private updateThumbnails() {
     if (this.performMode) return;
-    const ids = Array.from(this.nodeRuntimes.keys()).filter((id) => this.nodeRuntimes.get(id)?.kind !== 'output');
+    const ids = Array.from(this.nodeRuntimes.keys());
     if (ids.length === 0) return;
     const perTick = 2;
     for (let i = 0; i < perTick; i++) {
@@ -380,13 +384,15 @@ export class CompositorEngine {
     const runtime = this.nodeRuntimes.get(id);
     const canvasEl = this.thumbnailCanvases.get(id);
     if (!runtime || !canvasEl) return;
-    const sourceFbo = this.getOutputFbo(runtime);
-    if (!sourceFbo) return;
+    const source = this.getOutputFbo(runtime);
+    if (!source) return;
 
     const gl = this.gl;
-    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, sourceFbo.framebuffer);
+    const srcWidth = source === 'canvas' ? this.canvas.width : source.width;
+    const srcHeight = source === 'canvas' ? this.canvas.height : source.height;
+    gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source === 'canvas' ? null : source.framebuffer);
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.thumbFbo.framebuffer);
-    gl.blitFramebuffer(0, 0, sourceFbo.width, sourceFbo.height, 0, 0, THUMB_WIDTH, THUMB_HEIGHT, gl.COLOR_BUFFER_BIT, gl.LINEAR);
+    gl.blitFramebuffer(0, 0, srcWidth, srcHeight, 0, 0, THUMB_WIDTH, THUMB_HEIGHT, gl.COLOR_BUFFER_BIT, gl.LINEAR);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.thumbFbo.framebuffer);
     const pixels = new Uint8ClampedArray(THUMB_WIDTH * THUMB_HEIGHT * 4);
