@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import FeedbackComposer from '../components/FeedbackComposer/FeedbackComposer';
+---
+
+<Layout title="Feedback | Ryan Clayton" description="A node-based visual composer for feedback-loop video effects, built with WebGL2." showNavigation={true}>
+  <main class="h-screen bg-black relative overflow-hidden pt-16">
+    <div class="h-full">
+      <FeedbackComposer client:only="react" />
+    </div>
+  </main>
+</Layout>

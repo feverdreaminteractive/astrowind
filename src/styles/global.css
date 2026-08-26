@@ -242,3 +242,16 @@ h1, h2, h3, h4, h5, h6, .font-primary {
     @apply font-sans;
 	}
 }
+
+/* Loaded after Tailwind v4's own imports to avoid cascade-layer conflicts. */
+@import "@xyflow/react/dist/style.css";
+
+/* Feedback composer: cable "signal flow" animation, CSS-driven so it costs nothing per frame. */
+@keyframes feedback-patch-edge-dash {
+	to {
+		stroke-dashoffset: -20;
+	}
+}
+.feedback-patch-edge-flow {
+	animation: feedback-patch-edge-dash 1s linear infinite;
+}
