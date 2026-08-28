@@ -14,12 +14,11 @@ import type { RenderGraph } from './engine/types';
 import { DEFAULT_NODE_WIDTH, DEFAULT_NODE_HEIGHT, type PatchGraphNode } from './nodes/patchTypes';
 import { PRESETS } from './presets';
 
-// "Video echo" loads by default so the page is already doing something the
-// instant you land on it. This does mean the Webcam node's getUserMedia call
-// fires on page load rather than only on explicit add -- a deliberate,
-// informed exception to the usual "permission only when the node is added"
-// rule, made because this IS the default landing state now.
-const DEFAULT_PRESET = PRESETS.find((p) => p.id === 'video-echo')!;
+// "Video loop" loads by default so the page is already doing something the
+// instant you land on it, using a bundled clip (bootstrap-loaded into the
+// 'vid' node by FeedbackComposer.tsx) rather than Webcam -- no permission
+// prompt needed for the default landing state.
+const DEFAULT_PRESET = PRESETS.find((p) => p.id === 'video-loop')!;
 const initialNodes: PatchGraphNode[] = DEFAULT_PRESET.nodes;
 const initialEdges: Edge[] = DEFAULT_PRESET.edges;
 

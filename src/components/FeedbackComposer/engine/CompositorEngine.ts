@@ -28,6 +28,7 @@ interface SourceRuntime extends BaseRuntime {
   sourceWidth: number;
   sourceHeight: number;
   videoEl?: HTMLVideoElement;
+  videoObjectUrl?: string;
   stream?: MediaStream;
   imageBitmap?: ImageBitmap;
 }
@@ -144,7 +145,7 @@ export class CompositorEngine {
       this.nodeRuntimes.set(node.id, { id: node.id, registryKey: node.registryKey, params, kind: 'output' });
       return;
     }
-    if (def.sourceKind === 'image' || def.sourceKind === 'webcam') {
+    if (def.sourceKind === 'image' || def.sourceKind === 'webcam' || def.sourceKind === 'video') {
       const fbo = this.fboPool.createFbo(this.internalWidth, this.internalHeight);
       const runtime: SourceRuntime = {
         id: node.id,
@@ -160,7 +161,8 @@ export class CompositorEngine {
       this.nodeRuntimes.set(node.id, runtime);
       // getUserMedia fires exactly here -- structurally impossible to reach
       // before the node exists, which is what satisfies "ask permission only
-      // when the node is added, never on page load".
+      // when the node is added, never on page load". Video, like Image, just
+      // sits blank (falls back to the black texture) until a file is chosen.
       if (def.sourceKind === 'webcam') void this.startWebcam(runtime);
       return;
     }
@@ -179,6 +181,7 @@ export class CompositorEngine {
     } else if (runtime.kind === 'source') {
       this.fboPool.destroyFbo(runtime.fbo);
       if (runtime.sourceKind === 'webcam') this.stopWebcam(runtime);
+      if (runtime.sourceKind === 'video') this.stopVideo(runtime);
       if (runtime.sourceTexture) this.gl.deleteTexture(runtime.sourceTexture);
       runtime.imageBitmap?.close();
     }
@@ -230,16 +233,19 @@ export class CompositorEngine {
     if (this.lastFrameTime && now - this.lastFrameTime < 1000 / this.targetFps) return;
     this.lastFrameTime = now;
     this.time = (now - this.startTime) / 1000;
-    this.updateWebcamTextures();
+    this.updateVideoTextures();
     this.renderGraph();
     this.updateThumbnails();
   };
 
-  private updateWebcamTextures() {
+  // Covers both Webcam and Video sources -- both are just a live <video>
+  // element (a MediaStream vs. a loaded file) that needs its current frame
+  // re-uploaded to a texture every tick.
+  private updateVideoTextures() {
     const gl = this.gl;
     for (const runtime of this.nodeRuntimes.values()) {
-      if (runtime.kind !== 'source' || runtime.sourceKind !== 'webcam') continue;
-      if (!runtime.videoEl || !runtime.sourceTexture || runtime.videoEl.readyState < 2) continue;
+      if (runtime.kind !== 'source' || !runtime.videoEl) continue;
+      if (!runtime.sourceTexture || runtime.videoEl.readyState < 2) continue;
       gl.bindTexture(gl.TEXTURE_2D, runtime.sourceTexture);
       gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, runtime.videoEl);
       runtime.sourceWidth = runtime.videoEl.videoWidth || 1;
@@ -390,9 +396,32 @@ export class CompositorEngine {
     const gl = this.gl;
     const srcWidth = source === 'canvas' ? this.canvas.width : source.width;
     const srcHeight = source === 'canvas' ? this.canvas.height : source.height;
+
+    // Letterbox the blit into the fixed 200x100 (2:1) thumbnail texture
+    // instead of stretching to fill it -- the internal canvas resolution
+    // isn't always 2:1 (e.g. a portrait video's default landing preset), and
+    // a straight blit across mismatched aspects squishes the thumbnail.
+    const srcAspect = srcWidth / Math.max(srcHeight, 1);
+    const thumbAspect = THUMB_WIDTH / THUMB_HEIGHT;
+    let dx0 = 0;
+    let dy0 = 0;
+    let dx1 = THUMB_WIDTH;
+    let dy1 = THUMB_HEIGHT;
+    if (srcAspect > thumbAspect) {
+      const h = THUMB_WIDTH / srcAspect;
+      dy0 = Math.round((THUMB_HEIGHT - h) / 2);
+      dy1 = Math.round(dy0 + h);
+    } else {
+      const w = THUMB_HEIGHT * srcAspect;
+      dx0 = Math.round((THUMB_WIDTH - w) / 2);
+      dx1 = Math.round(dx0 + w);
+    }
+
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, source === 'canvas' ? null : source.framebuffer);
     gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this.thumbFbo.framebuffer);
-    gl.blitFramebuffer(0, 0, srcWidth, srcHeight, 0, 0, THUMB_WIDTH, THUMB_HEIGHT, gl.COLOR_BUFFER_BIT, gl.LINEAR);
+    gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT); // clear the letterbox bars so stale content doesn't linger there
+    gl.blitFramebuffer(0, 0, srcWidth, srcHeight, dx0, dy0, dx1, dy1, gl.COLOR_BUFFER_BIT, gl.LINEAR);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, this.thumbFbo.framebuffer);
     const pixels = new Uint8ClampedArray(THUMB_WIDTH * THUMB_HEIGHT * 4);
@@ -428,10 +457,21 @@ export class CompositorEngine {
     runtime.sourceHeight = bitmap.height;
   }
 
+  // A <video> that's never inserted into the document can leave play()'s
+  // returned promise permanently pending in some browsers/automation
+  // contexts (neither resolves nor rejects) -- so every video element the
+  // engine drives gets attached, just invisible, rather than fully detached.
+  private createHiddenVideoElement(): HTMLVideoElement {
+    const video = document.createElement('video');
+    video.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;opacity:0;pointer-events:none;';
+    document.body.appendChild(video);
+    return video;
+  }
+
   private async startWebcam(runtime: SourceRuntime) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
-      const video = document.createElement('video');
+      const video = this.createHiddenVideoElement();
       video.srcObject = stream;
       video.muted = true;
       video.playsInline = true;
@@ -454,6 +494,59 @@ export class CompositorEngine {
   private stopWebcam(runtime: SourceRuntime) {
     runtime.stream?.getTracks().forEach((track) => track.stop());
     runtime.videoEl?.pause();
+    runtime.videoEl?.remove();
+  }
+
+  loadVideo(nodeId: string, file: File) {
+    const url = URL.createObjectURL(file);
+    this.setVideoSource(nodeId, url, url);
+  }
+
+  // For the bundled default clip -- a static /public URL that must never be
+  // revoked (unlike the object URLs loadVideo() creates per uploaded file).
+  loadVideoFromUrl(nodeId: string, url: string) {
+    this.setVideoSource(nodeId, url, undefined);
+  }
+
+  // Not async, deliberately: some browsers/automation contexts never settle
+  // play()'s returned promise even though playback proceeds fine, so the
+  // runtime is wired up immediately and play() is fired off separately.
+  // updateVideoTextures() already polls videoEl.readyState every frame
+  // regardless -- correctness can't depend on that promise ever resolving.
+  private setVideoSource(nodeId: string, src: string, objectUrlToRevoke: string | undefined) {
+    const runtime = this.nodeRuntimes.get(nodeId);
+    if (!runtime || runtime.kind !== 'source') return;
+    this.stopVideo(runtime); // release any previously loaded file's object URL first
+
+    const video = this.createHiddenVideoElement();
+    video.muted = true; // required for autoplay in every browser, and there's no audio graph to route sound into anyway
+    video.loop = true;
+    video.playsInline = true;
+    video.src = src;
+    void video.play().catch(() => {});
+
+    runtime.videoEl = video;
+    runtime.videoObjectUrl = objectUrlToRevoke;
+
+    const gl = this.gl;
+    if (!runtime.sourceTexture) {
+      runtime.sourceTexture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, runtime.sourceTexture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    }
+  }
+
+  private stopVideo(runtime: SourceRuntime) {
+    runtime.videoEl?.pause();
+    runtime.videoEl?.remove();
+    if (runtime.videoObjectUrl) {
+      URL.revokeObjectURL(runtime.videoObjectUrl);
+      runtime.videoObjectUrl = undefined;
+    }
+    runtime.videoEl = undefined;
   }
 
   // ---- feedback reset -----------------------------------------------------

@@ -61,4 +61,22 @@ export const PRESETS: Preset[] = [
     ],
     edges: [edge('e1', 'cam', 'out', 'fb', 'in'), edge('e2', 'fb', 'out', 'out', 'in')],
   },
+  {
+    // The default landing preset (see useCompositorGraph.ts) -- node id
+    // 'vid' is bootstrap-loaded with the bundled default clip from
+    // FeedbackComposer.tsx, so don't rename it without updating that too.
+    id: 'video-loop',
+    label: 'Video loop',
+    nodes: [
+      node('vid', 'video', 0, 60),
+      node('fb', 'feedback', 340, -60, { decay: 1.0, zoom: 1.1, rotate: 0.4, offsetX: 0.04, offsetY: 0.01, mix: 0.42 }),
+      node('ca', 'chromaticAberration', 680, -20, { amount: 20, angle: 251 }),
+      node('out', 'output', 1020, 100),
+    ],
+    edges: [
+      edge('e1', 'vid', 'out', 'fb', 'in'),
+      edge('e2', 'fb', 'out', 'ca', 'in'),
+      edge('e3', 'ca', 'out', 'out', 'in'),
+    ],
+  },
 ];

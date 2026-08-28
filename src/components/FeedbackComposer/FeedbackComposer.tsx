@@ -40,6 +40,14 @@ function FeedbackComposerRoot() {
     if (engine) engine.update(renderGraph);
   }, [engine, renderGraph]);
 
+  // Bootstrap the default landing preset's Video node with the bundled clip.
+  // Must run after the effect above so the 'vid' node runtime already exists
+  // (declaration order = commit order for effects sharing the `engine` dep).
+  useEffect(() => {
+    if (!engine) return;
+    void engine.loadVideoFromUrl('vid', '/vibe-designer-default.mp4');
+  }, [engine]);
+
   useEffect(() => {
     const canvasEl = canvasRef.current;
     if (!engine || !canvasEl) return;
@@ -150,17 +158,21 @@ function FeedbackComposerRoot() {
               }}
               onPaneClick={() => setContextMenu(null)}
               fitView
-              fitViewOptions={{ padding: 0.35 }}
+              // Fixed px padding (not a uniform fraction) so nodes never fit
+              // in behind the floating sidebar (top-left, ~252px) or preview
+              // panel (top-right, ~396px) -- a fractional padding shrinks in
+              // absolute pixels on smaller viewports and lets those fixed-size
+              // overlays cover the graph's edge nodes.
+              fitViewOptions={{ padding: { top: '80px', left: '270px', right: '410px', bottom: '40px' } }}
             >
               <Background color="#333" gap={24} />
               <Controls />
               <MiniMap pannable zoomable />
             </ReactFlow>
 
-            <div className="pointer-events-none absolute left-3 top-3 z-20">
-              <PaletteSidebar hasOutput={hasOutput} onAdd={(key) => handleAdd(key)} />
-            </div>
+            <PaletteSidebar hasOutput={hasOutput} onAdd={(key) => handleAdd(key)} />
 
+            {/* Toolbar (record/screenshot/presets/resolution/etc.) hidden for now -- bring back by un-commenting.
             <div className="pointer-events-none absolute left-1/2 top-3 z-20 -translate-x-1/2">
               <Toolbar
                 isRecording={isRecording}
@@ -177,6 +189,7 @@ function FeedbackComposerRoot() {
                 onTogglePerformMode={() => handleSetPerformMode(!performMode)}
               />
             </div>
+            */}
 
             {contextMenu && (
               <PaletteContextMenu

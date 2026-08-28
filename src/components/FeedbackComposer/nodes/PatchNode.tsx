@@ -18,6 +18,12 @@ const CATEGORY_ACCENT: Record<NodeCategory, string> = {
 
 export default function PatchNode({ id, data, selected }: NodeProps<PatchGraphNode>) {
   const def = getNodeDef(data.registryKey);
+  // Only Sources and Output get a live thumbnail -- every intermediate
+  // effect/feedback/blend node still renders every frame (the graph needs
+  // its FBO regardless), it just doesn't also pay for a canvas readback
+  // nobody's looking at; params get the full card height instead.
+  const hasThumbnail = def.category === 'source' || def.category === 'output';
+  const visibleParams = def.params.filter((param) => !param.hidden);
   const engine = useEngine();
   const { updateNodeData } = useReactFlow();
   const thumbRef = useRef<HTMLCanvasElement>(null);
@@ -35,8 +41,10 @@ export default function PatchNode({ id, data, selected }: NodeProps<PatchGraphNo
     updateNodeData(id, { params: { ...data.params, [key]: value } });
   };
 
-  const handleImageFile = (file: File | undefined) => {
-    if (file) void engine.loadImage(id, file);
+  const handleSourceFile = (file: File | undefined) => {
+    if (!file) return;
+    if (def.sourceKind === 'video') void engine.loadVideo(id, file);
+    else void engine.loadImage(id, file);
   };
 
   return (
@@ -69,29 +77,32 @@ export default function PatchNode({ id, data, selected }: NodeProps<PatchGraphNo
           )}
         </div>
 
-        <div className="min-h-0 flex-1 px-2.5 pt-1.5">
-          <canvas
-            ref={thumbRef}
-            width={200}
-            height={100}
-            className="h-full w-full rounded-md bg-black object-cover"
-            style={{ transform: 'scaleY(-1)' }}
-          />
-        </div>
+        {hasThumbnail && (
+          <div className="min-h-0 flex-1 px-2.5 pt-1.5">
+            <canvas
+              ref={thumbRef}
+              width={200}
+              height={100}
+              className="h-full w-full rounded-md bg-black object-cover"
+              style={{ transform: 'scaleY(-1)' }}
+            />
+          </div>
+        )}
 
         {/* Bounded to a share of the card's height (not shrink-0 / natural
             content height) so a param-heavy node like Feedback scrolls
             internally instead of silently overflowing past the card's
-            (resizable, often compact) fixed height. */}
-        <div className="max-h-[45%] shrink-0 overflow-y-auto">
-          {def.sourceKind === 'image' && (
+            (resizable, often compact) fixed height. Nodes with no thumbnail
+            above them get the full remaining height instead. */}
+        <div className={hasThumbnail ? 'max-h-[45%] shrink-0 overflow-y-auto' : 'min-h-0 flex-1 overflow-y-auto'}>
+          {(def.sourceKind === 'image' || def.sourceKind === 'video') && (
             <div className="px-2.5 pt-1.5">
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/*"
+                accept={def.sourceKind === 'video' ? 'video/*' : 'image/*'}
                 className="hidden"
-                onChange={(e) => handleImageFile(e.target.files?.[0])}
+                onChange={(e) => handleSourceFile(e.target.files?.[0])}
               />
               <Button
                 variant="outline"
@@ -99,14 +110,14 @@ export default function PatchNode({ id, data, selected }: NodeProps<PatchGraphNo
                 className="nodrag w-full"
                 onClick={() => fileInputRef.current?.click()}
               >
-                Choose image…
+                {def.sourceKind === 'video' ? 'Choose video…' : 'Choose image…'}
               </Button>
             </div>
           )}
 
-          {def.params.length > 0 && (
+          {visibleParams.length > 0 && (
             <div className="flex flex-col gap-1 px-2.5 py-1.5">
-              {def.params.map((param) => (
+              {visibleParams.map((param) => (
                 <ParamControl
                   key={param.key}
                   param={param}

@@ -1,15 +1,20 @@
 import { fragmentShader } from './common';
 
-// Image and Webcam both work the same way at the shader level: the engine
-// uploads an external texture (an <img>/ImageBitmap or a <video> frame) to
-// `u_source` every frame, and this shader just crop-to-fills ("cover", never
-// letterbox -- black bars would get sucked permanently into a downstream
-// feedback loop) it into the node's own aspect ratio.
+// Image, Webcam, and Video all work the same way at the shader level: the
+// engine uploads an external texture (an <img>/ImageBitmap or a <video>
+// frame) to `u_source` every frame, and this shader fits it into the node's
+// own aspect ratio -- either "cover" (crop to fill, the default; keeps black
+// bars from ever getting sucked into a downstream feedback loop) or
+// "contain" (letterbox/pillarbox so the whole source is always visible, at
+// the cost of black bars that a Feedback node downstream WILL accumulate).
+// Contain reuses the existing out-of-[0,1] -> black fallback below by simply
+// pushing the opposite axis out of range instead of narrowing the same one.
 export const SOURCE_FIT_FRAGMENT_SHADER = fragmentShader(
   `
 uniform sampler2D u_source;
 uniform vec2 u_sourceResolution;
-uniform float u_mirrorX; // 1.0 for webcam (natural "looking in a mirror" feel), 0.0 for image
+uniform float u_mirrorX; // 1.0 for webcam (natural "looking in a mirror" feel), 0.0 otherwise
+uniform int u_fit;       // 0 = cover, 1 = contain
 `,
   `
 void main() {
@@ -18,12 +23,23 @@ void main() {
 
   vec2 uv = v_uv;
   uv.x = mix(uv.x, 1.0 - uv.x, u_mirrorX);
-  if (srcAspect > dstAspect) {
-    float scale = dstAspect / srcAspect;
-    uv.x = (uv.x - 0.5) * scale + 0.5;
+
+  if (u_fit == 1) {
+    if (srcAspect > dstAspect) {
+      float scale = srcAspect / dstAspect;
+      uv.y = (uv.y - 0.5) * scale + 0.5;
+    } else {
+      float scale = dstAspect / srcAspect;
+      uv.x = (uv.x - 0.5) * scale + 0.5;
+    }
   } else {
-    float scale = srcAspect / dstAspect;
-    uv.y = (uv.y - 0.5) * scale + 0.5;
+    if (srcAspect > dstAspect) {
+      float scale = dstAspect / srcAspect;
+      uv.x = (uv.x - 0.5) * scale + 0.5;
+    } else {
+      float scale = srcAspect / dstAspect;
+      uv.y = (uv.y - 0.5) * scale + 0.5;
+    }
   }
 
   if (uv.x < 0.0 || uv.x > 1.0 || uv.y < 0.0 || uv.y > 1.0) {
@@ -95,6 +111,22 @@ void main() {
     color = patternNoise(v_uv, t);
   }
   outColor = vec4(color, 1.0);
+}
+`
+);
+
+// Flat solid-color fill -- no color-picker param type exists yet, so RGB is
+// exposed as three plain 0-1 float sliders like everything else. Handy as a
+// blend operand or a matte background under transparent-ish chains.
+export const COLOR_FRAGMENT_SHADER = fragmentShader(
+  `
+uniform float u_r;
+uniform float u_g;
+uniform float u_b;
+`,
+  `
+void main() {
+  outColor = vec4(clamp(u_r, 0.0, 1.0), clamp(u_g, 0.0, 1.0), clamp(u_b, 0.0, 1.0), 1.0);
 }
 `
 );
