@@ -5,14 +5,19 @@
 // pt-16/pt-20 offset (tuned for the nav alone) doesn't need to change.
 // Dismissing collapses --banner-h to 0, which snaps the nav back to the
 // top and closes the reserved gap in the same instant.
+//
+// Height is measured (ResizeObserver), not a fixed h-10 -- this copy wraps
+// to 2-3 lines on narrow phones, and a fixed height let that overflow spill
+// over the nav below it. Never hardcode the height again; let content size it.
 const DISMISS_KEY = 'feverdream-announcement-dismissed-v1';
 ---
 
-<div id="announcement-banner" class="fixed inset-x-0 top-0 z-[10000] h-10 bg-gradient-to-r from-purple-600 to-blue-600">
-  <div class="mx-auto flex h-full max-w-7xl items-center justify-center gap-2 px-4 text-center text-sm text-white sm:px-6 lg:px-8">
-    <span class="flex items-center justify-center gap-2">
-      <img src="/favicon.svg" alt="" class="size-4" />
-      <strong class="font-medium">Fever.Dream</strong> is now free — real-time, audio-reactive camera effects, right on your phone.
+<div id="announcement-banner" class="fixed inset-x-0 top-0 z-[10000] bg-gradient-to-r from-purple-600 to-blue-600 py-2">
+  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-2 gap-y-1 px-9 text-center text-sm text-white sm:px-6 lg:px-8">
+    <span class="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
+      <img src="/favicon.svg" alt="" class="size-4 shrink-0" />
+      <strong class="font-medium">Fever.Dream</strong> is now free.
+      <span class="hidden sm:inline">Real-time, audio-reactive camera effects, right on your phone.</span>
     </span>
     <a
       href="https://apps.apple.com/us/app/fever-dream/id6754286952"
@@ -27,14 +32,14 @@ const DISMISS_KEY = 'feverdream-announcement-dismissed-v1';
     id="announcement-dismiss"
     type="button"
     aria-label="Dismiss announcement"
-    class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-white/80 hover:bg-white/10 hover:text-white"
+    class="absolute right-2 top-2 rounded p-1 text-white/80 hover:bg-white/10 hover:text-white"
   >
     <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
     </svg>
   </button>
 </div>
-<div id="announcement-spacer" class="h-10"></div>
+<div id="announcement-spacer" style="height: 2.5rem;"></div>
 
 <style>
   :root {
@@ -54,9 +59,20 @@ const DISMISS_KEY = 'feverdream-announcement-dismissed-v1';
     spacer?.remove();
   }
 
+  function syncHeight() {
+    if (!banner) return;
+    const h = banner.offsetHeight;
+    document.documentElement.style.setProperty('--banner-h', `${h}px`);
+    if (spacer) spacer.style.height = `${h}px`;
+  }
+
   if (localStorage.getItem(DISMISS_KEY) === '1') {
     dismiss();
   } else {
     dismissBtn?.addEventListener('click', dismiss);
+    if (banner) {
+      syncHeight();
+      new ResizeObserver(syncHeight).observe(banner);
+    }
   }
 </script>
