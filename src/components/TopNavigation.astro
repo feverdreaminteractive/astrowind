@@ -52,6 +52,11 @@ const aiTools = [
 const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
 ---
 
+<div
+  id="ai-menu-backdrop"
+  class="fixed inset-0 z-[9990] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200"
+></div>
+
 <header id="site-header" class="fixed left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-b border-white/10 transition-[top] duration-200" style="top: var(--banner-h, 0px); pointer-events: auto;">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
@@ -450,18 +455,22 @@ const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
     const panel = document.getElementById('ai-menu-panel');
     const button = document.getElementById('ai-menu-button');
     const chevron = document.getElementById('ai-menu-chevron');
+    const backdrop = document.getElementById('ai-menu-backdrop');
     if (panel) panel.classList.remove('hidden');
     if (button) button.setAttribute('aria-expanded', 'true');
     if (chevron) chevron.classList.add('rotate-180');
+    if (backdrop) backdrop.classList.remove('opacity-0', 'pointer-events-none');
   }
 
   function closeAiMenu() {
     const panel = document.getElementById('ai-menu-panel');
     const button = document.getElementById('ai-menu-button');
     const chevron = document.getElementById('ai-menu-chevron');
+    const backdrop = document.getElementById('ai-menu-backdrop');
     if (panel) panel.classList.add('hidden');
     if (button) button.setAttribute('aria-expanded', 'false');
     if (chevron) chevron.classList.remove('rotate-180');
+    if (backdrop) backdrop.classList.add('opacity-0', 'pointer-events-none');
   }
 
   function scheduleCloseAiMenu() {
