@@ -2,10 +2,9 @@ import { useRef } from 'react';
 import { Move } from 'lucide-react';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { NODE_REGISTRY, REGISTRY_KEYS, type NodeCategory, type RegistryKey } from './registry/nodeRegistry';
-import { useDraggablePosition } from './useDraggablePosition';
+import { useDraggablePosition, getNavClearance } from './useDraggablePosition';
 
 const SIDEBAR_MARGIN = 12; // matches the old static left-3 top-3 (0.75rem)
-const NAV_CLEARANCE = 64; // TopNavigation.astro's fixed h-16 header, z-[9999] -- sits above this panel
 
 const CATEGORY_LABEL: Record<NodeCategory, string> = {
   source: 'Sources',
@@ -76,8 +75,8 @@ export function PaletteSidebar({ hasOutput, onAdd }: PaletteSidebarProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const { position, dragHandleProps } = useDraggablePosition(
     panelRef,
-    () => ({ left: SIDEBAR_MARGIN, top: NAV_CLEARANCE + SIDEBAR_MARGIN }),
-    NAV_CLEARANCE
+    () => ({ left: SIDEBAR_MARGIN, top: getNavClearance() + SIDEBAR_MARGIN }),
+    getNavClearance()
   );
 
   return (

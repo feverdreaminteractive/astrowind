@@ -1,5 +1,6 @@
 import { useRef, useState, type PointerEvent, type RefObject } from 'react';
 import { Move } from 'lucide-react';
+import { getNavClearance } from './useDraggablePosition';
 
 interface PreviewPanelProps {
   canvasRef: RefObject<HTMLCanvasElement | null>;
@@ -11,7 +12,6 @@ const MIN_HEIGHT = 135;
 const MAX_WIDTH = 960;
 const MAX_HEIGHT = 720;
 const MARGIN = 16;
-const NAV_CLEARANCE = 64; // TopNavigation.astro's fixed h-16 header, z-[9999] -- sits above this panel
 // This canvas IS the one and only render surface (the patch editor behind it
 // is just the node graph, not the composited output), so its box shape is
 // literally the destination aspect ratio the fit shaders crop/letterbox
@@ -34,7 +34,7 @@ export default function PreviewPanel({ canvasRef, performMode }: PreviewPanelPro
   const [size, setSize] = useState(DEFAULT_SIZE);
   const [position, setPosition] = useState(() => ({
     left: window.innerWidth - MARGIN - DEFAULT_SIZE.width,
-    top: NAV_CLEARANCE + MARGIN,
+    top: getNavClearance() + MARGIN,
   }));
   const resizeState = useRef<{
     startX: number;
@@ -70,7 +70,7 @@ export default function PreviewPanel({ canvasRef, performMode }: PreviewPanelPro
     setSize({ width, height });
     setPosition({
       left: start.startLeft - (width - start.startWidth),
-      top: clamp(start.startTop - (height - start.startHeight), NAV_CLEARANCE, window.innerHeight - height),
+      top: clamp(start.startTop - (height - start.startHeight), getNavClearance(), window.innerHeight - height),
     });
   };
 
@@ -89,7 +89,7 @@ export default function PreviewPanel({ canvasRef, performMode }: PreviewPanelPro
     const start = moveState.current;
     if (!start) return;
     const left = clamp(start.startLeft + (e.clientX - start.startX), 0, window.innerWidth - size.width);
-    const top = clamp(start.startTop + (e.clientY - start.startY), NAV_CLEARANCE, window.innerHeight - size.height);
+    const top = clamp(start.startTop + (e.clientY - start.startY), getNavClearance(), window.innerHeight - size.height);
     setPosition({ left, top });
   };
 

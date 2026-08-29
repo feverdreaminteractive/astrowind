@@ -52,7 +52,7 @@ const aiTools = [
 const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
 ---
 
-<header class="fixed top-0 left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-b border-white/10" style="pointer-events: auto;">
+<header id="site-header" class="fixed left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-b border-white/10 transition-[top] duration-200" style="top: var(--banner-h, 0px); pointer-events: auto;">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <!-- Left: Logo -->
@@ -100,7 +100,7 @@ const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
               isActive('/vibe-designer') ? 'text-white font-medium' : 'text-gray-400 hover:text-white'
             }`}
           >
-            Vibe Designer
+            VibeDesigner
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5,12.0 L13.6,12.7 L13.3,13.4 L12.7,14.0 L11.8,14.4 L10.8,14.3 L9.8,13.8 L9.0,12.9 L8.7,11.6 L9.0,10.2 L9.8,9.0 L11.1,8.1 L12.8,7.9 L14.5,8.3 L15.9,9.5 L16.8,11.2 L16.9,13.3 L16.2,15.3 L14.7,16.9 L12.5,17.7 L10.1,17.7 L7.9,16.7 L6.2,14.7 L5.3,12.2 L5.6,9.5 L7.0,7.0 L9.3,5.2 L12.2,4.4 L15.3,4.9 L18.0,6.7 L19.8,9.5 L20.4,12.8 L19.6,16.2 L17.5,19.1 L14.3,20.9 L10.5,21.3 L6.9,20.1 L3.9,17.5 L2.1,13.9 L2.0,9.8 L3.5,5.8"></path>
             </svg>
@@ -287,7 +287,7 @@ const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
           isActive('/vibe-designer') ? 'text-white font-medium' : 'text-gray-400 hover:text-white'
         }`}
       >
-        Vibe Designer
+        VibeDesigner
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.5,12.0 L13.6,12.7 L13.3,13.4 L12.7,14.0 L11.8,14.4 L10.8,14.3 L9.8,13.8 L9.0,12.9 L8.7,11.6 L9.0,10.2 L9.8,9.0 L11.1,8.1 L12.8,7.9 L14.5,8.3 L15.9,9.5 L16.8,11.2 L16.9,13.3 L16.2,15.3 L14.7,16.9 L12.5,17.7 L10.1,17.7 L7.9,16.7 L6.2,14.7 L5.3,12.2 L5.6,9.5 L7.0,7.0 L9.3,5.2 L12.2,4.4 L15.3,4.9 L18.0,6.7 L19.8,9.5 L20.4,12.8 L19.6,16.2 L17.5,19.1 L14.3,20.9 L10.5,21.3 L6.9,20.1 L3.9,17.5 L2.1,13.9 L2.0,9.8 L3.5,5.8"></path>
         </svg>

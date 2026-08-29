@@ -3,6 +3,7 @@ import "../styles/global.css";
 import BaseHead from "../components/BaseHead.astro";
 import AmbientBackground from "../components/AmbientBackground";
 import DynamicNavigation from "../components/DynamicNavigation.astro";
+import AnnouncementBanner from "../components/AnnouncementBanner.astro";
 import { ViewTransitions } from 'astro:transitions';
 import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
 
@@ -142,6 +143,7 @@ const { title = SITE_TITLE, description = SITE_DESCRIPTION, showNavigation = tru
 		</style>
 	</head>
 	<body>
+		{showNavigation && <AnnouncementBanner />}
 		{showNavigation && <DynamicNavigation />}
 
 		<slot />

@@ -9,6 +9,14 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
+// Reads the site header's own live bottom edge rather than a hardcoded nav
+// height -- stays correct whether the AnnouncementBanner is showing (pushes
+// the header down) or has been dismissed (header snaps back to the top).
+export function getNavClearance(): number {
+  const header = document.getElementById('site-header');
+  return header ? header.getBoundingClientRect().bottom : 64;
+}
+
 /**
  * Drag-to-move position state for a `fixed`-positioned floating panel.
  * Clamps against the panel's own live bounding rect (via `panelRef`) rather

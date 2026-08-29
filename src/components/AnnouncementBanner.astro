@@ -1,0 +1,62 @@
+---
+// Sits above TopNavigation.astro's fixed header (which reads the
+// --banner-h CSS variable this component drives) and reserves an equal
+// amount of normal-flow space right after itself -- so every page's own
+// pt-16/pt-20 offset (tuned for the nav alone) doesn't need to change.
+// Dismissing collapses --banner-h to 0, which snaps the nav back to the
+// top and closes the reserved gap in the same instant.
+const DISMISS_KEY = 'feverdream-announcement-dismissed-v1';
+---
+
+<div id="announcement-banner" class="fixed inset-x-0 top-0 z-[10000] h-10 bg-gradient-to-r from-purple-600 to-blue-600">
+  <div class="mx-auto flex h-full max-w-7xl items-center justify-center gap-2 px-4 text-center text-sm text-white sm:px-6 lg:px-8">
+    <span class="flex items-center justify-center gap-2">
+      <img src="/favicon.svg" alt="" class="size-4" />
+      <strong class="font-medium">Fever.Dream</strong> is now free — real-time, audio-reactive camera effects, right on your phone.
+    </span>
+    <a
+      href="https://apps.apple.com/us/app/fever-dream/id6754286952"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="whitespace-nowrap font-medium underline underline-offset-2 hover:text-purple-100"
+    >
+      Get it
+    </a>
+  </div>
+  <button
+    id="announcement-dismiss"
+    type="button"
+    aria-label="Dismiss announcement"
+    class="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-white/80 hover:bg-white/10 hover:text-white"
+  >
+    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+  </button>
+</div>
+<div id="announcement-spacer" class="h-10"></div>
+
+<style>
+  :root {
+    --banner-h: 2.5rem;
+  }
+</style>
+
+<script define:vars={{ DISMISS_KEY }}>
+  const banner = document.getElementById('announcement-banner');
+  const spacer = document.getElementById('announcement-spacer');
+  const dismissBtn = document.getElementById('announcement-dismiss');
+
+  function dismiss() {
+    localStorage.setItem(DISMISS_KEY, '1');
+    document.documentElement.style.setProperty('--banner-h', '0px');
+    banner?.remove();
+    spacer?.remove();
+  }
+
+  if (localStorage.getItem(DISMISS_KEY) === '1') {
+    dismiss();
+  } else {
+    dismissBtn?.addEventListener('click', dismiss);
+  }
+</script>
