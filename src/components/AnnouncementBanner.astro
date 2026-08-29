@@ -1,78 +1,90 @@
 ---
-// Sits above TopNavigation.astro's fixed header (which reads the
-// --banner-h CSS variable this component drives) and reserves an equal
-// amount of normal-flow space right after itself -- so every page's own
-// pt-16/pt-20 offset (tuned for the nav alone) doesn't need to change.
-// Dismissing collapses --banner-h to 0, which snaps the nav back to the
-// top and closes the reserved gap in the same instant.
+// Wraps the nav (passed in as a child) in the SAME `fixed` element as this
+// banner, rather than positioning them as two independently-fixed siblings
+// kept in sync via a JS-computed CSS variable -- that setup could visibly
+// drift out of sync (the nav getting covered by the banner, or vice versa),
+// especially around scroll/viewport quirks and Astro's client-side page
+// transitions (inline scripts don't re-run on those without an explicit
+// astro:page-load listener, which this now uses). One fixed box means
+// banner and nav physically cannot disagree about position.
 //
-// Height is measured (ResizeObserver), not a fixed h-10 -- this copy wraps
-// to 2-3 lines on narrow phones, and a fixed height let that overflow spill
-// over the nav below it. Never hardcode the height again; let content size it.
+// Height is measured (ResizeObserver on the whole wrapper), not hardcoded --
+// this copy wraps to 2-3 lines on narrow phones, and a fixed height would
+// let that overflow spill past the reserved space below it.
 const DISMISS_KEY = 'feverdream-announcement-dismissed-v1';
 ---
 
-<div id="announcement-banner" class="fixed inset-x-0 top-0 z-[10000] bg-gradient-to-r from-purple-600 to-blue-600 py-2">
-  <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-2 gap-y-1 px-9 text-center text-sm text-white sm:px-6 lg:px-8">
-    <span class="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
-      <img src="/favicon.svg" alt="" class="size-4 shrink-0" />
-      <strong class="font-medium">Fever.Dream</strong> is now free.
-      <span class="hidden sm:inline">Real-time, audio-reactive camera effects, right on your phone.</span>
-    </span>
-    <a
-      href="https://apps.apple.com/us/app/fever-dream/id6754286952"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="whitespace-nowrap font-medium underline underline-offset-2 hover:text-purple-100"
+<div id="site-header-fixed" class="fixed inset-x-0 top-0 z-[9999]">
+  <div id="announcement-banner" class="relative bg-gradient-to-r from-purple-600 to-blue-600 py-2">
+    <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-center gap-x-2 gap-y-1 px-9 text-center text-sm text-white sm:px-6 lg:px-8">
+      <span class="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-1">
+        <img src="/favicon.svg" alt="" class="size-4 shrink-0" />
+        <strong class="font-medium">Fever.Dream</strong> is now free.
+        <span class="hidden sm:inline">Real-time, audio-reactive camera effects, right on your phone.</span>
+      </span>
+      <a
+        href="https://apps.apple.com/us/app/fever-dream/id6754286952"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="whitespace-nowrap font-medium underline underline-offset-2 hover:text-purple-100"
+      >
+        Get it
+      </a>
+    </div>
+    <button
+      id="announcement-dismiss"
+      type="button"
+      aria-label="Dismiss announcement"
+      class="absolute right-2 top-2 rounded p-1 text-white/80 hover:bg-white/10 hover:text-white"
     >
-      Get it
-    </a>
+      <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
   </div>
-  <button
-    id="announcement-dismiss"
-    type="button"
-    aria-label="Dismiss announcement"
-    class="absolute right-2 top-2 rounded p-1 text-white/80 hover:bg-white/10 hover:text-white"
-  >
-    <svg class="size-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-    </svg>
-  </button>
+  <slot />
 </div>
-<div id="announcement-spacer" style="height: 2.5rem;"></div>
-
-<style>
-  :root {
-    --banner-h: 2.5rem;
-  }
-</style>
+<div id="site-header-spacer" style="height: 6.5rem;"></div>
 
 <script define:vars={{ DISMISS_KEY }}>
-  const banner = document.getElementById('announcement-banner');
-  const spacer = document.getElementById('announcement-spacer');
-  const dismissBtn = document.getElementById('announcement-dismiss');
+  let currentObserver;
 
-  function dismiss() {
-    localStorage.setItem(DISMISS_KEY, '1');
-    document.documentElement.style.setProperty('--banner-h', '0px');
-    banner?.remove();
-    spacer?.remove();
-  }
+  function setupAnnouncementBanner() {
+    currentObserver?.disconnect();
 
-  function syncHeight() {
-    if (!banner) return;
-    const h = banner.offsetHeight;
-    document.documentElement.style.setProperty('--banner-h', `${h}px`);
-    if (spacer) spacer.style.height = `${h}px`;
-  }
+    const wrapper = document.getElementById('site-header-fixed');
+    const banner = document.getElementById('announcement-banner');
+    const spacer = document.getElementById('site-header-spacer');
+    const dismissBtn = document.getElementById('announcement-dismiss');
 
-  if (localStorage.getItem(DISMISS_KEY) === '1') {
-    dismiss();
-  } else {
-    dismissBtn?.addEventListener('click', dismiss);
-    if (banner) {
+    function syncHeight() {
+      if (!wrapper || !spacer) return;
+      spacer.style.height = `${wrapper.offsetHeight}px`;
+    }
+
+    function dismiss() {
+      localStorage.setItem(DISMISS_KEY, '1');
+      banner?.remove();
       syncHeight();
-      new ResizeObserver(syncHeight).observe(banner);
+    }
+
+    if (localStorage.getItem(DISMISS_KEY) === '1') {
+      banner?.remove();
+    } else {
+      dismissBtn?.addEventListener('click', dismiss);
+    }
+
+    syncHeight();
+    if (wrapper) {
+      currentObserver = new ResizeObserver(syncHeight);
+      currentObserver.observe(wrapper);
     }
   }
+
+  setupAnnouncementBanner();
+  // Inline scripts only run once on the initial load, not on subsequent
+  // Astro client-side page transitions -- without this, the ResizeObserver
+  // from the first page would keep watching a wrapper element that's since
+  // been replaced, leaving new pages with a stale/unmeasured spacer height.
+  document.addEventListener('astro:page-load', setupAnnouncementBanner);
 </script>

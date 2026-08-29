@@ -52,12 +52,7 @@ const aiTools = [
 const isAiToolActive = aiTools.some((tool) => isActive(tool.href));
 ---
 
-<div
-  id="ai-menu-backdrop"
-  class="fixed inset-0 z-[9990] bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-200"
-></div>
-
-<header id="site-header" class="fixed left-0 right-0 z-[9999] bg-black/95 backdrop-blur-sm border-b border-white/10 transition-[top] duration-200" style="top: var(--banner-h, 0px); pointer-events: auto;">
+<header id="site-header" class="bg-black/95 backdrop-blur-sm border-b border-white/10" style="pointer-events: auto;">
   <nav class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16">
       <!-- Left: Logo -->
